@@ -300,7 +300,35 @@ PetscErrorCode solve_thermal_3d()
 	PetscFunctionReturn(0);
 	
 }
-
+/*
+air_temperature()
+{
+	ierr = VecZeroEntries(local_Temper);CHKERRQ(ierr);
+	
+	ierr = DMGlobalToLocalBegin(thermal_da,Temper,INSERT_VALUES,local_Temper);
+	ierr = DMGlobalToLocalEnd(thermal_da,Temper,INSERT_VALUES,local_Temper);
+	
+	ierr = DMDAVecGetArray(thermal_da,local_Temper,&tt);CHKERRQ(ierr);
+	
+	PetscInt       sx,sz,mmx,mmz;
+	
+	ierr = DMDAGetCorners(thermal_da,&sx,&sz,NULL,&mmx,&mmz,NULL);CHKERRQ(ierr);
+	
+	PetscReal xx,zz,t_inic;
+	
+	for (k=sz; k<sz+mmz; k++) {
+		for (i=sx; i<sx+mmx; i++) {
+			
+		}
+	}
+	
+	ierr = DMDAVecRestoreArray(thermal_da,local_Temper,&tt);CHKERRQ(ierr);
+	
+	ierr = DMLocalToGlobalBegin(thermal_da,local_Temper,INSERT_VALUES,Temper);CHKERRQ(ierr);
+	ierr = DMLocalToGlobalEnd(thermal_da,local_Temper,INSERT_VALUES,Temper);CHKERRQ(ierr);
+	
+}
+*/
 
 PetscErrorCode destroy_thermal_()
 {

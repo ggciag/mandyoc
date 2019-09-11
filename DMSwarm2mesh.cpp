@@ -253,7 +253,7 @@ PetscErrorCode Swarm2Mesh(){
 	
 	for (k=sz; k<sz+mmz; k++) {
 		for (i=sx; i<sx+mmx; i++) {
-			if (qq_rho[k][i]<100.0){
+			if (qq_rho[k][i]<100.0){ ///air!!! ar!!!
 				TT[k][i]=0.0;
 			}
 		}
