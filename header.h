@@ -218,6 +218,8 @@ Vec Vf_P;
 
 Vec Pressure;
 
+int PRESSURE_INIT;
+
 DM da_Veloc;
 
 KSP V_ksp;

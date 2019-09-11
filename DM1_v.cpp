@@ -347,7 +347,7 @@ PetscErrorCode AssembleF_Veloc(Vec F,DM veloc_da,DM drho_da,Vec FP){
 	Stokes					**pp;
 	
 	
-	PetscInt               M,N,P;
+	PetscInt               M,P;
 	PetscErrorCode         ierr;
 	
 	PetscScalar				Vfe[V_GT],Vfe_P[V_GT],dr[T_NE];

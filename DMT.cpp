@@ -51,6 +51,8 @@ extern Vec geoq_cont,local_geoq_cont;
 
 extern Vec dRho;
 
+extern Vec Pressure;
+
 extern KSP T_ksp;
 
 extern DM da_Thermal;
@@ -131,7 +133,7 @@ PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz
 	montaKeThermal_general(TKe,TMe,TFe);
 	
 	
-	ierr = DMDASetUniformCoordinates(da_Thermal,0.0,Lx,-depth,0.0,NULL,NULL);CHKERRQ(ierr);
+	ierr = DMDASetUniformCoordinates(da_Thermal,0.0,Lx,-depth,0.0,0.0,0.0);CHKERRQ(ierr);
 	
 		
 	/* Generate a matrix with the correct non-zero pattern of type AIJ. This will work in parallel and serial */
@@ -346,6 +348,30 @@ PetscErrorCode write_thermal_(int cont)
 	if (rank==0) printf("Thermal write: %lf\n",Tempo2-Tempo1);
 	
 	PetscFunctionReturn(0);	
+}
+
+PetscErrorCode write_pressure(int cont)
+{
+	int rank;
+	
+	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
+	PetscLogDouble Tempo1,Tempo2;
+	PetscTime(&Tempo1);
+	
+	PetscViewer viewer;
+	
+	char nome[100];
+	
+	sprintf(nome,"Pressure_%d.txt",cont);
+	
+	PetscViewerASCIIOpen(PETSC_COMM_WORLD,nome,&viewer);
+	VecView(Pressure,viewer);
+	PetscViewerDestroy(&viewer);
+	
+	PetscTime(&Tempo2);
+	if (rank==0) printf("Pressure write: %lf\n",Tempo2-Tempo1);
+	
+	PetscFunctionReturn(0);
 }
 
 PetscErrorCode write_geoq_(int cont)

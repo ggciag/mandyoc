@@ -22,6 +22,8 @@ PetscErrorCode destroy_thermal_();
 
 PetscErrorCode write_thermal_(int cont);
 
+PetscErrorCode write_pressure(int cont);
+
 PetscErrorCode write_geoq_(int cont);
 
 PetscErrorCode create_veloc_3d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz);
@@ -128,6 +130,7 @@ int main(int argc,char **args)
 	ierr = write_veloc_3d(tcont);
 	ierr = write_veloc_cond(tcont);
 	ierr = write_thermal_(tcont);
+	ierr = write_pressure(tcont);
 	ierr = write_geoq_(tcont);
 	ierr = write_tempo(tcont);
 	
@@ -169,6 +172,7 @@ int main(int argc,char **args)
 			ierr = write_thermal_(tcont);
 			ierr = write_geoq_(tcont);
 			ierr = write_veloc_3d(tcont);
+			ierr = write_pressure(tcont);
 			ierr = write_tempo(tcont);
 			PetscSNPrintf(prefix,PETSC_MAX_PATH_LEN-1,"step_%d",tcont);
 			if (geoq_on){

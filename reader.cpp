@@ -376,8 +376,8 @@ PetscErrorCode reader(int rank){
 	
 	
 	if (rank==0){
-		printf("%ld %ld %ld\n",Nx,Nz);
-		printf("%lf %lf %lf\n",Lx,depth);
+		printf("%ld %ld\n",Nx,Nz);
+		printf("%lf %lf\n",Lx,depth);
 		printf("%lf\n",beta_max);
 		printf("%lf\n%lf\n",ramp_begin,ramp_end);
 	}
@@ -461,7 +461,7 @@ PetscErrorCode reader(int rank){
 				printf("%e ",inter_geoq[i]);
 			printf("\nRho: ");
 			for (PetscInt i=0;i<n_interfaces+1;i++)
-				printf("%e",inter_rho[i]);
+				printf("%e ",inter_rho[i]);
 			printf("\nH: ");
 			for (PetscInt i=0;i<n_interfaces+1;i++)
 				printf("%e ",inter_H[i]);

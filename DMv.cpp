@@ -43,6 +43,8 @@ PetscErrorCode montafeVeloc(PetscReal *fMe);
 
 PetscErrorCode calc_drho();
 
+PetscErrorCode calc_pressure();
+
 PetscErrorCode write_veloc_3d(int cont);
 
 PetscErrorCode write_veloc_cond(int cont);
@@ -81,6 +83,8 @@ extern Vec zk_vec2;
 extern Vec Veloc_Cond;
 
 extern Vec Pressure;
+
+extern int PRESSURE_INIT;
 
 extern DM da_Veloc;
 extern DM da_Thermal;
@@ -424,6 +428,11 @@ PetscErrorCode build_veloc_3d()
 	ierr = VecReciprocal(Precon);
 	
 	ierr = calc_drho();CHKERRQ(ierr);
+	
+	if (PRESSURE_INIT==0){
+		PRESSURE_INIT=1;
+		ierr = calc_pressure();
+	}
 	
 	ierr = AssembleF_Veloc(Vf,da_Veloc,da_Thermal,Vf_P);CHKERRQ(ierr);
 	if (rank==0) printf("t\n");
