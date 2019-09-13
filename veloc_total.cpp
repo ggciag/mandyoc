@@ -25,7 +25,7 @@ PetscErrorCode veloc_total()
 	
 	VecCopy(Veloc_fut,Veloc);
 	
-	if (tcont==0){
+	/*if (tcont==0){
 		double visc_MAX_aux = visc_MAX;
 		double visc_MIN_aux = visc_MIN;
 		
@@ -43,7 +43,7 @@ PetscErrorCode veloc_total()
 			if (visc_MAX>visc_MAX_aux) visc_MAX = visc_MAX_aux;
 			if (visc_MIN<visc_MIN_aux) visc_MIN = visc_MIN_aux;
 		}
-	}
+	}*/
 	
 	
 	

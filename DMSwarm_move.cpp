@@ -21,7 +21,7 @@ typedef struct {
 
 //PetscErrorCode SwarmViewGP(DM dms,const char prefix[]);
 
-double calc_visco_ponto(double T,double z,double geoq_ponto,double e2_inva,double strain_cumulate,
+double calc_visco_ponto(double T,double x, double z,double geoq_ponto,double e2_inva,double strain_cumulate,
 						double A, double n_exp, double QE, double VE);
 
 extern DM dms;
@@ -221,7 +221,7 @@ PetscErrorCode moveSwarm(PetscReal dt)
 		//strain_fac[p]= PetscSqrtReal(E2_invariant);//!!!! não é o cumulativo! apenas o instantaneo.
 		
 		
-		rarray[p] = calc_visco_ponto(tp,cz,inter_geoq[layer_array[p]],PetscSqrtReal(E2_invariant),strain_fac[p]/*!!!!checar*/,
+		rarray[p] = calc_visco_ponto(tp,cx,cz,inter_geoq[layer_array[p]],PetscSqrtReal(E2_invariant),strain_fac[p]/*!!!!checar*/,
 									 inter_A[layer_array[p]], inter_n[layer_array[p]], inter_Q[layer_array[p]], inter_V[layer_array[p]]);
 		
 		

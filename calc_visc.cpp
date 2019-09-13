@@ -34,7 +34,7 @@ double strain_softening(double strain, double f1, double f2){
 
 
 
-double calc_visco_ponto(double T,double z,double geoq_ponto,double e2_inva,double strain_cumulate,
+double calc_visco_ponto(double T,double x, double z,double geoq_ponto,double e2_inva,double strain_cumulate,
 						double A, double n_exp, double QE, double VE){
 	
 	double visco_real;
