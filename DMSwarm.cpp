@@ -188,7 +188,7 @@ PetscErrorCode SwarmViewGP(DM dms,const char prefix[])
 	ierr = DMSwarmGetField(dms,"rho_fac",NULL,NULL,(void**)&rho_fac);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	for (p=0; p<npoints; p++) {
-		//if (iarray[p]==0)
+		if (iarray[p]>999)
 			fprintf(fp,"%+1.4e %+1.4e %d %d %1.4e %1.4e %1.4e %1.4e\n",
 					array[2*p],array[2*p+1],
 					iarray[p],layer_array[p],(double)geoq_fac[p],
@@ -323,6 +323,9 @@ PetscErrorCode createSwarm()
 		for (p=0; p<nlocal; p++) {
 			//iarray[p] = (PetscInt)rank;
 			iarray[p] = p%particles_per_ele;
+			if (p%particles_per_ele==0){
+				iarray[p] = 1000 + p + 1000000*rank;
+			}
 		}
 		
 		ierr = DMSwarmRestoreField(dms,"itag",&bs,NULL,(void**)&iarray);CHKERRQ(ierr);

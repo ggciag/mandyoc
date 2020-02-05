@@ -268,7 +268,7 @@ DM dmcell;
 
 DM dms;
 
-PetscInt particles_per_ele=9;
+PetscInt particles_per_ele;
 
 PetscInt particles_add_remove;
 

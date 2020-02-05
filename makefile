@@ -1,4 +1,4 @@
-PETSC_DIR=/Users/victorsacek/Documents/petsc_swarm2/
+PETSC_DIR=/Users/victorsacek/Documents/petsc
 PETSC_ARCH=arch-darwin-c-debug
 
 INCFLAGS=-I${PETSC_DIR}/include -I${PETSC_DIR}/${PETSC_ARCH}/include
@@ -10,8 +10,7 @@ include ${PETSC_DIR}/lib/petsc/conf/variables
 include ${PETSC_DIR}/lib/petsc/conf/rules
  
 all: ${OBJECTS} chkopts
-	-${CLINKER} -o _MD2D_5.0_swarm ${OBJECTS} ${PETSC_LIB}
-	cp _MD2D_5.0_swarm /Users/victorsacek/Documents/Gits/MD3D/experimento_2D
+	-${CLINKER} -o _MD2D_5.1_swarm_track ${OBJECTS} ${PETSC_LIB}
 
 %.o: %.cpp
 	mpicc -Wall -fdiagnostics-color -c $< -o $@ ${INCFLAGS}
