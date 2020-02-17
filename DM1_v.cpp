@@ -19,6 +19,9 @@ typedef struct {
 
 extern double Lx, depth;
 
+extern double dt_calor_sec;
+
+extern double gravity;
 
 extern PetscReal *VCe;
 
@@ -178,6 +181,15 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	ierr = DMGlobalToLocalEnd(  temper_da,geoq,INSERT_VALUES,local_geoq);
 	
 	ierr = DMDAVecGetArray(temper_da,local_geoq,&qq);CHKERRQ(ierr);
+
+	PetscScalar 			**rr;
+
+	ierr = VecZeroEntries(local_dRho);CHKERRQ(ierr);
+	
+	ierr = DMGlobalToLocalBegin(temper_da,dRho,INSERT_VALUES,local_dRho);
+	ierr = DMGlobalToLocalEnd(  temper_da,dRho,INSERT_VALUES,local_dRho);
+	
+	ierr = DMDAVecGetArray(temper_da,local_dRho,&rr);CHKERRQ(ierr);
 	
 	
 	
@@ -187,7 +199,7 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	PetscReal volume = dx_const*dz_const;
 	
 	
-	PetscReal geoq_ele[T_NE];
+	PetscReal geoq_ele[T_NE],rho_ele[T_NE];
 	
 	visc_aux_MAX = 1.0E5;
 	visc_aux_MIN = 1.0E50;
@@ -212,6 +224,9 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	}
 	
 	PetscReal visc_meio;
+
+	PetscReal rho_mean_bottom, rho_mean_top;
+	PetscReal traction_bottom,traction_top;
 	
 
 	for (ek = sez; ek < sez+mz; ek++) {
@@ -236,7 +251,7 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 			
 			for (i=0;i<T_NE;i++) geoq_ele[i]=qq[indr[i].j][indr[i].i];
 			
-			
+
 			visc_meio = montaKeVeloc_simplif(Ke_veloc,Ke_veloc_general,geoq_ele);
 			
 			if (print_visc==1 && tcont%print_step==0) {
@@ -244,6 +259,25 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 			}
 			
 			for (i=0;i<V_GT*V_GT;i++) Ke_veloc_final[i]=Ke_veloc[i]*volume;
+
+
+			//stabilization algorithm for geodynamic numerical simulations with free surface (Kaus, 2010)
+			// theta of 0.5
+			for (i=0;i<T_NE;i++) rho_ele[i]=rr[indr[i].j][indr[i].i];
+			//
+			rho_mean_bottom = (rho_ele[0] + rho_ele[1] + rho_ele[2] + rho_ele[3])/4.0; 
+			rho_mean_top =    (rho_ele[0] + rho_ele[1] + rho_ele[2] + rho_ele[3])/4.0;	
+
+			traction_bottom = 0.5*dt_calor_sec*rho_mean_bottom*gravity*dx_const/2.0;
+			traction_top = -0.5*dt_calor_sec*rho_mean_top*gravity*dx_const/2.0;	
+
+			Ke_veloc_final[1*9] +=traction_bottom;
+			Ke_veloc_final[3*9] +=traction_bottom;
+
+			Ke_veloc_final[5*9] +=traction_top;
+			Ke_veloc_final[7*9] +=traction_top;
+
+			/////////////
 			
 			n=0;
 			
@@ -331,6 +365,7 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	//ierr = DMDAVecRestoreArray(temper_da,local_Temper,&tt);CHKERRQ(ierr);
 	ierr = DMDAVecRestoreArray(temper_da,local_geoq,&qq);CHKERRQ(ierr);
 	//ierr = DMDAVecRestoreArray(temper_da,local_geoq_strain,&qq_strain);CHKERRQ(ierr);
+	ierr = DMDAVecRestoreArray(temper_da,local_dRho,&rr);CHKERRQ(ierr);
 	
 	printf("Visc_min = %lg, Visc_max = %lg\n",visc_aux_MIN,visc_aux_MAX);
 	

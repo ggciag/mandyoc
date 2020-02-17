@@ -233,7 +233,7 @@ PetscErrorCode Calc_dt_calor(){
 	//if (ind_v_mod%3==1) dh_v_mod = dy_const;
 	if (ind_v_mod%2==1) dh_v_mod = dz_const; //!!! 2d
 	if (rank==0) printf("dt = %g",(dh_v_mod/max_mod_v)/seg_per_ano);
-	dt_calor = 0.2*(dh_v_mod/max_mod_v)/seg_per_ano;
+	dt_calor = 0.2*(dh_v_mod/max_mod_v)/seg_per_ano/2; ////!!! divide por 20
 	if (dt_calor>dt_MAX) dt_calor=dt_MAX;
 	
 	//dt_calor=1000000.0; /// !!!! apenas teste

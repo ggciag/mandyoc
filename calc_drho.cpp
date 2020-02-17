@@ -79,7 +79,7 @@ PetscErrorCode calc_pressure()
 	
 	//ierr = DMDAVecGetArray(da_Thermal,local_geoq_rho,&qq_rho);CHKERRQ(ierr);
 	
-	PetscInt i,j,k,c,n,g;
+	//PetscInt i,j,k,c,n,g;
 	
 	MatStencil indr[T_NE],ind[V_GT];
 	
