@@ -105,6 +105,8 @@ extern Vec Adiag;
 
 extern Mat VB;
 
+extern PetscInt free_surface_stab;
+
 
 PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	
