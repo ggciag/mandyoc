@@ -384,7 +384,7 @@ PetscErrorCode reader(int rank){
 	
 	
 	
-	if (n_interfaces>0){
+	//!!!x if (n_interfaces>0){
 		PetscCalloc1(Nx*n_interfaces,&interfaces);
 		PetscCalloc1(n_interfaces+1,&inter_geoq);
 		PetscCalloc1(n_interfaces+1,&inter_rho);
@@ -490,7 +490,7 @@ PetscErrorCode reader(int rank){
 		MPI_Bcast(inter_Q,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 		MPI_Bcast(inter_V,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 		
-	}
+	//!!!x }
 	
 	PetscFunctionReturn(0);
 

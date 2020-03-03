@@ -23,6 +23,9 @@ extern double Lx, depth;
 
 extern PetscInt visc_harmonic_mean;
 
+extern PetscScalar *inter_rho;
+extern PetscScalar *inter_H;
+
 
 PetscErrorCode Swarm2Mesh(){
 
@@ -70,16 +73,14 @@ PetscErrorCode Swarm2Mesh(){
 	
 	PetscReal *array;
 	PetscReal *geoq_fac;
-	PetscReal *rho_fac;
-	PetscReal *H_fac;
 	PetscReal *strain_fac;
+	PetscInt *layer_array;
 	
 	ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
 	
 	ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"geoq_fac",NULL,NULL,(void**)&geoq_fac);CHKERRQ(ierr);
-	ierr = DMSwarmGetField(dms,"rho_fac",NULL,NULL,(void**)&rho_fac);CHKERRQ(ierr);
-	ierr = DMSwarmGetField(dms,"H_fac",NULL,NULL,(void**)&H_fac);CHKERRQ(ierr);
+	ierr = DMSwarmGetField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	
 	if (visc_harmonic_mean==1){
@@ -113,29 +114,29 @@ PetscErrorCode Swarm2Mesh(){
 			
 			rfac = (1.0-rx)*(1.0-rz);
 			qq		[k][i] += rfac/geoq_fac[p]; //<--- harmonic
-			qq_rho	[k][i] += rfac*rho_fac[p];
-			qq_H	[k][i] += rfac*H_fac[p];
+			qq_rho	[k][i] += rfac*inter_rho[layer_array[p]];
+			qq_H	[k][i] += rfac*inter_H[layer_array[p]];
 			qq_strain[k][i] += rfac*strain_fac[p];
 			qq_cont	[k][i] += rfac;
 			
 			rfac = (rx)*(1.0-rz);
 			qq		[k][i+1] += rfac/geoq_fac[p]; //<--- harmonic
-			qq_rho	[k][i+1] += rfac*rho_fac[p];
-			qq_H	[k][i+1] += rfac*H_fac[p];
+			qq_rho	[k][i+1] += rfac*inter_rho[layer_array[p]];
+			qq_H	[k][i+1] += rfac*inter_H[layer_array[p]];
 			qq_strain[k][i+1] += rfac*strain_fac[p];
 			qq_cont	[k][i+1] += rfac;
 			
 			rfac = (1.0-rx)*(rz);
 			qq		[k+1][i] += rfac/geoq_fac[p]; //<--- harmonic
-			qq_rho	[k+1][i] += rfac*rho_fac[p];
-			qq_H	[k+1][i] += rfac*H_fac[p];
+			qq_rho	[k+1][i] += rfac*inter_rho[layer_array[p]];
+			qq_H	[k+1][i] += rfac*inter_H[layer_array[p]];
 			qq_strain[k+1][i] += rfac*strain_fac[p];
 			qq_cont	[k+1][i] += rfac;
 			
 			rfac = (rx)*(rz);
 			qq		[k+1][i+1] += rfac/geoq_fac[p]; //<--- harmonic
-			qq_rho	[k+1][i+1] += rfac*rho_fac[p];
-			qq_H	[k+1][i+1] += rfac*H_fac[p];
+			qq_rho	[k+1][i+1] += rfac*inter_rho[layer_array[p]];
+			qq_H	[k+1][i+1] += rfac*inter_H[layer_array[p]];
 			qq_strain[k+1][i+1] += rfac*strain_fac[p];
 			qq_cont	[k+1][i+1] += rfac;
 		}
@@ -167,15 +168,15 @@ PetscErrorCode Swarm2Mesh(){
 			
 			rfac = (1.0-rx)*(1.0-rz);
 			qq		[k][i] += rfac*geoq_fac[p];
-			qq_rho	[k][i] += rfac*rho_fac[p];
-			qq_H	[k][i] += rfac*H_fac[p];
+			qq_rho	[k][i] += rfac*inter_rho[layer_array[p]];
+			qq_H	[k][i] += rfac*inter_H[layer_array[p]];
 			qq_strain[k][i] += rfac*strain_fac[p];
 			qq_cont	[k][i] += rfac;
 			
 			rfac = (rx)*(1.0-rz);
 			qq		[k][i+1] += rfac*geoq_fac[p];
-			qq_rho	[k][i+1] += rfac*rho_fac[p];
-			qq_H	[k][i+1] += rfac*H_fac[p];
+			qq_rho	[k][i+1] += rfac*inter_rho[layer_array[p]];
+			qq_H	[k][i+1] += rfac*inter_H[layer_array[p]];
 			qq_strain[k][i+1] += rfac*strain_fac[p];
 			qq_cont	[k][i+1] += rfac;
 			
@@ -183,15 +184,15 @@ PetscErrorCode Swarm2Mesh(){
 			
 			rfac = (1.0-rx)*(rz);
 			qq		[k+1][i] += rfac*geoq_fac[p];
-			qq_rho	[k+1][i] += rfac*rho_fac[p];
-			qq_H	[k+1][i] += rfac*H_fac[p];
+			qq_rho	[k+1][i] += rfac*inter_rho[layer_array[p]];
+			qq_H	[k+1][i] += rfac*inter_H[layer_array[p]];
 			qq_strain[k+1][i] += rfac*strain_fac[p];
 			qq_cont	[k+1][i] += rfac;
 			
 			rfac = (rx)*(rz);
 			qq		[k+1][i+1] += rfac*geoq_fac[p];
-			qq_rho	[k+1][i+1] += rfac*rho_fac[p];
-			qq_H	[k+1][i+1] += rfac*H_fac[p];
+			qq_rho	[k+1][i+1] += rfac*inter_rho[layer_array[p]];
+			qq_H	[k+1][i+1] += rfac*inter_H[layer_array[p]];
 			qq_strain[k+1][i+1] += rfac*strain_fac[p];
 			qq_cont	[k+1][i+1] += rfac;
 			
@@ -200,8 +201,7 @@ PetscErrorCode Swarm2Mesh(){
 	
 	ierr = DMSwarmRestoreField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"geoq_fac",NULL,NULL,(void**)&geoq_fac);CHKERRQ(ierr);
-	ierr = DMSwarmRestoreField(dms,"rho_fac",NULL,NULL,(void**)&rho_fac);CHKERRQ(ierr);
-	ierr = DMSwarmRestoreField(dms,"H_fac",NULL,NULL,(void**)&H_fac);CHKERRQ(ierr);
+	ierr = DMSwarmRestoreField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	
 	ierr = DMDAVecRestoreArray(da_Thermal,local_geoq,&qq);CHKERRQ(ierr);

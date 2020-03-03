@@ -81,7 +81,7 @@ PetscErrorCode calc_pressure()
 	
 	//PetscInt i,j,k,c,n,g;
 	
-	MatStencil indr[T_NE],ind[V_GT];
+	MatStencil indr[T_NE];
 	
 	int M,P;
 	double xx,zz;

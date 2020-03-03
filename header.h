@@ -278,8 +278,6 @@ PetscInt *p_i;
 
 PetscReal *p_add_coor;
 PetscReal *p_add_r;
-PetscReal *p_add_r_rho;
-PetscReal *p_add_r_H;
 PetscInt *p_add_i;
 PetscInt *p_add_layer;
 PetscReal *p_add_r_strain;
