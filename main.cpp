@@ -104,6 +104,12 @@ int main(int argc,char **args)
 
 	particles_per_ele=81;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-particles_per_ele",&particles_per_ele,NULL);CHKERRQ(ierr);
+
+	free_surface_stab=1;
+	ierr = PetscOptionsGetInt(NULL,NULL,"-free_surface_stab",&free_surface_stab,NULL);CHKERRQ(ierr);
+
+	sub_division_time_step=1.0;
+	ierr = PetscOptionsGetReal(NULL,NULL,"-sub_division_time_step",&sub_division_time_step,NULL);CHKERRQ(ierr);
 	
 	dx_const = Lx/(Nx-1);
 	dz_const = depth/(Nz-1);
@@ -233,7 +239,7 @@ PetscErrorCode Calc_dt_calor(){
 	//if (ind_v_mod%3==1) dh_v_mod = dy_const;
 	if (ind_v_mod%2==1) dh_v_mod = dz_const; //!!! 2d
 	if (rank==0) printf("dt = %g",(dh_v_mod/max_mod_v)/seg_per_ano);
-	dt_calor = 0.2*(dh_v_mod/max_mod_v)/seg_per_ano/2; ////!!! divide por 20
+	dt_calor = 0.1*(dh_v_mod/max_mod_v)/(seg_per_ano*sub_division_time_step);
 	if (dt_calor>dt_MAX) dt_calor=dt_MAX;
 	
 	//dt_calor=1000000.0; /// !!!! apenas teste

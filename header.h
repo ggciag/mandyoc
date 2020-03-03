@@ -286,6 +286,10 @@ PetscReal *p_add_r_strain;
 
 PetscInt cont_particles=0;
 
+PetscInt free_surface_stab;
+
+PetscReal sub_division_time_step;
+
 unsigned int seed;
 
 

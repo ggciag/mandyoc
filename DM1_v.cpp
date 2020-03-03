@@ -263,7 +263,7 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 
 			//stabilization algorithm for geodynamic numerical simulations with free surface (Kaus, 2010)
 			// theta of 0.5
-			for (i=0;i<T_NE;i++) rho_ele[i]=rr[indr[i].j][indr[i].i];
+			/*!!!x for (i=0;i<T_NE;i++) rho_ele[i]=rr[indr[i].j][indr[i].i];
 			//
 			rho_mean_bottom = (rho_ele[0] + rho_ele[1] + rho_ele[2] + rho_ele[3])/4.0; 
 			rho_mean_top =    (rho_ele[0] + rho_ele[1] + rho_ele[2] + rho_ele[3])/4.0;	
@@ -275,7 +275,7 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 			Ke_veloc_final[3*9] +=traction_bottom;
 
 			Ke_veloc_final[5*9] +=traction_top;
-			Ke_veloc_final[7*9] +=traction_top;
+			Ke_veloc_final[7*9] +=traction_top; /*!!!x*/
 
 			/////////////
 			
