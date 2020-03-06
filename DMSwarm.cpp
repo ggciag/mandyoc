@@ -53,6 +53,8 @@ extern PetscReal *p_add_r_strain;
 
 extern unsigned int seed;
 
+extern PetscInt print_step_files;
+
 
 PetscErrorCode _DMLocatePoints_DMDARegular_IS(DM dm,Vec pos,IS *iscell)
 {
@@ -164,7 +166,7 @@ PetscErrorCode SwarmViewGP(DM dms,const char prefix[])
 	PetscInt *layer_array;
 	PetscReal *strain_fac;
 	PetscInt npoints,p,bs;
-	FILE *fp,*fp2;
+	FILE *fp;//,*fp2;
 	char name[PETSC_MAX_PATH_LEN];
 	PetscMPIInt rank;
 	PetscErrorCode ierr;
@@ -172,8 +174,8 @@ PetscErrorCode SwarmViewGP(DM dms,const char prefix[])
 	ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
 	PetscSNPrintf(name,PETSC_MAX_PATH_LEN-1,"%s-rank_new%d.txt",prefix,rank);
 	fp = fopen(name,"w");
-	PetscSNPrintf(name,PETSC_MAX_PATH_LEN-1,"surf_%s-rank_new%d.txt",prefix,rank);
-	fp2 = fopen(name,"w");
+	//PetscSNPrintf(name,PETSC_MAX_PATH_LEN-1,"surf_%s-rank_new%d.txt",prefix,rank);
+	//fp2 = fopen(name,"w");
 	if (!fp) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Cannot open file %s",name);
 	ierr = DMSwarmGetLocalSize(dms,&npoints);CHKERRQ(ierr);
 	printf("npoints = %d\n",npoints);
@@ -186,17 +188,17 @@ PetscErrorCode SwarmViewGP(DM dms,const char prefix[])
 			fprintf(fp,"%+1.4e %+1.4e %d %d %1.4e\n",
 					array[2*p],array[2*p+1],
 					iarray[p],layer_array[p],(double)strain_fac[p]);
-		if ((array[2*p+1]>-105.0E3)&&(array[2*p+1]<-95.0E3))
-			fprintf(fp2,"%+1.4e %+1.4e %d %d %1.4e\n",
-					array[2*p],array[2*p+1],
-					iarray[p],layer_array[p],(double)strain_fac[p]);
+		//if ((array[2*p+1]>-105.0E3)&&(array[2*p+1]<-95.0E3))
+		//	fprintf(fp2,"%+1.4e %+1.4e %d %d %1.4e\n",
+		//			array[2*p],array[2*p+1],
+		//			iarray[p],layer_array[p],(double)strain_fac[p]);
 	}
 	ierr = DMSwarmRestoreField(dms,"itag",NULL,NULL,(void**)&iarray);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"layer",NULL,NULL,(void**)&layer_array);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 	fclose(fp);
-	fclose(fp2);
+	//fclose(fp2);
 	PetscFunctionReturn(0);
 }
 
@@ -398,7 +400,9 @@ PetscErrorCode createSwarm()
 	
 	ierr = DMView(dms,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
 	
-	ierr = SwarmViewGP(dms,"step_0");CHKERRQ(ierr);
+	if (print_step_files==1){
+		ierr = SwarmViewGP(dms,"step_0");CHKERRQ(ierr);
+	}
 	
 	
 	MPI_Barrier(PETSC_COMM_WORLD);

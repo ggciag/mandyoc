@@ -290,6 +290,8 @@ PetscInt free_surface_stab;
 
 PetscReal sub_division_time_step;
 
+PetscInt print_step_files;
+
 unsigned int seed;
 
 

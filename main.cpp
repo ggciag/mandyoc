@@ -110,6 +110,9 @@ int main(int argc,char **args)
 
 	sub_division_time_step=1.0;
 	ierr = PetscOptionsGetReal(NULL,NULL,"-sub_division_time_step",&sub_division_time_step,NULL);CHKERRQ(ierr);
+
+	print_step_files=1;
+	ierr = PetscOptionsGetInt(NULL,NULL,"-print_step_files",&print_step_files,NULL);CHKERRQ(ierr);
 	
 	dx_const = Lx/(Nx-1);
 	dz_const = depth/(Nz-1);
@@ -185,7 +188,9 @@ int main(int argc,char **args)
 			ierr = write_tempo(tcont);
 			PetscSNPrintf(prefix,PETSC_MAX_PATH_LEN-1,"step_%d",tcont);
 			if (geoq_on){
-				ierr = SwarmViewGP(dms,prefix);CHKERRQ(ierr);
+				if (print_step_files==1){
+					ierr = SwarmViewGP(dms,prefix);CHKERRQ(ierr);
+				}
 			}
 		}
 		
