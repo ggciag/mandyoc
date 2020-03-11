@@ -107,6 +107,8 @@ extern Mat VB;
 
 extern PetscInt free_surface_stab;
 
+extern PetscReal theta_FSSA;
+
 
 PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	
@@ -264,15 +266,15 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 
 
 			//stabilization algorithm for geodynamic numerical simulations with free surface (Kaus, 2010)
-			// theta of 0.5
+
 			if (free_surface_stab==1){
 				for (i=0;i<T_NE;i++) rho_ele[i]=rr[indr[i].j][indr[i].i];
 				
 				rho_mean_bottom = (rho_ele[0] + rho_ele[1] + rho_ele[2] + rho_ele[3])/4.0; 
 				rho_mean_top =    (rho_ele[0] + rho_ele[1] + rho_ele[2] + rho_ele[3])/4.0;	
 
-				traction_bottom = 0.5*dt_calor_sec*rho_mean_bottom*gravity*dx_const/2.0;
-				traction_top = -0.5*dt_calor_sec*rho_mean_top*gravity*dx_const/2.0;	
+				traction_bottom = theta_FSSA*dt_calor_sec*rho_mean_bottom*gravity*dx_const/2.0;
+				traction_top = -theta_FSSA*dt_calor_sec*rho_mean_top*gravity*dx_const/2.0;
 
 				Ke_veloc_final[1*9] +=traction_bottom;
 				Ke_veloc_final[3*9] +=traction_bottom;

@@ -113,6 +113,9 @@ int main(int argc,char **args)
 
 	print_step_files=1;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-print_step_files",&print_step_files,NULL);CHKERRQ(ierr);
+
+	theta_FSSA=0.5;
+	ierr = PetscOptionsGetReal(NULL,NULL,"-theta_FSSA",&theta_FSSA,NULL);CHKERRQ(ierr);
 	
 	dx_const = Lx/(Nx-1);
 	dz_const = depth/(Nz-1);

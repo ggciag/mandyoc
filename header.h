@@ -288,6 +288,8 @@ PetscInt cont_particles=0;
 
 PetscInt free_surface_stab;
 
+PetscReal theta_FSSA;
+
 PetscReal sub_division_time_step;
 
 PetscInt print_step_files;
