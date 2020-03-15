@@ -185,7 +185,7 @@ PetscErrorCode SwarmViewGP(DM dms,const char prefix[])
 	ierr = DMSwarmGetField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	for (p=0; p<npoints; p++) {
 		if (iarray[p]>9999)
-			fprintf(fp,"%+1.4e %+1.4e %d %d %1.4e\n",
+			fprintf(fp,"%+1.5e %+1.5e %d %d %1.4e\n",
 					array[2*p],array[2*p+1],
 					iarray[p],layer_array[p],(double)strain_fac[p]);
 		//if ((array[2*p+1]>-105.0E3)&&(array[2*p+1]<-95.0E3))
