@@ -136,6 +136,8 @@ extern double dz_const;
 
 extern Vec Adiag;
 
+extern PetscInt direct_solver;
+
 
 PetscErrorCode create_veloc_3d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 {
@@ -469,9 +471,10 @@ PetscErrorCode solve_veloc_3d()
 	
 	//if (rank==0) printf("k\n");
 	ierr = KSPSetOperators(V_ksp,VA,VA);CHKERRQ(ierr);
-
-	ierr = KSPGetPC(V_ksp,&V_pc);CHKERRQ(ierr);
-	ierr = PCSetType(V_pc,PCLU);CHKERRQ(ierr);
+	if (direct_solver==1){
+		ierr = KSPGetPC(V_ksp,&V_pc);CHKERRQ(ierr);
+		ierr = PCSetType(V_pc,PCLU);CHKERRQ(ierr);
+	}
 
 	//if (rank==0) printf("k\n");
 	ierr = KSPSetFromOptions(V_ksp);CHKERRQ(ierr);

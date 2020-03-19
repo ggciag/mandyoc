@@ -41,6 +41,8 @@ extern PetscScalar *inter_H;
 
 extern PetscInt particles_add_remove;
 
+extern PetscReal particles_perturb_factor;
+
 extern PetscInt *ppp;
 extern PetscInt *p_remove;
 extern PetscInt *p_i;
@@ -212,12 +214,21 @@ PetscErrorCode createSwarm()
 	PetscMPIInt rank;
 	ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
 	
-	PetscInt bs,nlocal,p,cont;
+	PetscInt bs,nlocal,p;
 	
 	PetscReal *array;
 	PetscInt *iarray;
 	PetscInt *layer_array;
 	PetscReal *rarray;
+
+
+	PetscInt nz_part = (int)PetscSqrtReal(particles_per_ele*dz_const/dx_const);
+	PetscInt nx_part = (int)(particles_per_ele/nz_part);
+
+	particles_per_ele = nx_part*nz_part;
+
+
+	PetscPrintf(PETSC_COMM_WORLD,"%d %d %d\n",nx_part,nz_part,particles_per_ele);
 	
 	//PetscRandom rand;
 	
@@ -282,7 +293,7 @@ PetscErrorCode createSwarm()
 		
 		for (p=0; p<nlocal/particles_per_ele; p++) {
 			PetscReal px,pz,rx,rz;
-			
+			/*
 			for (cont=0;cont<particles_per_ele;cont++){
 				
 				//ierr = PetscRandomGetValueReal(rand,&rx);CHKERRQ(ierr);
@@ -298,6 +309,21 @@ PetscErrorCode createSwarm()
 					array[bs*cnt+0] = px;
 					array[bs*cnt+1] = pz;
 					cnt++;
+				}
+			}*/
+
+			for (int contx=0;contx<nx_part;contx++){
+				for (int contz=0;contz<nz_part;contz++){
+					rx = 1.0*(float)rand_r(&seed)/RAND_MAX-0.5;
+					rz = 1.0*(float)rand_r(&seed)/RAND_MAX-0.5;
+
+					px = LA_coors[2*p+0] + (0.5+contx+rx*particles_perturb_factor)*(dx_const/nx_part);
+					pz = LA_coors[2*p+1] + (0.5+contz+rz*particles_perturb_factor)*(dz_const/nz_part);
+					if ((px>=0) && (px<=Lx) && (pz>=-depth) && (pz<=0)) {
+						array[bs*cnt+0] = px;
+						array[bs*cnt+1] = pz;
+						cnt++;
+					}
 				}
 			}
 			

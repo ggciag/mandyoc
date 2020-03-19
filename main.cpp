@@ -105,6 +105,11 @@ int main(int argc,char **args)
 	particles_per_ele=81;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-particles_per_ele",&particles_per_ele,NULL);CHKERRQ(ierr);
 
+	particles_perturb_factor=0.5;
+	ierr = PetscOptionsGetReal(NULL,NULL,"-particles_perturb_factor",&particles_perturb_factor,NULL);CHKERRQ(ierr);
+	if (particles_perturb_factor>1.0) particles_perturb_factor = 1.0;
+	if (particles_perturb_factor<0.0) particles_perturb_factor = 0.0;
+
 	free_surface_stab=1;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-free_surface_stab",&free_surface_stab,NULL);CHKERRQ(ierr);
 
@@ -116,6 +121,9 @@ int main(int argc,char **args)
 
 	theta_FSSA=0.5;
 	ierr = PetscOptionsGetReal(NULL,NULL,"-theta_FSSA",&theta_FSSA,NULL);CHKERRQ(ierr);
+
+	direct_solver=1;
+	ierr = PetscOptionsGetInt(NULL,NULL,"-direct_solver",&direct_solver,NULL);CHKERRQ(ierr);
 	
 	dx_const = Lx/(Nx-1);
 	dz_const = depth/(Nz-1);
@@ -170,7 +178,7 @@ int main(int argc,char **args)
 		ierr = veloc_total(); CHKERRQ(ierr);
 		
 		if (geoq_on){
-			for (PetscInt cont=0, max_cont=10;cont<max_cont; cont++){
+			for (PetscInt cont=0, max_cont=1;cont<max_cont; cont++){
 				double fac = (1.0/max_cont)*(0.5+cont);
 				//PetscPrintf(PETSC_COMM_WORLD,"%f %f\n",fac,(1.0-fac));
 				//        x   ->   y

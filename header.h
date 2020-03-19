@@ -294,6 +294,10 @@ PetscReal sub_division_time_step;
 
 PetscInt print_step_files;
 
+PetscInt direct_solver;
+
+PetscReal particles_perturb_factor;
+
 unsigned int seed;
 
 
