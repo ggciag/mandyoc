@@ -1,4 +1,4 @@
-static char help[] = "S1\n";
+static char help[] = "MANDYOC\n";
 
 /* Contributed by Dave May */
 
@@ -178,7 +178,7 @@ int main(int argc,char **args)
 		ierr = veloc_total(); CHKERRQ(ierr);
 		
 		if (geoq_on){
-			for (PetscInt cont=0, max_cont=1;cont<max_cont; cont++){
+			/*for (PetscInt cont=0, max_cont=1;cont<max_cont; cont++){
 				double fac = (1.0/max_cont)*(0.5+cont);
 				//PetscPrintf(PETSC_COMM_WORLD,"%f %f\n",fac,(1.0-fac));
 				//        x   ->   y
@@ -186,7 +186,9 @@ int main(int argc,char **args)
 				//			y			a		b		x
 				VecAXPBY(Veloc_weight, fac, (1.0-fac),Veloc_fut); //y = a*x + b*y
 				ierr = moveSwarm(dt_calor_sec/max_cont);
-			}
+			}*/
+			VecCopy(Veloc_fut,Veloc_weight);
+			ierr = moveSwarm(dt_calor_sec);
 			Swarm_add_remove();
 			//exit(1);
 		}

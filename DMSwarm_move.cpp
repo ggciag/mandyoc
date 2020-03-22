@@ -68,6 +68,54 @@ extern PetscScalar *inter_n;
 extern PetscScalar *inter_Q;
 extern PetscScalar *inter_V;
 
+
+PetscReal linear_interpolation(PetscReal rx, PetscReal rz,PetscScalar V0, PetscScalar V1, PetscScalar V2, PetscScalar V3){
+	PetscReal rfac,vx;
+	rfac = (1.0-rx)*(1.0-rz);
+	vx = V0 * rfac;
+	
+	rfac = (rx)*(1.0-rz);
+	vx += V1 * rfac;
+	
+	rfac = (1.0-rx)*(rz);
+	vx += V2 * rfac;
+	
+	rfac = (rx)*(rz);
+	vx += V3 * rfac;
+
+	return (vx);
+}
+
+PetscInt get_i(PetscReal cx){
+	PetscInt i = (int)(cx/dx_const);
+	if (i<0 || i>=Nx-1) {printf("estranho i=%d\n",i); exit(1);}
+	if (i==Nx-1) i=Nx-2;
+
+	return i;
+}
+
+PetscInt get_k(PetscReal cz){
+	PetscInt k = (int)((cz+depth)/dz_const);
+	if (k<0 || k>=Nz-1) {printf("estranho k=%d\n",k); exit(1);}
+	if (k==Nz-1) k=Nz-2;
+
+	return k;
+}
+
+PetscReal get_rx(PetscReal cx, PetscInt i){
+	PetscReal rx = (cx-i*dx_const)/dx_const;
+	if (rx<0 || rx>1) {printf("estranho rx=%f\n",rx); exit(1);}
+
+	return rx;
+}
+
+PetscReal get_rz(PetscReal cz, PetscInt k){
+	PetscReal rz = (cz-(-depth+k*dz_const))/dz_const;
+	if (rz<0 || rz>1) {printf("estranho rz=%f\n",rz); exit(1);}
+
+	return rz;
+}
+
 PetscErrorCode moveSwarm(PetscReal dt)
 {
 	PetscErrorCode ierr=0;
@@ -113,55 +161,74 @@ PetscErrorCode moveSwarm(PetscReal dt)
 	
 	for (p=0; p<nlocal; p++) {
 		PetscReal cx,cz,vx,vz,tp;
-		PetscReal rx,rz,rfac;
+
+		PetscReal vxA,vxB,vxC,vxD;
+		PetscReal vzA,vzB,vzC,vzD;
+
+		PetscReal xA,xB,xC,xD;
+		PetscReal zA,zB,zC,zD;
+
+		PetscReal rx,rz;
 		PetscInt i,k;
 		PetscInt ii,kk;
 		
 		PetscReal kx,kz,ex,ez;
+
+		//fourth-order Runge-Kutta scheme
 		
 		cx = array[2*p];
 		cz = array[2*p+1];
-		
-		i = (int)(cx/dx_const);
-		k = (int)((cz+depth)/dz_const);
-		
-		
-		
-		if (i<0 || i>=Nx-1) {printf("estranho i=%d\n",i); exit(1);}
-		if (k<0 || k>=Nz-1) {printf("estranho k=%d\n",k); exit(1);}
-		
-		if (i==Nx-1) i=Nx-2;
-		if (k==Nz-1) k=Nz-2;
-		
-		
-		
-		//VV[k][j][i].u + ;
-		
-		rx = (cx-i*dx_const)/dx_const;
-		rz = (cz-(-depth+k*dz_const))/dz_const;
-		
-		if (rx<0 || rx>1) {printf("estranho rx=%f\n",rx); exit(1);}
-		if (rz<0 || rz>1) {printf("estranho rz=%f\n",rz); exit(1);}
-		
-		rfac = (1.0-rx)*(1.0-rz);
-		vx = VV[k][i].u * rfac;
-		vz = VV[k][i].w * rfac;
-		tp = tt[k][i] * rfac;
-		
-		rfac = (rx)*(1.0-rz);
-		vx += VV[k][i+1].u * rfac;
-		vz += VV[k][i+1].w * rfac;
-		tp += tt[k][i+1] * rfac;
-		
-		rfac = (1.0-rx)*(rz);
-		vx += VV[k+1][i].u * rfac;
-		vz += VV[k+1][i].w * rfac;
-		tp += tt[k+1][i] * rfac;
-		
-		rfac = (rx)*(rz);
-		vx += VV[k+1][i+1].u * rfac;
-		vz += VV[k+1][i+1].w * rfac;
-		tp += tt[k+1][i+1] * rfac;
+		i = get_i(cx);
+		k = get_k(cz);
+		rx = get_rx(cx,i);
+		rz = get_rz(cz,k);
+		xA = cx;
+		zA = cz;
+		vxA = linear_interpolation(rx,rz,VV[k][i].u,VV[k][i+1].u,VV[k+1][i].u,VV[k+1][i+1].u);
+		vzA = linear_interpolation(rx,rz,VV[k][i].w,VV[k][i+1].w,VV[k+1][i].w,VV[k+1][i+1].w);
+
+		xB = xA + vxA*dt/2.0;
+		zB = zA + vzA*dt/2.0;
+		i = get_i(xB);
+		k = get_k(zB);
+		rx = get_rx(xB,i);
+		rz = get_rz(zB,k);
+		vxB = linear_interpolation(rx,rz,VV[k][i].u,VV[k][i+1].u,VV[k+1][i].u,VV[k+1][i+1].u);
+		vzB = linear_interpolation(rx,rz,VV[k][i].w,VV[k][i+1].w,VV[k+1][i].w,VV[k+1][i+1].w);
+
+		xC = xA + vxB*dt/2.0;
+		zC = zA + vzB*dt/2.0;
+		i = get_i(xC);
+		k = get_k(zC);
+		rx = get_rx(xC,i);
+		rz = get_rz(zC,k);
+		vxC = linear_interpolation(rx,rz,VV[k][i].u,VV[k][i+1].u,VV[k+1][i].u,VV[k+1][i+1].u);
+		vzC = linear_interpolation(rx,rz,VV[k][i].w,VV[k][i+1].w,VV[k+1][i].w,VV[k+1][i+1].w);
+
+		xD = xA + vxC*dt;
+		zD = zA + vzC*dt;
+		i = get_i(xD);
+		k = get_k(zD);
+		rx = get_rx(xD,i);
+		rz = get_rz(zD,k);
+		vxD = linear_interpolation(rx,rz,VV[k][i].u,VV[k][i+1].u,VV[k+1][i].u,VV[k+1][i+1].u);
+		vzD = linear_interpolation(rx,rz,VV[k][i].w,VV[k][i+1].w,VV[k+1][i].w,VV[k+1][i+1].w);
+
+		vx = (vxA + 2*vxB + 2*vxC + vxD)/6.0;
+		vz = (vzA + 2*vzB + 2*vzC + vzD)/6.0;
+
+		array[2*p  ] += dt * vx;
+		array[2*p+1] += dt * vz;
+
+		cx = array[2*p];
+		cz = array[2*p+1];
+
+		i = get_i(cx);
+		k = get_k(cz);
+		rx = get_rx(cx,i);
+		rz = get_rz(cz,k);
+
+		tp = linear_interpolation(rx,rz,tt[k][i],tt[k][i+1],tt[k+1][i],tt[k+1][i+1]);
 		
 		///////// strain
 		
@@ -228,8 +295,7 @@ PetscErrorCode moveSwarm(PetscReal dt)
 		//vy = -cz;
 		//vz = cy;
 		
-		array[2*p  ] += dt * vx;
-		array[2*p+1] += dt * vz;
+		
 		
 		
 		

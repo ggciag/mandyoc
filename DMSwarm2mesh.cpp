@@ -22,6 +22,7 @@ extern double dz_const;
 extern double Lx, depth;
 
 extern PetscInt visc_harmonic_mean;
+extern PetscInt visc_const_per_element;
 
 extern PetscScalar *inter_rho;
 extern PetscScalar *inter_H;
@@ -82,127 +83,141 @@ PetscErrorCode Swarm2Mesh(){
 	ierr = DMSwarmGetField(dms,"geoq_fac",NULL,NULL,(void**)&geoq_fac);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
-	
-	if (visc_harmonic_mean==1){
-		for (p=0; p<nlocal; p++) {
-			PetscReal cx,cz;
-			PetscReal rx,rz,rfac;
-			PetscInt i,k;
-			
-			cx = array[2*p];
-			cz = array[2*p+1];
-			
-			i = (int)(cx/dx_const);
-			k = (int)((cz+depth)/dz_const);
-			
-			
-			
-			if (i<0 || i>=Nx-1) {printf("estranho i=%d\n",i); exit(1);}
-			if (k<0 || k>=Nz-1) {printf("estranho k=%d\n",k); exit(1);}
-			
-			if (i==Nx-1) i=Nx-2;
-			if (k==Nz-1) k=Nz-2;
-			
-			rx = (cx-i*dx_const)/dx_const;
-			rz = (cz-(-depth+k*dz_const))/dz_const;
-			
-			if (rx<0 || rx>1) {printf("estranho rx=%f\n",rx); exit(1);}
-			if (rz<0 || rz>1) {printf("estranho rz=%f\n",rz); exit(1);}
-			
-			
-			
-			
-			rfac = (1.0-rx)*(1.0-rz);
-			qq		[k][i] += rfac/geoq_fac[p]; //<--- harmonic
-			qq_rho	[k][i] += rfac*inter_rho[layer_array[p]];
-			qq_H	[k][i] += rfac*inter_H[layer_array[p]];
-			qq_strain[k][i] += rfac*strain_fac[p];
-			qq_cont	[k][i] += rfac;
-			
-			rfac = (rx)*(1.0-rz);
-			qq		[k][i+1] += rfac/geoq_fac[p]; //<--- harmonic
-			qq_rho	[k][i+1] += rfac*inter_rho[layer_array[p]];
-			qq_H	[k][i+1] += rfac*inter_H[layer_array[p]];
-			qq_strain[k][i+1] += rfac*strain_fac[p];
-			qq_cont	[k][i+1] += rfac;
-			
-			rfac = (1.0-rx)*(rz);
-			qq		[k+1][i] += rfac/geoq_fac[p]; //<--- harmonic
-			qq_rho	[k+1][i] += rfac*inter_rho[layer_array[p]];
-			qq_H	[k+1][i] += rfac*inter_H[layer_array[p]];
-			qq_strain[k+1][i] += rfac*strain_fac[p];
-			qq_cont	[k+1][i] += rfac;
-			
-			rfac = (rx)*(rz);
-			qq		[k+1][i+1] += rfac/geoq_fac[p]; //<--- harmonic
-			qq_rho	[k+1][i+1] += rfac*inter_rho[layer_array[p]];
-			qq_H	[k+1][i+1] += rfac*inter_H[layer_array[p]];
-			qq_strain[k+1][i+1] += rfac*strain_fac[p];
-			qq_cont	[k+1][i+1] += rfac;
+
+	for (p=0; p<nlocal; p++) {
+		PetscReal cx,cz;
+		PetscReal rx,rz,rfac;
+		PetscInt i,k;
+		
+		cx = array[2*p];
+		cz = array[2*p+1];
+		
+		i = (int)(cx/dx_const);
+		k = (int)((cz+depth)/dz_const);
+		
+		
+		
+		if (i<0 || i>=Nx-1) {printf("estranho i=%d\n",i); exit(1);}
+		if (k<0 || k>=Nz-1) {printf("estranho k=%d\n",k); exit(1);}
+		
+		if (i==Nx-1) i=Nx-2;
+		if (k==Nz-1) k=Nz-2;
+		
+		rx = (cx-i*dx_const)/dx_const;
+		rz = (cz-(-depth+k*dz_const))/dz_const;
+		
+		if (rx<0 || rx>1) {printf("estranho rx=%f\n",rx); exit(1);}
+		if (rz<0 || rz>1) {printf("estranho rz=%f\n",rz); exit(1);}
+		
+		
+		
+		
+		rfac = (1.0-rx)*(1.0-rz);
+		qq_rho	[k][i] += rfac*inter_rho[layer_array[p]];
+		qq_H	[k][i] += rfac*inter_H[layer_array[p]];
+		qq_strain[k][i] += rfac*strain_fac[p];
+		qq_cont	[k][i] += rfac;
+		
+		rfac = (rx)*(1.0-rz);
+		qq_rho	[k][i+1] += rfac*inter_rho[layer_array[p]];
+		qq_H	[k][i+1] += rfac*inter_H[layer_array[p]];
+		qq_strain[k][i+1] += rfac*strain_fac[p];
+		qq_cont	[k][i+1] += rfac;
+		
+		rfac = (1.0-rx)*(rz);
+		qq_rho	[k+1][i] += rfac*inter_rho[layer_array[p]];
+		qq_H	[k+1][i] += rfac*inter_H[layer_array[p]];
+		qq_strain[k+1][i] += rfac*strain_fac[p];
+		qq_cont	[k+1][i] += rfac;
+		
+		rfac = (rx)*(rz);
+		qq_rho	[k+1][i+1] += rfac*inter_rho[layer_array[p]];
+		qq_H	[k+1][i+1] += rfac*inter_H[layer_array[p]];
+		qq_strain[k+1][i+1] += rfac*strain_fac[p];
+		qq_cont	[k+1][i+1] += rfac;
+	}
+
+	if (visc_const_per_element==0){
+		
+		if (visc_harmonic_mean==1){
+			for (p=0; p<nlocal; p++) {
+				PetscReal cx,cz;
+				PetscReal rx,rz,rfac;
+				PetscInt i,k;
+				
+				cx = array[2*p];
+				cz = array[2*p+1];
+				
+				i = (int)(cx/dx_const);
+				k = (int)((cz+depth)/dz_const);
+				
+				
+				
+				if (i<0 || i>=Nx-1) {printf("estranho i=%d\n",i); exit(1);}
+				if (k<0 || k>=Nz-1) {printf("estranho k=%d\n",k); exit(1);}
+				
+				if (i==Nx-1) i=Nx-2;
+				if (k==Nz-1) k=Nz-2;
+				
+				rx = (cx-i*dx_const)/dx_const;
+				rz = (cz-(-depth+k*dz_const))/dz_const;
+				
+				if (rx<0 || rx>1) {printf("estranho rx=%f\n",rx); exit(1);}
+				if (rz<0 || rz>1) {printf("estranho rz=%f\n",rz); exit(1);}
+				
+				rfac = (1.0-rx)*(1.0-rz);
+				qq		[k][i] += rfac/geoq_fac[p]; //<--- harmonic
+				
+				rfac = (rx)*(1.0-rz);
+				qq		[k][i+1] += rfac/geoq_fac[p]; //<--- harmonic
+				
+				rfac = (1.0-rx)*(rz);
+				qq		[k+1][i] += rfac/geoq_fac[p]; //<--- harmonic
+				
+				rfac = (rx)*(rz);
+				qq		[k+1][i+1] += rfac/geoq_fac[p]; //<--- harmonic
+			}
+		}
+		else{
+			for (p=0; p<nlocal; p++) {
+				PetscReal cx,cz;
+				PetscReal rx,rz,rfac;
+				PetscInt i,k;
+				
+				cx = array[2*p];
+				cz = array[2*p+1];
+				
+				i = (int)(cx/dx_const);
+				k = (int)((cz+depth)/dz_const);
+				
+				if (i<0 || i>=Nx-1) {printf("estranho i=%d\n",i); exit(1);}
+				if (k<0 || k>=Nz-1) {printf("estranho k=%d\n",k); exit(1);}
+				
+				if (i==Nx-1) i=Nx-2;
+				if (k==Nz-1) k=Nz-2;
+				
+				rx = (cx-i*dx_const)/dx_const;
+				rz = (cz-(-depth+k*dz_const))/dz_const;
+				
+				if (rx<0 || rx>1) {printf("estranho rx=%f\n",rx); exit(1);}
+				if (rz<0 || rz>1) {printf("estranho rz=%f\n",rz); exit(1);}
+				
+				
+				rfac = (1.0-rx)*(1.0-rz);
+				qq		[k][i] += rfac*geoq_fac[p];
+				
+				rfac = (rx)*(1.0-rz);
+				qq		[k][i+1] += rfac*geoq_fac[p];
+				
+				rfac = (1.0-rx)*(rz);
+				qq		[k+1][i] += rfac*geoq_fac[p];
+				
+				rfac = (rx)*(rz);
+				qq		[k+1][i+1] += rfac*geoq_fac[p];
+				
+			}
 		}
 	}
-	else{
-		for (p=0; p<nlocal; p++) {
-			PetscReal cx,cz;
-			PetscReal rx,rz,rfac;
-			PetscInt i,k;
-			
-			cx = array[2*p];
-			cz = array[2*p+1];
-			
-			i = (int)(cx/dx_const);
-			k = (int)((cz+depth)/dz_const);
-			
-			if (i<0 || i>=Nx-1) {printf("estranho i=%d\n",i); exit(1);}
-			if (k<0 || k>=Nz-1) {printf("estranho k=%d\n",k); exit(1);}
-			
-			if (i==Nx-1) i=Nx-2;
-			if (k==Nz-1) k=Nz-2;
-			
-			rx = (cx-i*dx_const)/dx_const;
-			rz = (cz-(-depth+k*dz_const))/dz_const;
-			
-			if (rx<0 || rx>1) {printf("estranho rx=%f\n",rx); exit(1);}
-			if (rz<0 || rz>1) {printf("estranho rz=%f\n",rz); exit(1);}
-			
-			
-			rfac = (1.0-rx)*(1.0-rz);
-			qq		[k][i] += rfac*geoq_fac[p];
-			qq_rho	[k][i] += rfac*inter_rho[layer_array[p]];
-			qq_H	[k][i] += rfac*inter_H[layer_array[p]];
-			qq_strain[k][i] += rfac*strain_fac[p];
-			qq_cont	[k][i] += rfac;
-			
-			rfac = (rx)*(1.0-rz);
-			qq		[k][i+1] += rfac*geoq_fac[p];
-			qq_rho	[k][i+1] += rfac*inter_rho[layer_array[p]];
-			qq_H	[k][i+1] += rfac*inter_H[layer_array[p]];
-			qq_strain[k][i+1] += rfac*strain_fac[p];
-			qq_cont	[k][i+1] += rfac;
-			
-			
-			
-			rfac = (1.0-rx)*(rz);
-			qq		[k+1][i] += rfac*geoq_fac[p];
-			qq_rho	[k+1][i] += rfac*inter_rho[layer_array[p]];
-			qq_H	[k+1][i] += rfac*inter_H[layer_array[p]];
-			qq_strain[k+1][i] += rfac*strain_fac[p];
-			qq_cont	[k+1][i] += rfac;
-			
-			rfac = (rx)*(rz);
-			qq		[k+1][i+1] += rfac*geoq_fac[p];
-			qq_rho	[k+1][i+1] += rfac*inter_rho[layer_array[p]];
-			qq_H	[k+1][i+1] += rfac*inter_H[layer_array[p]];
-			qq_strain[k+1][i+1] += rfac*strain_fac[p];
-			qq_cont	[k+1][i+1] += rfac;
-			
-		}
-	}
-	
-	ierr = DMSwarmRestoreField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
-	ierr = DMSwarmRestoreField(dms,"geoq_fac",NULL,NULL,(void**)&geoq_fac);CHKERRQ(ierr);
-	ierr = DMSwarmRestoreField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
-	ierr = DMSwarmRestoreField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	
 	ierr = DMDAVecRestoreArray(da_Thermal,local_geoq,&qq);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalBegin(da_Thermal,local_geoq,ADD_VALUES,geoq);CHKERRQ(ierr);
@@ -232,6 +247,70 @@ PetscErrorCode Swarm2Mesh(){
 	VecPointwiseDivide(geoq_H,geoq_H,geoq_cont);
 	VecPointwiseDivide(geoq_strain,geoq_strain,geoq_cont);
 	//VecPointwiseMax(geoq,geoq,geoqOnes);
+
+	if (visc_const_per_element==1){
+		ierr = VecSet(geoq,0.0);CHKERRQ(ierr);
+		ierr = VecSet(geoq_cont,0.0);CHKERRQ(ierr);
+
+		ierr = DMGlobalToLocalBegin(da_Thermal,geoq,INSERT_VALUES,local_geoq);
+		ierr = DMGlobalToLocalEnd(  da_Thermal,geoq,INSERT_VALUES,local_geoq);
+		ierr = DMDAVecGetArray(da_Thermal,local_geoq,&qq);CHKERRQ(ierr);
+
+		
+		ierr = DMGlobalToLocalBegin(da_Thermal,geoq_cont,INSERT_VALUES,local_geoq_cont);
+		ierr = DMGlobalToLocalEnd(  da_Thermal,geoq_cont,INSERT_VALUES,local_geoq_cont);
+		ierr = DMDAVecGetArray(da_Thermal,local_geoq_cont,&qq_cont);CHKERRQ(ierr);
+		if (visc_harmonic_mean==1){
+			for (p=0; p<nlocal; p++) {
+				PetscReal cx,cz;
+				PetscInt i,k;
+				
+				cx = array[2*p];
+				cz = array[2*p+1];
+				
+				i = (int)(cx/dx_const);
+				k = (int)((cz+depth)/dz_const);
+				
+				qq[k][i] += 1.0/geoq_fac[p];
+				qq_cont[k][i] += 1.0;
+			}
+		}
+		else {
+			for (p=0; p<nlocal; p++) {
+				PetscReal cx,cz;
+				PetscInt i,k;
+				
+				cx = array[2*p];
+				cz = array[2*p+1];
+				
+				i = (int)(cx/dx_const);
+				k = (int)((cz+depth)/dz_const);
+				
+				qq[k][i] += geoq_fac[p];
+				qq_cont[k][i] += 1.0;
+			}
+		}
+
+
+		ierr = DMDAVecRestoreArray(da_Thermal,local_geoq,&qq);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalBegin(da_Thermal,local_geoq,ADD_VALUES,geoq);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalEnd(da_Thermal,local_geoq,ADD_VALUES,geoq);CHKERRQ(ierr);
+		
+		ierr = DMDAVecRestoreArray(da_Thermal,local_geoq_cont,&qq_cont);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalBegin(da_Thermal,local_geoq_cont,ADD_VALUES,geoq_cont);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalEnd(da_Thermal,local_geoq_cont,ADD_VALUES,geoq_cont);CHKERRQ(ierr);
+
+		VecPointwiseDivide(geoq,geoq,geoq_cont);
+		if (visc_harmonic_mean==1) VecReciprocal(geoq); //<--- harmonic
+
+	}
+
+
+	
+	ierr = DMSwarmRestoreField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
+	ierr = DMSwarmRestoreField(dms,"geoq_fac",NULL,NULL,(void**)&geoq_fac);CHKERRQ(ierr);
+	ierr = DMSwarmRestoreField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
+	ierr = DMSwarmRestoreField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	
 	
 	ierr = DMGlobalToLocalBegin(da_Thermal,Temper,INSERT_VALUES,local_Temper);
