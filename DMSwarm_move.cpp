@@ -96,7 +96,7 @@ PetscInt get_i(PetscReal cx){
 
 PetscInt get_k(PetscReal cz){
 	PetscInt k = (int)((cz+depth)/dz_const);
-	if (k<0 || k>=Nz-1) {printf("estranho k=%d\n",k); exit(1);}
+	if (k<0 || k>=Nz-1) {printf("estranho k=%d cz=%lf\n",k,cz); exit(1);}
 	if (k==Nz-1) k=Nz-2;
 
 	return k;
@@ -189,6 +189,11 @@ PetscErrorCode moveSwarm(PetscReal dt)
 
 		xB = xA + vxA*dt/2.0;
 		zB = zA + vzA*dt/2.0;
+		if (xB>Lx || xB<0 || zB>0 || zB<-depth){
+			array[2*p  ] = xB;
+			array[2*p+1] = zB;
+			break;
+		}
 		i = get_i(xB);
 		k = get_k(zB);
 		rx = get_rx(xB,i);
@@ -198,6 +203,11 @@ PetscErrorCode moveSwarm(PetscReal dt)
 
 		xC = xA + vxB*dt/2.0;
 		zC = zA + vzB*dt/2.0;
+		if (xC>Lx || xC<0 || zC>0 || zC<-depth){
+			array[2*p  ] = xC;
+			array[2*p+1] = zC;
+			break;
+		}
 		i = get_i(xC);
 		k = get_k(zC);
 		rx = get_rx(xC,i);
@@ -207,6 +217,11 @@ PetscErrorCode moveSwarm(PetscReal dt)
 
 		xD = xA + vxC*dt;
 		zD = zA + vzC*dt;
+		if (xD>Lx || xD<0 || zD>0 || zD<-depth){
+			array[2*p  ] = xD;
+			array[2*p+1] = zD;
+			break;
+		}
 		i = get_i(xD);
 		k = get_k(zD);
 		rx = get_rx(xD,i);
@@ -220,8 +235,6 @@ PetscErrorCode moveSwarm(PetscReal dt)
 		array[2*p  ] += dt * vx;
 		array[2*p+1] += dt * vz;
 
-		cx = array[2*p];
-		cz = array[2*p+1];
 
 		i = get_i(cx);
 		k = get_k(cz);

@@ -15,7 +15,6 @@ extern double r5p9;
 extern double kappa;
 
 extern double dx_const;
-extern double dy_const;
 extern double dz_const;
 
 extern Vec v_vec;

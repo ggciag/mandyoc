@@ -196,13 +196,6 @@ Vec geoq_strain;
 Vec local_geoq_strain;
 
 
-/////////
-
-PetscReal *N_x_Gauss;
-PetscReal *N_z_Gauss;
-
-/////////
-
 PetscReal denok_min;
 
 PetscInt print_visc;

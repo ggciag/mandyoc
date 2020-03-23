@@ -104,11 +104,7 @@ extern PetscReal *Vfe;
 
 
 extern double dx_const;
-extern double dy_const;
 extern double dz_const;
-
-extern PetscReal *N_x_Gauss;
-extern PetscReal *N_z_Gauss;
 
 
 extern Vec local_V;
@@ -181,9 +177,6 @@ PetscErrorCode create_veloc_3d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 	ierr = PetscCalloc1(V_GT*V_GT*GaussQuad,&Ke_veloc_general); CHKERRQ(ierr);
 	//ierr = PetscCalloc1(V_GT,&Indices_Ke_veloc_I); CHKERRQ(ierr);
 	//ierr = PetscCalloc1(V_GT,&Indices_Ke_veloc_J); CHKERRQ(ierr);
-	
-	ierr = PetscCalloc1(GaussQuad*V_NE,&N_x_Gauss); CHKERRQ(ierr);
-	ierr = PetscCalloc1(GaussQuad*V_NE,&N_z_Gauss); CHKERRQ(ierr);
 	
 	ierr = PetscCalloc1(V_GT,&Vfe); CHKERRQ(ierr);
 	//ierr = PetscCalloc1(V_GT,&Indices_Vfe); CHKERRQ(ierr);
@@ -703,12 +696,9 @@ PetscErrorCode montaKeVeloc_general(PetscReal *KeG, double dx_const, double dz_c
 			cont=0;
 			for (ez=-1.;ez<=1.;ez+=2.){
 				for (ex=-1.;ex<=1.;ex+=2.){
-					//N[cont]=(1+ex*kx)*(1+ey*ky)*(1+ez*kz)/8.0;
+					//N[cont]=(1+ex*kx)*(1+ez*kz)/4.0;
 					N_x[cont]=ex*(1+ez*kz)/2.0/dx_const; //!!! 2d
 					N_z[cont]=(1+ex*kx)*ez/2.0/dz_const; //!!! 2d
-					
-					N_x_Gauss[cont+point*4] = ex*(1+ez*kz)/2.0/dx_const; //!!! 2d
-					N_z_Gauss[cont+point*4] = (1+ex*kx)*ez/2.0/dz_const; //!!! 2d
 					
 					cont++;
 				}
