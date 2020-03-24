@@ -23,4 +23,8 @@ cd ../examples/vanKeken1997/
 ```bash
 sh run.sh
 ```
+* To visualize the evolution of the density structure, run:
+```bash
+ipython rho_imshow.py
+```
 
