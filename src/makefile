@@ -1,5 +1,5 @@
 PETSC_DIR=/Users/victorsacek/Documents/petsc
-PETSC_ARCH=arch-darwin-c-debug
+PETSC_ARCH=arch-label-debug
 
 INCFLAGS=-I${PETSC_DIR}/include -I${PETSC_DIR}/${PETSC_ARCH}/include
 
@@ -10,9 +10,11 @@ include ${PETSC_DIR}/lib/petsc/conf/variables
 include ${PETSC_DIR}/lib/petsc/conf/rules
  
 all: ${OBJECTS} chkopts
-	-${CLINKER} -o _MD2D_5.1_swarm_track ${OBJECTS} ${PETSC_LIB}
+	-${CLINKER} -o mandyoc ${OBJECTS} ${PETSC_LIB}
+	rm *.o
 
 %.o: %.cpp
 	mpicc -Wall -fdiagnostics-color -c $< -o $@ ${INCFLAGS}
+
 
 

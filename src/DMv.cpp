@@ -418,7 +418,7 @@ PetscErrorCode build_veloc_3d()
 	
 	if (rank==0) printf("build VA,Vf\n");
 	ierr = AssembleA_Veloc(VA,VG,da_Veloc,da_Thermal);CHKERRQ(ierr);
-	if (rank==0) printf("t\n");
+	//if (rank==0) printf("t\n");
 	
 	ierr = VecReciprocal(Precon);
 	
@@ -430,7 +430,7 @@ PetscErrorCode build_veloc_3d()
 	}
 	
 	ierr = AssembleF_Veloc(Vf,da_Veloc,da_Thermal,Vf_P);CHKERRQ(ierr);
-	if (rank==0) printf("t\n");
+	//if (rank==0) printf("t\n");
 	
 	
 	PetscTime(&Tempo2p);

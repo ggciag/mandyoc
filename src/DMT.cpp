@@ -257,11 +257,11 @@ PetscErrorCode build_thermal_3d()
 	
 	if (rank==0) printf("build TA,Tf\n");
 	ierr = AssembleA_Thermal(TA,da_Thermal,TKe,TMe,TFe,da_Veloc,Veloc_fut);CHKERRQ(ierr);
-	if (rank==0) printf("t\n");
+	//if (rank==0) printf("t\n");
 	
 	
 	ierr = AssembleF_Thermal(Tf,da_Thermal,TKe,TMe,TFe,da_Veloc,Veloc);CHKERRQ(ierr);
-	if (rank==0) printf("t\n");
+	//if (rank==0) printf("t\n");
 
 	
 	PetscTime(&Tempo2p);
