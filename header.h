@@ -291,6 +291,8 @@ PetscInt direct_solver;
 
 PetscReal particles_perturb_factor;
 
+PetscInt RK4;
+
 unsigned int seed;
 
 

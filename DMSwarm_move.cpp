@@ -68,6 +68,8 @@ extern PetscScalar *inter_n;
 extern PetscScalar *inter_Q;
 extern PetscScalar *inter_V;
 
+extern PetscInt RK4;
+
 
 PetscReal linear_interpolation(PetscReal rx, PetscReal rz,PetscScalar V0, PetscScalar V1, PetscScalar V2, PetscScalar V3){
 	PetscReal rfac,vx;
@@ -174,66 +176,80 @@ PetscErrorCode moveSwarm(PetscReal dt)
 		
 		PetscReal kx,kz,ex,ez;
 
-		//fourth-order Runge-Kutta scheme
-		
-		cx = array[2*p];
-		cz = array[2*p+1];
-		i = get_i(cx);
-		k = get_k(cz);
-		rx = get_rx(cx,i);
-		rz = get_rz(cz,k);
-		xA = cx;
-		zA = cz;
-		vxA = linear_interpolation(rx,rz,VV[k][i].u,VV[k][i+1].u,VV[k+1][i].u,VV[k+1][i+1].u);
-		vzA = linear_interpolation(rx,rz,VV[k][i].w,VV[k][i+1].w,VV[k+1][i].w,VV[k+1][i+1].w);
+		if (RK4==1){
+			//fourth-order Runge-Kutta scheme
+			cx = array[2*p];
+			cz = array[2*p+1];
+			i = get_i(cx);
+			k = get_k(cz);
+			rx = get_rx(cx,i);
+			rz = get_rz(cz,k);
+			xA = cx;
+			zA = cz;
+			vxA = linear_interpolation(rx,rz,VV[k][i].u,VV[k][i+1].u,VV[k+1][i].u,VV[k+1][i+1].u);
+			vzA = linear_interpolation(rx,rz,VV[k][i].w,VV[k][i+1].w,VV[k+1][i].w,VV[k+1][i+1].w);
 
-		xB = xA + vxA*dt/2.0;
-		zB = zA + vzA*dt/2.0;
-		if (xB>Lx || xB<0 || zB>0 || zB<-depth){
-			array[2*p  ] = xB;
-			array[2*p+1] = zB;
-			break;
+			xB = xA + vxA*dt/2.0;
+			zB = zA + vzA*dt/2.0;
+			if (xB>Lx || xB<0 || zB>0 || zB<-depth){
+				array[2*p  ] = xB;
+				array[2*p+1] = zB;
+				break;
+			}
+			i = get_i(xB);
+			k = get_k(zB);
+			rx = get_rx(xB,i);
+			rz = get_rz(zB,k);
+			vxB = linear_interpolation(rx,rz,VV[k][i].u,VV[k][i+1].u,VV[k+1][i].u,VV[k+1][i+1].u);
+			vzB = linear_interpolation(rx,rz,VV[k][i].w,VV[k][i+1].w,VV[k+1][i].w,VV[k+1][i+1].w);
+
+			xC = xA + vxB*dt/2.0;
+			zC = zA + vzB*dt/2.0;
+			if (xC>Lx || xC<0 || zC>0 || zC<-depth){
+				array[2*p  ] = xC;
+				array[2*p+1] = zC;
+				break;
+			}
+			i = get_i(xC);
+			k = get_k(zC);
+			rx = get_rx(xC,i);
+			rz = get_rz(zC,k);
+			vxC = linear_interpolation(rx,rz,VV[k][i].u,VV[k][i+1].u,VV[k+1][i].u,VV[k+1][i+1].u);
+			vzC = linear_interpolation(rx,rz,VV[k][i].w,VV[k][i+1].w,VV[k+1][i].w,VV[k+1][i+1].w);
+
+			xD = xA + vxC*dt;
+			zD = zA + vzC*dt;
+			if (xD>Lx || xD<0 || zD>0 || zD<-depth){
+				array[2*p  ] = xD;
+				array[2*p+1] = zD;
+				break;
+			}
+			i = get_i(xD);
+			k = get_k(zD);
+			rx = get_rx(xD,i);
+			rz = get_rz(zD,k);
+			vxD = linear_interpolation(rx,rz,VV[k][i].u,VV[k][i+1].u,VV[k+1][i].u,VV[k+1][i+1].u);
+			vzD = linear_interpolation(rx,rz,VV[k][i].w,VV[k][i+1].w,VV[k+1][i].w,VV[k+1][i+1].w);
+
+			vx = (vxA + 2*vxB + 2*vxC + vxD)/6.0;
+			vz = (vzA + 2*vzB + 2*vzC + vzD)/6.0;
+
+			array[2*p  ] += dt * vx;
+			array[2*p+1] += dt * vz;
 		}
-		i = get_i(xB);
-		k = get_k(zB);
-		rx = get_rx(xB,i);
-		rz = get_rz(zB,k);
-		vxB = linear_interpolation(rx,rz,VV[k][i].u,VV[k][i+1].u,VV[k+1][i].u,VV[k+1][i+1].u);
-		vzB = linear_interpolation(rx,rz,VV[k][i].w,VV[k][i+1].w,VV[k+1][i].w,VV[k+1][i+1].w);
+		else {
+			cx = array[2*p];
+			cz = array[2*p+1];
+			i = get_i(cx);
+			k = get_k(cz);
+			rx = get_rx(cx,i);
+			rz = get_rz(cz,k);
+			vx = linear_interpolation(rx,rz,VV[k][i].u,VV[k][i+1].u,VV[k+1][i].u,VV[k+1][i+1].u);
+			vz = linear_interpolation(rx,rz,VV[k][i].w,VV[k][i+1].w,VV[k+1][i].w,VV[k+1][i+1].w);
 
-		xC = xA + vxB*dt/2.0;
-		zC = zA + vzB*dt/2.0;
-		if (xC>Lx || xC<0 || zC>0 || zC<-depth){
-			array[2*p  ] = xC;
-			array[2*p+1] = zC;
-			break;
+			array[2*p  ] += dt * vx;
+			array[2*p+1] += dt * vz;
 		}
-		i = get_i(xC);
-		k = get_k(zC);
-		rx = get_rx(xC,i);
-		rz = get_rz(zC,k);
-		vxC = linear_interpolation(rx,rz,VV[k][i].u,VV[k][i+1].u,VV[k+1][i].u,VV[k+1][i+1].u);
-		vzC = linear_interpolation(rx,rz,VV[k][i].w,VV[k][i+1].w,VV[k+1][i].w,VV[k+1][i+1].w);
-
-		xD = xA + vxC*dt;
-		zD = zA + vzC*dt;
-		if (xD>Lx || xD<0 || zD>0 || zD<-depth){
-			array[2*p  ] = xD;
-			array[2*p+1] = zD;
-			break;
-		}
-		i = get_i(xD);
-		k = get_k(zD);
-		rx = get_rx(xD,i);
-		rz = get_rz(zD,k);
-		vxD = linear_interpolation(rx,rz,VV[k][i].u,VV[k][i+1].u,VV[k+1][i].u,VV[k+1][i+1].u);
-		vzD = linear_interpolation(rx,rz,VV[k][i].w,VV[k][i+1].w,VV[k+1][i].w,VV[k+1][i+1].w);
-
-		vx = (vxA + 2*vxB + 2*vxC + vxD)/6.0;
-		vz = (vzA + 2*vzB + 2*vzC + vzD)/6.0;
-
-		array[2*p  ] += dt * vx;
-		array[2*p+1] += dt * vz;
 
 
 		i = get_i(cx);

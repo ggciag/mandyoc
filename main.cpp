@@ -124,6 +124,9 @@ int main(int argc,char **args)
 
 	direct_solver=1;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-direct_solver",&direct_solver,NULL);CHKERRQ(ierr);
+
+	RK4=0;
+	ierr = PetscOptionsGetInt(NULL,NULL,"-RK4",&RK4,NULL);CHKERRQ(ierr);
 	
 	dx_const = Lx/(Nx-1);
 	dz_const = depth/(Nz-1);
@@ -178,18 +181,23 @@ int main(int argc,char **args)
 		ierr = veloc_total(); CHKERRQ(ierr);
 		
 		if (geoq_on){
-			/*for (PetscInt cont=0, max_cont=1;cont<max_cont; cont++){
-				double fac = (1.0/max_cont)*(0.5+cont);
-				//PetscPrintf(PETSC_COMM_WORLD,"%f %f\n",fac,(1.0-fac));
-				//        x   ->   y
-				VecCopy(Veloc,Veloc_weight);
-				//			y			a		b		x
-				VecAXPBY(Veloc_weight, fac, (1.0-fac),Veloc_fut); //y = a*x + b*y
-				ierr = moveSwarm(dt_calor_sec/max_cont);
-			}*/
-			VecCopy(Veloc_fut,Veloc_weight);
-			ierr = moveSwarm(dt_calor_sec);
-			Swarm_add_remove();
+			if (RK4==1){
+				VecCopy(Veloc_fut,Veloc_weight);
+				ierr = moveSwarm(dt_calor_sec);
+				Swarm_add_remove();
+			}
+			else {
+				for (PetscInt cont=0, max_cont=4;cont<max_cont; cont++){
+					double fac = (1.0/max_cont)*(0.5+cont);
+					//PetscPrintf(PETSC_COMM_WORLD,"%f %f\n",fac,(1.0-fac));
+					//        x   ->   y
+					VecCopy(Veloc,Veloc_weight);
+					//			y			a		b		x
+					VecAXPBY(Veloc_weight, fac, (1.0-fac),Veloc_fut); //y = a*x + b*y
+					ierr = moveSwarm(dt_calor_sec/max_cont);
+				}
+			}
+			
 			//exit(1);
 		}
 		
