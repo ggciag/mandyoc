@@ -4,8 +4,8 @@ MANtle DYnamics simulatOr Code
 
 ### Steps to compile the code ###
 
-* [Install PETSc](https://www.mcs.anl.gov/petsc/)
-* Clone the repository
+* [Install PETSc](https://www.mcs.anl.gov/petsc/) (copy the config_LU.sh script in the PETSc folder and run this script)
+* Clone the MANDYOC repository.
 * In the mandyoc/src/ directory, modify the first two lines of the makefile to the appropriate directory for PETSc.
 * Compile the code in the mandyoc/src/ directory:
 ```bash
