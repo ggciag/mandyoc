@@ -2,7 +2,7 @@
 
 MANtle DYnamics simulatOr Code
 
-### Steps to use the code ###
+### Steps to compile the code ###
 
 * [Install PETSc](https://www.mcs.anl.gov/petsc/)
 * Clone the repository
@@ -11,3 +11,16 @@ MANtle DYnamics simulatOr Code
 ```bash
 make all 
 ```
+
+### Steps to run the van Keken et al. (1997) example ###
+* From the src/ folder, copy the executable to the examples/vanKeken1997/  folder:
+```bash
+cp mandyoc ../examples/vanKeken1997/
+cd ../examples/vanKeken1997/
+```
+* Modify the path of the mpirun in run.sh.
+* Run the run.sh script:
+```bash
+sh run.sh
+```
+
