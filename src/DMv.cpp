@@ -469,6 +469,7 @@ PetscErrorCode solve_veloc_3d()
 	if (direct_solver==1){
 		ierr = KSPGetPC(V_ksp,&V_pc);CHKERRQ(ierr);
 		ierr = PCSetType(V_pc,PCLU);CHKERRQ(ierr);
+		PCFactorSetMatSolverType(V_pc,MATSOLVERMUMPS);
 	}
 
 	//if (rank==0) printf("k\n");

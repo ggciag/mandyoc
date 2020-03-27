@@ -184,7 +184,6 @@ int main(int argc,char **args)
 			if (RK4==1){
 				VecCopy(Veloc_fut,Veloc_weight);
 				ierr = moveSwarm(dt_calor_sec);
-				Swarm_add_remove();
 			}
 			else {
 				for (PetscInt cont=0, max_cont=4;cont<max_cont; cont++){
@@ -197,7 +196,7 @@ int main(int argc,char **args)
 					ierr = moveSwarm(dt_calor_sec/max_cont);
 				}
 			}
-			
+			Swarm_add_remove();
 			//exit(1);
 		}
 		
