@@ -68,6 +68,9 @@ extern PetscScalar *inter_n;
 extern PetscScalar *inter_Q;
 extern PetscScalar *inter_V;
 
+extern double e2_aux_MAX;
+extern double e2_aux_MIN;
+
 extern PetscInt RK4;
 
 
@@ -160,6 +163,9 @@ PetscErrorCode moveSwarm(PetscReal dt)
 	ierr = DMSwarmGetField(dms,"strain_fac",&bs,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"geoq_fac",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
+
+	e2_aux_MAX = 0.0;
+	e2_aux_MIN = 1.0E50;
 	
 	for (p=0; p<nlocal; p++) {
 		PetscReal cx,cz,vx,vz,tp;
@@ -300,22 +306,30 @@ PetscErrorCode moveSwarm(PetscReal dt)
 		
 		
 		
-		E2_invariant = (strain[0]-strain[1])*(strain[0]-strain[1]);
+		/*E2_invariant = (strain[0]-strain[1])*(strain[0]-strain[1]);
 		E2_invariant+= (strain[1]-strain[2])*(strain[1]-strain[2]);
 		E2_invariant+= (strain[2]-strain[0])*(strain[2]-strain[0]);
 		E2_invariant/=6.0;
 		E2_invariant+= strain[3]*strain[3];
 		E2_invariant+= strain[4]*strain[4];
-		E2_invariant+= strain[5]*strain[5];
+		E2_invariant+= strain[5]*strain[5];*/
+
+		PetscReal strain_mean = (strain[0] + strain[1] + strain[2])/3.0;
+		strain[0]-=strain_mean;
+		strain[1]-=strain_mean;
+		strain[2]-=strain_mean;
+		E2_invariant = 0;
+		for (ii=0;ii<6;ii++) E2_invariant+=strain[ii]*strain[ii];
+		E2_invariant = PetscSqrtReal(E2_invariant/2.0);
+
+		if (E2_invariant<e2_aux_MIN) e2_aux_MIN=E2_invariant;
+		if (E2_invariant>e2_aux_MAX) e2_aux_MAX=E2_invariant;
 		
 		
-		
-		
-		strain_fac[p]+= dt*PetscSqrtReal(E2_invariant);//original!!!!
+		strain_fac[p]+= dt*E2_invariant;//original!!!!
 		//strain_fac[p]= PetscSqrtReal(E2_invariant);//!!!! não é o cumulativo! apenas o instantaneo.
-		
-		
-		rarray[p] = calc_visco_ponto(tp,cx,cz,inter_geoq[layer_array[p]],PetscSqrtReal(E2_invariant),strain_fac[p]/*!!!!checar*/,
+	
+		rarray[p] = calc_visco_ponto(tp,cx,cz,inter_geoq[layer_array[p]],E2_invariant,strain_fac[p]/*!!!!checar*/,
 									 inter_A[layer_array[p]], inter_n[layer_array[p]], inter_Q[layer_array[p]], inter_V[layer_array[p]]);
 		
 		
@@ -325,11 +339,10 @@ PetscErrorCode moveSwarm(PetscReal dt)
 		//vz = cy;
 		
 		
-		
-		
-		
-		
 	}
+
+	printf("e2_min = %lg, e2_max = %lg\n",e2_aux_MIN,e2_aux_MAX);
+
 	ierr = DMSwarmRestoreField(dms,"geoq_fac",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"strain_fac",&bs,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);

@@ -41,7 +41,7 @@ int tcont=0;
 
 double seg_per_ano = 365.0*24.0*3600.0;
 
-double dt_calor = 40000.0;
+double dt_calor = 10000.0;
 double dt_calor_sec=dt_calor*seg_per_ano;
 
 double tempo=0;
@@ -229,6 +229,8 @@ PetscReal *VfMe;
 
 PetscInt Verif_VG=0;
 
+PetscInt Verif_first_veloc=0;
+
 
 Vec Precon;
 
@@ -294,6 +296,9 @@ PetscReal particles_perturb_factor;
 PetscInt RK4;
 
 unsigned int seed;
+
+
+PetscReal Xi_min;
 
 
 ////// Flags

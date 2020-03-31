@@ -127,6 +127,9 @@ int main(int argc,char **args)
 
 	RK4=0;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-RK4",&RK4,NULL);CHKERRQ(ierr);
+
+	Xi_min=1.0E-14;
+	ierr = PetscOptionsGetReal(NULL,NULL,"-xi_min",&Xi_min,NULL);CHKERRQ(ierr);
 	
 	dx_const = Lx/(Nx-1);
 	dz_const = depth/(Nz-1);

@@ -125,14 +125,13 @@ extern Vec local_Precon;
 extern double visc_aux_MAX;
 extern double visc_aux_MIN;
 
-extern double e2_aux_MAX;
-extern double e2_aux_MIN;
-
 extern double dz_const;
 
 extern Vec Adiag;
 
 extern PetscInt direct_solver;
+
+extern PetscInt Verif_first_veloc;
 
 
 PetscErrorCode create_veloc_3d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
@@ -414,7 +413,8 @@ PetscErrorCode build_veloc_3d()
 	ierr = VecZeroEntries(Vf_P);CHKERRQ(ierr);
 	
 	ierr = VecZeroEntries(Precon);CHKERRQ(ierr);
-	
+	if (Verif_first_veloc==1)	VecCopy(Veloc_fut,Veloc_weight);
+	Verif_first_veloc=1;
 	ierr = moveSwarm(0.0);
 	ierr = Swarm2Mesh();
 	

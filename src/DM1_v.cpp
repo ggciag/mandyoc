@@ -79,9 +79,6 @@ extern Vec local_Precon;
 extern double visc_aux_MAX;
 extern double visc_aux_MIN;
 
-extern double e2_aux_MAX;
-extern double e2_aux_MIN;
-
 extern double seg_per_ano;
 
 extern Vec Veloc;
@@ -208,8 +205,7 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	visc_aux_MAX = 1.0E5;
 	visc_aux_MIN = 1.0E50;
 	
-	e2_aux_MAX = 0.0;
-	e2_aux_MIN = 1.0E50;
+	
 	
 	
 	FILE *sai_visc;
@@ -276,11 +272,14 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 				traction_bottom = theta_FSSA*dt_calor_sec*rho_mean_bottom*gravity*dx_const/2.0;
 				traction_top = -theta_FSSA*dt_calor_sec*rho_mean_top*gravity*dx_const/2.0;
 
+				if (ek>0){
 				Ke_veloc_final[1*9] +=traction_bottom;
 				Ke_veloc_final[3*9] +=traction_bottom;
-
+				}
+				if (ek+1<Nz-1) {
 				Ke_veloc_final[5*9] +=traction_top;
 				Ke_veloc_final[7*9] +=traction_top;
+				}
 			}
 
 			/////////////
@@ -375,7 +374,7 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	
 	printf("Visc_min = %lg, Visc_max = %lg\n",visc_aux_MIN,visc_aux_MAX);
 	
-	printf("e2_min = %lg, e2_max = %lg\n",e2_aux_MIN,e2_aux_MAX);
+	
 	
 	PetscFunctionReturn(0);
 }

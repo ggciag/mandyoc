@@ -39,7 +39,7 @@ double calc_visco_ponto(double T,double x, double z,double geoq_ponto,double e2_
 	
 	double visco_real;
 	
-	if (e2_inva<1.0E-18) e2_inva=1.0E-18; ///!!!! e2_inva min
+	if (e2_inva<1.0E-36) e2_inva=1.0E-36; ///!!!! e2_inva min
 	
 	
 	if (rheol==0)	visco_real = visco_r;
@@ -139,10 +139,8 @@ double calc_visco_ponto(double T,double x, double z,double geoq_ponto,double e2_
 			
 			double TK = T+273.;
 			
-			
-			
-			visco_real = pow(A,-1./n_exp)*pow(e2_inva,(1.-n_exp)/(2*n_exp))*exp((QE+VE*10.0*3300.*(-z))/(n_exp*R*TK));
-			//printf("%e %e %.1f %e %e %e\n",A,e2_inva,n_exp,QE,VE,visco_real);
+			visco_real = pow(A,-1./n_exp)*pow(e2_inva,(1.-n_exp)/(n_exp))*exp((QE+VE*10.0*3300.*(-z))/(n_exp*R*TK));
+			//printf("%e %e %.1f %e %e %f %f %e\n",A,e2_inva,n_exp,QE,VE,TK,z,visco_real);
 		}
 	}
 	
