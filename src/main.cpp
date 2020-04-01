@@ -130,6 +130,12 @@ int main(int argc,char **args)
 
 	Xi_min=1.0E-14;
 	ierr = PetscOptionsGetReal(NULL,NULL,"-xi_min",&Xi_min,NULL);CHKERRQ(ierr);
+
+	seed_layer=-1;
+	ierr = PetscOptionsGetInt(NULL,NULL,"-seed",&seed_layer,NULL);CHKERRQ(ierr);
+
+	checkered=0;
+	ierr = PetscOptionsGetInt(NULL,NULL,"-checkered",&checkered,NULL);CHKERRQ(ierr);
 	
 	dx_const = Lx/(Nx-1);
 	dz_const = depth/(Nz-1);

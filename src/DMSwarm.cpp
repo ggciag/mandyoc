@@ -57,6 +57,10 @@ extern unsigned int seed;
 
 extern PetscInt print_step_files;
 
+extern PetscInt seed_layer;
+
+extern PetscInt checkered;
+
 
 PetscErrorCode _DMLocatePoints_DMDARegular_IS(DM dm,Vec pos,IS *iscell)
 {
@@ -220,6 +224,7 @@ PetscErrorCode createSwarm()
 	PetscInt *iarray;
 	PetscInt *layer_array;
 	PetscReal *rarray;
+	PetscReal *strain_array;
 
 
 	PetscInt nz_part = (int)PetscSqrtReal(particles_per_ele*dz_const/dx_const);
@@ -337,13 +342,30 @@ PetscErrorCode createSwarm()
 		ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
 		ierr = DMSwarmGetField(dms,"itag",&bs,NULL,(void**)&iarray);CHKERRQ(ierr);
 		ierr = DMSwarmGetField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
+		ierr = DMSwarmGetField(dms,"strain_fac",&bs,NULL,(void**)&strain_array);CHKERRQ(ierr);
 		
 		ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
-		for (p=0; p<nlocal; p++) {
+		if (checkered==0){
+			for (p=0; p<nlocal; p++) {
 			//iarray[p] = (PetscInt)rank;
-			iarray[p] = p%particles_per_ele;
-			if (p%particles_per_ele==0){
-				iarray[p] = 10000 + p + 1000000*rank;
+				iarray[p] = p%particles_per_ele;
+				if (p%particles_per_ele==0){
+					iarray[p] = 10000 + p + 1000000*rank;
+				}
+			}
+		}
+		else{
+			for (p=0; p<nlocal/particles_per_ele; p++) {
+				int cont_part_ele=0;
+				for (int contx=0;contx<nx_part;contx++){
+					for (int contz=0;contz<nz_part;contz++){
+						iarray[p*particles_per_ele+cont_part_ele] = 1;
+						if (contx==0 || contz==0){
+							iarray[p*particles_per_ele+cont_part_ele] = 10000 + p + 1000000*rank;
+						}
+						cont_part_ele++;
+					}
+				}
 			}
 		}
 		
@@ -401,6 +423,7 @@ PetscErrorCode createSwarm()
 					layer_array[p] = n_interfaces;
 					//printf("entrei!\n");
 				}
+				if (layer_array[p]==seed_layer) strain_array[p]=2.0;
 				/////!!!!
 				/*if (rank==0){
 					printf("\n");
@@ -419,6 +442,8 @@ PetscErrorCode createSwarm()
 		ierr = DMSwarmRestoreField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
 		
 		ierr = DMSwarmRestoreField(dms,"geoq_fac",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
+
+		ierr = DMSwarmRestoreField(dms,"strain_fac",&bs,NULL,(void**)&strain_array);CHKERRQ(ierr);
 		
 		ierr = DMSwarmRestoreField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 		

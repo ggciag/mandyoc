@@ -300,6 +300,10 @@ unsigned int seed;
 
 PetscReal Xi_min;
 
+PetscInt seed_layer;
+
+PetscInt checkered;
+
 
 ////// Flags
 PetscInt WITH_NON_LINEAR = 0; // Controla o uso da reologia plástica e/ou viscosidade não linear
