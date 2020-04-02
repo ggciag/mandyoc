@@ -180,7 +180,7 @@ int main(int argc,char **args)
 	
 	
 	for (tempo = dt_calor,tcont=1;tempo<=timeMAX && tcont<=stepMAX;tempo+=dt_calor, tcont++){
-		
+		PetscPrintf(PETSC_COMM_WORLD,"\n\nstep = %d, time = %.3g Myr, dt = %.3g Myr\n",tcont,tempo,dt_calor);
 		
 		
 		ierr = build_thermal_3d();CHKERRQ(ierr);

@@ -29,7 +29,10 @@ PetscErrorCode calc_drho()
 PetscErrorCode write_pressure(int cont);
 
 extern Vec local_P;
+extern Vec local_P_aux;
+
 extern Vec Pressure;
+extern Vec Pressure_aux;
 
 extern Vec local_geoq_rho;
 
@@ -206,6 +209,90 @@ PetscErrorCode calc_pressure()
 	
 	write_pressure(-1);
 	
+	return ierr;
+	
+}
+
+
+
+PetscErrorCode shift_pressure() //necessary if the surface pressure is not close to zero
+{
+	Stokes					**pp;
+	PetscScalar				**pp_aux;
+
+	
+	PetscErrorCode         ierr;
+	
+
+	//get Pressure array
+	ierr = DMGlobalToLocalBegin(da_Veloc,Pressure,INSERT_VALUES,local_P);
+	ierr = DMGlobalToLocalEnd(  da_Veloc,Pressure,INSERT_VALUES,local_P);
+	ierr = DMDAVecGetArray(da_Veloc,local_P,&pp);CHKERRQ(ierr);
+
+	//get Pressure_aux array
+	ierr = DMGlobalToLocalBegin(da_Thermal,Pressure_aux,INSERT_VALUES,local_P_aux);
+	ierr = DMGlobalToLocalEnd(  da_Thermal,Pressure_aux,INSERT_VALUES,local_P_aux);
+	ierr = DMDAVecGetArray(da_Thermal,local_P_aux,&pp_aux);CHKERRQ(ierr);
+
+	
+	PetscInt       sx,sz,mmx,mmz;
+	PetscInt i,k;
+	
+	ierr = DMDAGetCorners(da_Thermal,&sx,&sz,NULL,&mmx,&mmz,NULL);CHKERRQ(ierr);
+	
+	for (k=sz; k<sz+mmz; k++) {
+		for (i=sx; i<sx+mmx; i++) {
+			pp_aux[k][i]  = pp[k][i].u;
+		}
+		if (i==Nx-1) {
+			pp_aux[k][i]=pp[k][i-1].u;
+			if (k==Nz-1) pp_aux[k][i]=pp[k-1][i-1].u;
+		}
+		if (k==Nz-1) pp_aux[k][i]=pp[k-1][i].u;
+	}
+
+
+	//restore Pressure_aux
+	ierr = DMDAVecRestoreArray(da_Thermal,local_P_aux,&pp_aux);CHKERRQ(ierr);
+	ierr = DMLocalToGlobalBegin(da_Thermal,local_P_aux,INSERT_VALUES,Pressure_aux);CHKERRQ(ierr);
+	ierr = DMLocalToGlobalEnd(da_Thermal,local_P_aux,INSERT_VALUES,Pressure_aux);CHKERRQ(ierr);
+
+
+	PetscReal pressure_min;//,pressure_max;
+	PetscInt i_aux;
+
+	VecMin(Pressure_aux,&i_aux,&pressure_min);
+	pressure_min=-pressure_min;
+	VecShift(Pressure_aux,pressure_min);
+
+	//VecMin(Pressure_aux,&i_aux,&pressure_min);
+	//VecMax(Pressure_aux,&i_aux,&pressure_max);
+	//PetscPrintf(PETSC_COMM_WORLD,"Pressume min and max: %e %e\n",pressure_min,pressure_max);
+
+	/*
+
+	//get Pressure_aux array
+	ierr = DMGlobalToLocalBegin(da_Thermal,Pressure_aux,INSERT_VALUES,local_P_aux);
+	ierr = DMGlobalToLocalEnd(  da_Thermal,Pressure_aux,INSERT_VALUES,local_P_aux);
+	ierr = DMDAVecGetArray(da_Thermal,local_P_aux,&pp_aux);CHKERRQ(ierr);
+
+	for (k=sz; k<sz+mmz; k++) {
+		for (i=sx; i<sx+mmx; i++) {
+			pp[k][i].u  = pp_aux[k][i];
+		}
+	}
+	*/
+
+
+	//restore Pressure
+	ierr = DMDAVecRestoreArray(da_Veloc,local_P,&pp);CHKERRQ(ierr);
+	ierr = DMLocalToGlobalBegin(da_Veloc,local_P,INSERT_VALUES,Pressure);CHKERRQ(ierr);
+	ierr = DMLocalToGlobalEnd(da_Veloc,local_P,INSERT_VALUES,Pressure);CHKERRQ(ierr);
+
+	//ierr = DMDAVecRestoreArray(da_Thermal,local_P_aux,&pp_aux);CHKERRQ(ierr);
+	//ierr = DMLocalToGlobalBegin(da_Thermal,local_P_aux,INSERT_VALUES,Pressure_aux);CHKERRQ(ierr);
+	//ierr = DMLocalToGlobalEnd(da_Thermal,local_P_aux,INSERT_VALUES,Pressure_aux);CHKERRQ(ierr);
+
 	return ierr;
 	
 }

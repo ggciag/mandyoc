@@ -210,6 +210,7 @@ Vec Veloc_step1, Veloc_step2;
 Vec Vf_P;
 
 Vec Pressure;
+Vec Pressure_aux;
 
 int PRESSURE_INIT=0;
 
@@ -254,6 +255,7 @@ Vec local_VC;
 Vec local_FV;
 Vec local_FP;
 Vec local_P;
+Vec local_P_aux;
 
 Vec local_dRho;
 

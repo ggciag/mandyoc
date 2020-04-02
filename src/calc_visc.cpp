@@ -34,7 +34,7 @@ double strain_softening(double strain, double f1, double f2){
 
 
 
-double calc_visco_ponto(double T,double x, double z,double geoq_ponto,double e2_inva,double strain_cumulate,
+double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,double e2_inva,double strain_cumulate,
 						double A, double n_exp, double QE, double VE){
 	
 	double visco_real;
@@ -123,7 +123,8 @@ double calc_visco_ponto(double T,double x, double z,double geoq_ponto,double e2_
 		double TK = T+273.0;
 		
 		//double aux = -(T+273);
-		visco_real = visco_r*A*exp(-(QE+VE*10.0*3300.*(-z))/(R*TK));
+		//visco_real = visco_r*A*exp(-(QE+VE*10.0*3300.*(-z))/(R*TK));
+		visco_real = visco_r*A*exp(-(QE+VE*P)/(R*TK));
 	}
 	
 	if (rheol==8){
@@ -140,6 +141,7 @@ double calc_visco_ponto(double T,double x, double z,double geoq_ponto,double e2_
 			double TK = T+273.;
 			
 			visco_real = pow(A,-1./n_exp)*pow(e2_inva,(1.-n_exp)/(n_exp))*exp((QE+VE*10.0*3300.*(-z))/(n_exp*R*TK));
+			//visco_real = pow(A,-1./n_exp)*pow(e2_inva,(1.-n_exp)/(n_exp))*exp((QE+VE*P)/(n_exp*R*TK));
 			//printf("%e %e %.1f %e %e %f %f %e\n",A,e2_inva,n_exp,QE,VE,TK,z,visco_real);
 		}
 	}
@@ -165,6 +167,7 @@ double calc_visco_ponto(double T,double x, double z,double geoq_ponto,double e2_
 		double mu = strain_softening(strain_cumulate,0.261799,0.034906);
 		
 		double tau_yield = c0*cos(mu) + sin(mu)*10.0*3300.*(-z);//!!!!
+		//double tau_yield = c0*cos(mu) + sin(mu)*P;
 		
 		double visco_yield = visc_MAX;
 		

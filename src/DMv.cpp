@@ -51,6 +51,8 @@ PetscErrorCode write_veloc_cond(int cont);
 
 PetscErrorCode Init_Veloc();
 
+PetscErrorCode shift_pressure();
+
 
 PetscErrorCode moveSwarm(PetscReal dt);
 PetscErrorCode Swarm2Mesh();
@@ -415,6 +417,13 @@ PetscErrorCode build_veloc_3d()
 	ierr = VecZeroEntries(Precon);CHKERRQ(ierr);
 	if (Verif_first_veloc==1)	VecCopy(Veloc_fut,Veloc_weight);
 	Verif_first_veloc=1;
+
+	if (PRESSURE_INIT==0){
+		PRESSURE_INIT=1;
+		ierr = calc_pressure();
+		ierr = shift_pressure();
+	}
+
 	ierr = moveSwarm(0.0);
 	ierr = Swarm2Mesh();
 	
@@ -426,10 +435,6 @@ PetscErrorCode build_veloc_3d()
 	
 	ierr = calc_drho();CHKERRQ(ierr);
 	
-	if (PRESSURE_INIT==0){
-		PRESSURE_INIT=1;
-		ierr = calc_pressure();
-	}
 	
 	ierr = AssembleF_Veloc(Vf,da_Veloc,da_Thermal,Vf_P);CHKERRQ(ierr);
 	//if (rank==0) printf("t\n");
@@ -554,6 +559,8 @@ PetscErrorCode solve_veloc_3d()
 		if (rank==0) printf("denok = %lg, k=%d, its = %d\n",denok,k,its);
 		
 	}
+
+	shift_pressure();
 	
 	////////
 	
