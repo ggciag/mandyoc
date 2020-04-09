@@ -350,7 +350,7 @@ PetscErrorCode createSwarm()
 			//iarray[p] = (PetscInt)rank;
 				iarray[p] = p%particles_per_ele;
 				if (p%particles_per_ele==0){
-					iarray[p] = 10000 + p + 1000000*rank;
+					iarray[p] = 10000 + p/particles_per_ele + 1000000*rank;
 				}
 			}
 		}

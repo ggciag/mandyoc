@@ -207,8 +207,6 @@ PetscErrorCode calc_pressure()
 	ierr = DMLocalToGlobalBegin(da_Veloc,local_P,INSERT_VALUES,Pressure);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalEnd(da_Veloc,local_P,INSERT_VALUES,Pressure);CHKERRQ(ierr);
 	
-	write_pressure(-1);
-	
 	return ierr;
 	
 }
@@ -239,23 +237,55 @@ PetscErrorCode shift_pressure() //necessary if the surface pressure is not close
 	PetscInt i,k;
 	
 	ierr = DMDAGetCorners(da_Thermal,&sx,&sz,NULL,&mmx,&mmz,NULL);CHKERRQ(ierr);
+
+	PetscScalar ppp;
+	PetscInt cont_ppp;
+
+
+	printf("                                   %d %d %d %d\n",sz,sz+mmz,sx,sx+mmx);
 	
 	for (k=sz; k<sz+mmz; k++) {
 		for (i=sx; i<sx+mmx; i++) {
-			pp_aux[k][i]  = pp[k][i].u;
+			ppp=0.0;
+			cont_ppp = 0;
+			if (k<Nz-1 && i<Nx-1) 	{ppp+=pp[k  ][i  ].u; cont_ppp++;}
+			if (k<Nz-1 && i>0   )	{ppp+=pp[k  ][i-1].u; cont_ppp++;}
+			if (k>0    && i<Nx-1)	{ppp+=pp[k-1][i  ].u; cont_ppp++;}
+			if (k>0    && i>0   )	{ppp+=pp[k-1][i-1].u; cont_ppp++;}
+			pp_aux[k][i] = ppp/cont_ppp;
 		}
-		if (i==Nx-1) {
-			pp_aux[k][i]=pp[k][i-1].u;
-			if (k==Nz-1) pp_aux[k][i]=pp[k-1][i-1].u;
-		}
-		if (k==Nz-1) pp_aux[k][i]=pp[k-1][i].u;
 	}
-
 
 	//restore Pressure_aux
 	ierr = DMDAVecRestoreArray(da_Thermal,local_P_aux,&pp_aux);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalBegin(da_Thermal,local_P_aux,INSERT_VALUES,Pressure_aux);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalEnd(da_Thermal,local_P_aux,INSERT_VALUES,Pressure_aux);CHKERRQ(ierr);
+
+	//get Pressure_aux array
+	/*ierr = DMGlobalToLocalBegin(da_Thermal,Pressure_aux,INSERT_VALUES,local_P_aux);
+	ierr = DMGlobalToLocalEnd(  da_Thermal,Pressure_aux,INSERT_VALUES,local_P_aux);
+	ierr = DMDAVecGetArray(da_Thermal,local_P_aux,&pp_aux);CHKERRQ(ierr);
+
+
+	for (k=sz; k<sz+mmz; k++) {
+		for (i=sx; i<sx+mmx; i++) {
+			if (k<Nz-1 && i<Nx-1){
+				pp[k][i].u = (pp_aux[k][i] + pp_aux[k][i+1] + pp_aux[k+1][i] + pp_aux[k+1][i+1])/4.0;
+			}
+		}
+	}
+
+	//teste!
+	for (k=sz; k<sz+mmz; k++) {
+		for (i=sx; i<sx+mmx; i++) {
+			pp_aux[k][i] = pp[k][i].u;
+		}
+	}
+
+	//restore Pressure_aux
+	ierr = DMDAVecRestoreArray(da_Thermal,local_P_aux,&pp_aux);CHKERRQ(ierr);
+	ierr = DMLocalToGlobalBegin(da_Thermal,local_P_aux,INSERT_VALUES,Pressure_aux);CHKERRQ(ierr);
+	ierr = DMLocalToGlobalEnd(da_Thermal,local_P_aux,INSERT_VALUES,Pressure_aux);CHKERRQ(ierr);*/
 
 
 	PetscReal pressure_min;//,pressure_max;

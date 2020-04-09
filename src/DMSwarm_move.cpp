@@ -274,8 +274,8 @@ PetscErrorCode moveSwarm(PetscReal dt)
 
 		tp = linear_interpolation(rx,rz,tt[k][i],tt[k][i+1],tt[k+1][i],tt[k+1][i+1]);
 
-		Pp = pp_aux[k][i];
-		
+		//Pp = pp_aux[k][i];
+		Pp = linear_interpolation(rx,rz,pp_aux[k][i],pp_aux[k][i+1],pp_aux[k+1][i],pp_aux[k+1][i+1]);
 		///////// strain
 		
 		

@@ -297,6 +297,8 @@ PetscReal particles_perturb_factor;
 
 PetscInt RK4;
 
+PetscInt pressure_in_rheol;
+
 unsigned int seed;
 
 

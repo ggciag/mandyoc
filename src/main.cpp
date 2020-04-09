@@ -136,6 +136,9 @@ int main(int argc,char **args)
 
 	checkered=0;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-checkered",&checkered,NULL);CHKERRQ(ierr);
+
+	pressure_in_rheol=0;
+	ierr = PetscOptionsGetInt(NULL,NULL,"-pressure_in_rheol",&pressure_in_rheol,NULL);CHKERRQ(ierr);
 	
 	dx_const = Lx/(Nx-1);
 	dz_const = depth/(Nz-1);

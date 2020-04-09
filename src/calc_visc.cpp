@@ -15,6 +15,8 @@ extern double Delta_T;
 
 extern PetscInt WITH_NON_LINEAR;
 
+extern PetscInt pressure_in_rheol;
+
 
 double strain_softening(double strain, double f1, double f2){
 	double fac;
@@ -123,8 +125,12 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		double TK = T+273.0;
 		
 		//double aux = -(T+273);
-		//visco_real = visco_r*A*exp(-(QE+VE*10.0*3300.*(-z))/(R*TK));
-		visco_real = visco_r*A*exp(-(QE+VE*P)/(R*TK));
+		if (pressure_in_rheol==0) {
+			visco_real = visco_r*A*exp(-(QE+VE*10.0*3300.*(-z))/(R*TK));
+		}
+		else {
+			visco_real = visco_r*A*exp(-(QE+VE*P)/(R*TK));
+		}
 	}
 	
 	if (rheol==8){
@@ -140,17 +146,21 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 			
 			double TK = T+273.;
 			
-			visco_real = pow(A,-1./n_exp)*pow(e2_inva,(1.-n_exp)/(n_exp))*exp((QE+VE*10.0*3300.*(-z))/(n_exp*R*TK));
-			//visco_real = pow(A,-1./n_exp)*pow(e2_inva,(1.-n_exp)/(n_exp))*exp((QE+VE*P)/(n_exp*R*TK));
+			if (pressure_in_rheol==0) {
+				visco_real = pow(A,-1./n_exp)*pow(e2_inva,(1.-n_exp)/(n_exp))*exp((QE+VE*10.0*3300.*(-z))/(n_exp*R*TK));
+			}
+			else {
+				visco_real = pow(A,-1./n_exp)*pow(e2_inva,(1.-n_exp)/(n_exp))*exp((QE+VE*P)/(n_exp*R*TK));
+			}
 			//printf("%e %e %.1f %e %e %f %f %e\n",A,e2_inva,n_exp,QE,VE,TK,z,visco_real);
 		}
 	}
 	
 	
-	if (rheol>9){
+	/*if (rheol>9){
 		printf("rheol error: larger than maximum available option\n");
 		exit(1);
-	}
+	}*/
 	
 	if (geoq_on)
 		visco_real *= geoq_ponto;
@@ -165,16 +175,28 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		
 		double c0 = strain_softening(strain_cumulate,20.0E6,4.0E6);
 		double mu = strain_softening(strain_cumulate,0.261799,0.034906);
-		
-		double tau_yield = c0*cos(mu) + sin(mu)*10.0*3300.*(-z);//!!!!
-		//double tau_yield = c0*cos(mu) + sin(mu)*P;
+		double tau_yield;
+		if (pressure_in_rheol==0){
+			tau_yield = c0*cos(mu) + sin(mu)*10.0*3300.*(-z);//!!!!
+		}
+		else {
+			tau_yield = c0*cos(mu) + sin(mu)*P;
+		}
 		
 		double visco_yield = visc_MAX;
 		
 		if (e2_inva>0) visco_yield = tau_yield/e2_inva;
 		
 		if (visco_real>visco_yield) visco_real = visco_yield;
-		
+
+
+		if (rheol == 70){
+			visco_real = visco_r;
+			if (2*visco_real*e2_inva-1.0>0){
+				visco_real = 1.0/(2*(e2_inva));
+			}
+		}
+		//printf("%f\n",visco_real);
 		/*visco_real = visco_r;
 		if (2*visco_real*e2_inva-1.0>0){
 			visco_real = 1.0/(2*(e2_inva));

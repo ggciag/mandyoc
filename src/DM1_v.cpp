@@ -202,7 +202,7 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	
 	PetscReal geoq_ele[T_NE],rho_ele[T_NE];
 	
-	visc_aux_MAX = 1.0E5;
+	visc_aux_MAX = 1.0E-50;
 	visc_aux_MIN = 1.0E50;
 	
 	

@@ -49,6 +49,8 @@ PetscErrorCode write_veloc_3d(int cont);
 
 PetscErrorCode write_veloc_cond(int cont);
 
+PetscErrorCode write_pressure(int cont);
+
 PetscErrorCode Init_Veloc();
 
 PetscErrorCode shift_pressure();
@@ -315,7 +317,13 @@ PetscErrorCode create_veloc_3d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 		VecAssemblyBegin(Veloc_Cond);
 		VecAssemblyEnd(Veloc_Cond);
 
-		
+		char nome[100];
+		PetscViewer viewer2;
+		sprintf(nome,"Init_bcve.txt");
+		PetscViewerASCIIOpen(PETSC_COMM_WORLD,nome,&viewer2);
+		VecView(Veloc_Cond,viewer2);
+		PetscViewerDestroy(&viewer2);
+		//VecView(F,PETSC_VIEWER_STDOUT_WORLD);
 		
 	}
 	else {
@@ -422,6 +430,7 @@ PetscErrorCode build_veloc_3d()
 		PRESSURE_INIT=1;
 		ierr = calc_pressure();
 		ierr = shift_pressure();
+		write_pressure(-1);
 	}
 
 	ierr = moveSwarm(0.0);
