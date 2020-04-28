@@ -76,6 +76,8 @@ extern double e2_aux_MIN;
 
 extern PetscInt RK4;
 
+extern PetscInt periodic_boundary;
+
 
 PetscReal linear_interpolation(PetscReal rx, PetscReal rz,PetscScalar V0, PetscScalar V1, PetscScalar V2, PetscScalar V3){
 	PetscReal rfac,vx;
@@ -264,6 +266,11 @@ PetscErrorCode moveSwarm(PetscReal dt)
 
 			array[2*p  ] += dt * vx;
 			array[2*p+1] += dt * vz;
+		}
+
+		if (periodic_boundary==1){
+			if (array[2*p]>Lx) array[2*p]-=Lx;
+			if (array[2*p]<0) array[2*p]+=Lx;
 		}
 
 

@@ -106,6 +106,7 @@ extern PetscInt free_surface_stab;
 
 extern PetscReal theta_FSSA;
 
+extern PetscInt periodic_boundary;
 
 PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	
@@ -115,7 +116,7 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	
 	PetscInt               M,P;
 	
-	MatStencil indr[T_NE],ind1[1],ind[V_GT], indp[1];
+	MatStencil indr[T_NE],ind1[1],ind2[1],ind[V_GT], indp[1];
 	
 	PetscScalar u[V_GT*V_GT],val_cond[1];
 	
@@ -141,22 +142,40 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	ierr = DMDAGetCorners(veloc_da,&sx,&sz,NULL,&mmx,&mmz,NULL);CHKERRQ(ierr);
 	
 	ierr = DMDAGetInfo(veloc_da,0,&M,&P,NULL,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
+
 	
 	for (k=sz; k<sz+mmz; k++) {
 		for (i=sx; i<sx+mmx; i++) {
-			
-			ind1[0].i = i;  ind1[0].j = k; ind1[0].c = 0;
-			val_cond[0] = 1.0-VVC[k][i].u;
-			ierr = MatSetValuesStencil(A,1,ind1,1,ind1,val_cond,ADD_VALUES);
+			if (periodic_boundary==1 && i==Nx-1){
+				val_cond[0]=1.0;
+				ind1[0].i = i;  ind1[0].j = k; ind1[0].c = 0;
+				ierr = MatSetValuesStencil(A,1,ind1,1,ind1,val_cond,ADD_VALUES);
+				ind1[0].c = 1;
+				ierr = MatSetValuesStencil(A,1,ind1,1,ind1,val_cond,ADD_VALUES);
+				
+				val_cond[0]=-1.0;
+				ind2[0].i = Nx;
+				ind2[0].j = k;
+				ind2[0].c = 0;
+				ind1[0].c = 0;
+				ierr = MatSetValuesStencil(A,1,ind1,1,ind2,val_cond,ADD_VALUES);
+				ind2[0].c = 1;
+				ind1[0].c = 1;
+				ierr = MatSetValuesStencil(A,1,ind1,1,ind2,val_cond,ADD_VALUES);
+			}
+			else {
+				ind1[0].i = i;  ind1[0].j = k; ind1[0].c = 0;
+				val_cond[0] = 1.0-VVC[k][i].u;
+				ierr = MatSetValuesStencil(A,1,ind1,1,ind1,val_cond,ADD_VALUES);
 
-			//ind1[0].i = i;  ind1[0].k = k; ind1[0].c = 1;
-			//val_cond[0] = 1.0-VVC[k][i].v;
-			//ierr = MatSetValuesStencil(A,1,ind1,1,ind1,val_cond,ADD_VALUES);
-			
-			ind1[0].i = i;  ind1[0].j = k; ind1[0].c = 1;
-			val_cond[0] = 1.0-VVC[k][i].w;
-			ierr = MatSetValuesStencil(A,1,ind1,1,ind1,val_cond,ADD_VALUES);
-			
+				//ind1[0].i = i;  ind1[0].k = k; ind1[0].c = 1;
+				//val_cond[0] = 1.0-VVC[k][i].v;
+				//ierr = MatSetValuesStencil(A,1,ind1,1,ind1,val_cond,ADD_VALUES);
+				
+				ind1[0].i = i;  ind1[0].j = k; ind1[0].c = 1;
+				val_cond[0] = 1.0-VVC[k][i].w;
+				ierr = MatSetValuesStencil(A,1,ind1,1,ind1,val_cond,ADD_VALUES);
+			}
 		}
 	}
 	
@@ -283,21 +302,26 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 			}
 
 			/////////////
-			
+
 			n=0;
+			PetscInt nni = ei+1;
+			if (periodic_boundary==1){
+				if (nni==Nx-1) nni=Nx;
+			}
 			
 			ind[n].i=ei  ; ind[n].j=ek  ; ind[n].c=0; n++;
 			ind[n].i=ei  ; ind[n].j=ek  ; ind[n].c=1; n++;
 			
-			ind[n].i=ei+1; ind[n].j=ek  ; ind[n].c=0; n++;
-			ind[n].i=ei+1; ind[n].j=ek  ; ind[n].c=1; n++;
+			ind[n].i=nni; ind[n].j=ek  ; ind[n].c=0; n++;
+			ind[n].i=nni; ind[n].j=ek  ; ind[n].c=1; n++;
 			
 			ind[n].i=ei  ; ind[n].j=ek+1; ind[n].c=0; n++;
 			ind[n].i=ei  ; ind[n].j=ek+1; ind[n].c=1; n++;
 			
-			ind[n].i=ei+1; ind[n].j=ek+1; ind[n].c=0; n++;
-			ind[n].i=ei+1; ind[n].j=ek+1; ind[n].c=1; n++;
-			
+			ind[n].i=nni; ind[n].j=ek+1; ind[n].c=0; n++;
+			ind[n].i=nni; ind[n].j=ek+1; ind[n].c=1; n++;
+
+			//printf("%d %d %d %d\n",ei,nni,ek,ek+1);
 			
 			
 			for (n=0;n<4;n++){
@@ -470,7 +494,7 @@ PetscErrorCode AssembleF_Veloc(Vec F,DM veloc_da,DM drho_da,Vec FP){
 		printf("%d %d %d %d\n",sex-sex1,sez-sez1,mx-mx1,mz-mz1);
 		SETERRQ1(PETSC_COMM_WORLD,1,"Wrong partition (temper,velocity)\n",1);
 	}
-	
+
 	for (ek = sez; ek < sez+mz; ek++) {
 		for (ei = sex; ei < sex+mx; ei++) {
 			//montaKeThermal_simplif(TCe, TKe, 0, 0);//modificar
@@ -565,11 +589,14 @@ PetscErrorCode AssembleF_Veloc(Vec F,DM veloc_da,DM drho_da,Vec FP){
 	
 	for (k=sz; k<sz+mmz; k++) {
 		for (i=sx; i<sx+mmx; i++) {
+			if (periodic_boundary==1 && i==Nx-1) ;
+			else {
 			if (VVC[k][i].u==0){
 				ffp[k][i].u=VV[k][i].u;
 			}
 			if (VVC[k][i].w==0){
 				ffp[k][i].w=VV[k][i].w;
+			}
 			}
 		}
 	}
@@ -588,6 +615,65 @@ PetscErrorCode AssembleF_Veloc(Vec F,DM veloc_da,DM drho_da,Vec FP){
 	ierr = DMDAVecRestoreArray(veloc_da,local_VC,&VVC);CHKERRQ(ierr);
 	
 	ierr = DMDAVecRestoreArray(veloc_da,local_V,&VV);CHKERRQ(ierr);
+
+
+	
+	if (periodic_boundary==1){
+		ierr = DMGlobalToLocalBegin(veloc_da,FP,INSERT_VALUES,local_FP);
+		ierr = DMGlobalToLocalEnd(  veloc_da,FP,INSERT_VALUES,local_FP);
+		ierr = DMDAVecGetArray(veloc_da,local_FP,&ffp);CHKERRQ(ierr);
+
+		ierr = DMGlobalToLocalBegin(veloc_da,F,INSERT_VALUES,local_FV);
+		ierr = DMGlobalToLocalEnd(  veloc_da,F,INSERT_VALUES,local_FV);
+		ierr = DMDAVecGetArray(veloc_da,local_FV,&ff);CHKERRQ(ierr);
+
+		for (k=sz; k<sz+mmz; k++) {
+			for (i=sx; i<sx+mmx; i++) {
+				if (i==0){
+					ffp[k][i].u += ffp[k][i-1].u;
+					ffp[k][i].w += ffp[k][i-1].w;
+
+					ff[k][i].u += ff[k][i-1].u;
+					ff[k][i].w += ff[k][i-1].w;
+
+				}
+			}
+		}
+		ierr = DMDAVecRestoreArray(veloc_da,local_FV,&ff);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalBegin(veloc_da,local_FV,INSERT_VALUES,F);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalEnd(veloc_da,local_FV,INSERT_VALUES,F);CHKERRQ(ierr);
+		
+		ierr = DMDAVecRestoreArray(veloc_da,local_FP,&ffp);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalBegin(veloc_da,local_FP,INSERT_VALUES,FP);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalEnd(veloc_da,local_FP,INSERT_VALUES,FP);CHKERRQ(ierr);
+
+		ierr = DMGlobalToLocalBegin(veloc_da,FP,INSERT_VALUES,local_FP);
+		ierr = DMGlobalToLocalEnd(  veloc_da,FP,INSERT_VALUES,local_FP);
+		ierr = DMDAVecGetArray(veloc_da,local_FP,&ffp);CHKERRQ(ierr);
+
+		ierr = DMGlobalToLocalBegin(veloc_da,F,INSERT_VALUES,local_FV);
+		ierr = DMGlobalToLocalEnd(  veloc_da,F,INSERT_VALUES,local_FV);
+		ierr = DMDAVecGetArray(veloc_da,local_FV,&ff);CHKERRQ(ierr);
+
+		for (k=sz; k<sz+mmz; k++) {
+			for (i=sx; i<sx+mmx; i++) {
+				if (i==Nx-1){
+					ffp[k][i].u = 0;
+					ffp[k][i].w = 0;
+
+					ff[k][i].u = 0;
+					ff[k][i].w = 0;
+				}
+			}
+		}
+		ierr = DMDAVecRestoreArray(veloc_da,local_FV,&ff);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalBegin(veloc_da,local_FV,INSERT_VALUES,F);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalEnd(veloc_da,local_FV,INSERT_VALUES,F);CHKERRQ(ierr);
+		
+		ierr = DMDAVecRestoreArray(veloc_da,local_FP,&ffp);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalBegin(veloc_da,local_FP,INSERT_VALUES,FP);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalEnd(veloc_da,local_FP,INSERT_VALUES,FP);CHKERRQ(ierr);
+	}
 	
 	//printf("passou...\n");
 	

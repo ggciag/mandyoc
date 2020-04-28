@@ -137,6 +137,8 @@ extern PetscInt direct_solver;
 
 extern PetscInt Verif_first_veloc;
 
+extern PetscInt periodic_boundary;
+
 
 PetscErrorCode create_veloc_3d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 {
@@ -159,9 +161,16 @@ PetscErrorCode create_veloc_3d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 	
 	
 	dof           = 2; //modif
-	stencil_width = 1;
-	ierr          = DMDACreate2d(PETSC_COMM_WORLD,DM_BOUNDARY_NONE,DM_BOUNDARY_NONE,DMDA_STENCIL_BOX,
+	if (periodic_boundary==0){
+		stencil_width = 1;
+		ierr          = DMDACreate2d(PETSC_COMM_WORLD,DM_BOUNDARY_NONE,DM_BOUNDARY_NONE,DMDA_STENCIL_BOX,
 								 mx+1,mz+1,Px,Pz,dof,stencil_width,NULL,NULL,&da_Veloc);CHKERRQ(ierr);
+	}
+	else {
+		stencil_width = 2;
+		ierr          = DMDACreate2d(PETSC_COMM_WORLD,DM_BOUNDARY_PERIODIC,DM_BOUNDARY_NONE,DMDA_STENCIL_BOX,
+								 mx+1,mz+1,Px,Pz,dof,stencil_width,NULL,NULL,&da_Veloc);CHKERRQ(ierr);
+	}
 	ierr = DMSetFromOptions(da_Veloc);CHKERRQ(ierr);
 	ierr = DMSetUp(da_Veloc);CHKERRQ(ierr);
 	
@@ -332,14 +341,16 @@ PetscErrorCode create_veloc_3d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 				ff[k][i].u = 1.0;
 				ff[k][i].w = 1.0;
 				
-				if (i==0   && bcv_left_normal==1) ff[k][i].u = 0.0;
-				if (i==0   && bcv_left_slip==1) {
-					ff[k][i].w = 0.0;
-				}
+				if (periodic_boundary==0){
+					if (i==0   && bcv_left_normal==1) ff[k][i].u = 0.0;
+					if (i==0   && bcv_left_slip==1) {
+						ff[k][i].w = 0.0;
+					}
 				
-				if (i==M-1 && bcv_right_normal==1)ff[k][i].u = 0.0;
-				if (i==M-1   && bcv_right_slip==1) {
-					ff[k][i].w = 0.0;
+					if (i==M-1 && bcv_right_normal==1)ff[k][i].u = 0.0;
+					if (i==M-1   && bcv_right_slip==1) {
+						ff[k][i].w = 0.0;
+					}
 				}
 				
 				if (k==0   && bcv_bot_normal==1) ff[k][i].w = 0.0;

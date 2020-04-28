@@ -5,6 +5,7 @@
 
 PetscErrorCode montaKeThermal_simplif(double *Ke_local,double *Ke);
 PetscErrorCode ascii2bin(char *s1, char *s2);
+PetscErrorCode mean_value_periodic_boundary(DM da,Vec F,Vec local_F, PetscScalar **ff,int esc);
 
 extern double alpha_exp_thermo;
 extern double gravity;
@@ -75,6 +76,8 @@ extern PetscInt WITH_RADIOGENIC_H;
 
 extern unsigned int seed;
 
+extern PetscInt periodic_boundary;
+
 
 typedef struct {
 	PetscScalar u;
@@ -115,11 +118,11 @@ PetscErrorCode DMDAGetElementCorners(DM da,PetscInt *sx,PetscInt *sz,PetscInt *m
 	
 	if (sx) {
 		*sx = si;
-		if (si != 0) *sx = si+1;
+		if (si != 0) *sx = si+1+periodic_boundary;
 	}
 	if (sz) {
 		*sz = sk;
-		if (sk != 0) *sz = sk+1;
+		if (sk != 0) *sz = sk+1+periodic_boundary;
 	}
 	ierr = DMDAGetLocalElementSize(da,mx,mz);CHKERRQ(ierr);
 	PetscFunctionReturn(0);
@@ -165,7 +168,7 @@ PetscErrorCode AssembleA_Thermal(Mat A,DM thermal_da,PetscReal *TKe,PetscReal *T
 	PetscInt               M,P;
 
 	
-	MatStencil ind1[1],ind[4];
+	MatStencil ind1[1],ind2[1],ind[4];
 	
 	PetscScalar u[4*4],val_cond[1];
 	
@@ -184,17 +187,29 @@ PetscErrorCode AssembleA_Thermal(Mat A,DM thermal_da,PetscReal *TKe,PetscReal *T
 	
 	for (k=sz; k<sz+mmz; k++) {
 		for (i=sx; i<sx+mmx; i++) {
-		
-			ind1[0].i = i;
-			ind1[0].j = k;
-			
-			val_cond[0] = 1.0-TTC[k][i];
-			ierr = MatSetValuesStencil(A,1,ind1,1,ind1,val_cond,ADD_VALUES);
-			
+			if (periodic_boundary==1 && i==Nx-1){
+				ind1[0].i = i;
+				ind1[0].j = k;
+				val_cond[0]=1.0;
+				ierr = MatSetValuesStencil(A,1,ind1,1,ind1,val_cond,ADD_VALUES);
+
+				val_cond[0]=-1.0;
+				ind2[0].i = Nx;
+				ind2[0].j = k;
+				ierr = MatSetValuesStencil(A,1,ind1,1,ind2,val_cond,ADD_VALUES);
+			}
+			else {
+				ind1[0].i = i;
+				ind1[0].j = k;
+				
+				val_cond[0] = 1.0-TTC[k][i];
+				ierr = MatSetValuesStencil(A,1,ind1,1,ind1,val_cond,ADD_VALUES);
+			}
 		}
 	}
 	
 	ierr = DMDAGetElementCorners(thermal_da,&sex,&sez,&mx,&mz);CHKERRQ(ierr);
+	
 	for (ek = sez; ek < sez+mz; ek++) {
 		for (ei = sex; ei < sex+mx; ei++) {
 			
@@ -212,8 +227,14 @@ PetscErrorCode AssembleA_Thermal(Mat A,DM thermal_da,PetscReal *TKe,PetscReal *T
 			
 			for (c=0;c<T_NE*T_NE;c++) Ttotal[c] = TMe[c] + alpha_thermal*dt_calor_sec*TCe_fut[c];
 			
+			if (periodic_boundary==1){
+				if (ei+1==Nx-1){
+					ind[1].i=Nx;
+					ind[3].i=Nx;
+				}
+			}
 			
-			
+
 			for (i=0;i<4;i++){
 				if (TTC[ind[i].j][ind[i].i]==0){
 					for (j=0;j<4;j++) u[i*4+j]=0.0;
@@ -325,7 +346,7 @@ PetscErrorCode AssembleF_Thermal(Vec F,DM thermal_da,PetscReal *TKe,PetscReal *T
 			ind[1].i=ei+1; ind[1].j=ek  ;
 			ind[2].i=ei  ; ind[2].j=ek+1;
 			ind[3].i=ei+1; ind[3].j=ek+1;
-			
+
 			
 			
 			for (i=0;i<4;i++){
@@ -427,9 +448,11 @@ PetscErrorCode AssembleF_Thermal(Vec F,DM thermal_da,PetscReal *TKe,PetscReal *T
 	for (k=sz; k<sz+mmz; k++) {
 		
 		for (i=sx; i<sx+mmx; i++) {
-			//if (k==0 || k==P-1){
+			if (periodic_boundary==1 && i==Nx-1) ;
+			else {
 			if (TTC[k][i]==0){
 				ff[k][i]=tt[k][i];
+			}
 			}
 		}
 	
@@ -443,6 +466,41 @@ PetscErrorCode AssembleF_Thermal(Vec F,DM thermal_da,PetscReal *TKe,PetscReal *T
 	ierr = DMDAVecRestoreArray(thermal_da,local_TC,&TTC);CHKERRQ(ierr);
 	ierr = DMDAVecRestoreArray(thermal_da,local_Temper,&tt);CHKERRQ(ierr);
 	ierr = DMDAVecRestoreArray(thermal_da,local_geoq_H,&HH);CHKERRQ(ierr);
+
+	if (periodic_boundary==1){
+
+		ierr = DMGlobalToLocalBegin(thermal_da,F,INSERT_VALUES,local_FT);
+		ierr = DMGlobalToLocalEnd(  thermal_da,F,INSERT_VALUES,local_FT);
+		ierr = DMDAVecGetArray(thermal_da,local_FT,&ff);CHKERRQ(ierr);
+
+		for (k=sz; k<sz+mmz; k++) {
+			for (i=sx; i<sx+mmx; i++) {
+				if (i==0){
+					ff[k][i] += ff[k][i-1];
+				}
+			}
+		}
+		ierr = DMDAVecRestoreArray(thermal_da,local_FT,&ff);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalBegin(thermal_da,local_FT,INSERT_VALUES,F);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalEnd(thermal_da,local_FT,INSERT_VALUES,F);CHKERRQ(ierr);
+
+		ierr = DMGlobalToLocalBegin(thermal_da,F,INSERT_VALUES,local_FT);
+		ierr = DMGlobalToLocalEnd(  thermal_da,F,INSERT_VALUES,local_FT);
+		ierr = DMDAVecGetArray(thermal_da,local_FT,&ff);CHKERRQ(ierr);
+
+		for (k=sz; k<sz+mmz; k++) {
+			for (i=sx; i<sx+mmx; i++) {
+				if (i==Nx-1){
+					ff[k][i] = 0;
+				}
+			}
+		}
+
+		ierr = DMDAVecRestoreArray(thermal_da,local_FT,&ff);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalBegin(thermal_da,local_FT,INSERT_VALUES,F);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalEnd(thermal_da,local_FT,INSERT_VALUES,F);CHKERRQ(ierr);
+
+	}
 	
 
 	PetscFunctionReturn(0);
@@ -641,15 +699,18 @@ PetscErrorCode Thermal_init(Vec F,DM thermal_da)
 		
 		}
 		
-		
+
 		ierr = DMDAVecRestoreArray(thermal_da,local_F,&ff);CHKERRQ(ierr);
 		ierr = DMLocalToGlobalBegin(thermal_da,local_F,INSERT_VALUES,F);CHKERRQ(ierr);
 		ierr = DMLocalToGlobalEnd(thermal_da,local_F,INSERT_VALUES,F);CHKERRQ(ierr);
 		ierr = DMRestoreLocalVector(thermal_da,&local_F);CHKERRQ(ierr);
-		
-		
+
 	}
-	
+		
+	if (periodic_boundary==1){
+		ierr = mean_value_periodic_boundary(thermal_da,F,local_F,ff,2);
+	}
+		
 	
 	PetscFunctionReturn(0);
 	
@@ -807,6 +868,46 @@ PetscErrorCode ascii2bin(char *ss1, char *ss2){
 	PetscViewerDestroy(&viewer);
 	VecDestroy(&u);
 	
+	PetscFunctionReturn(0);
+
+}
+
+PetscErrorCode mean_value_periodic_boundary(DM da,Vec F,Vec local_F, PetscScalar **ff,int esc){
+
+	PetscErrorCode ierr;
+
+	ierr = DMGetLocalVector(da,&local_F);CHKERRQ(ierr);
+
+	ierr = DMGlobalToLocalBegin(da,F,INSERT_VALUES,local_F);CHKERRQ(ierr);
+	ierr = DMGlobalToLocalEnd(  da,F,INSERT_VALUES,local_F);CHKERRQ(ierr);
+	ierr = DMDAVecGetArray(da,local_F,&ff);CHKERRQ(ierr);
+
+	PetscInt       sx,sz,mmx,mmz;
+
+	ierr = DMDAGetCorners(da,&sx,&sz,NULL,&mmx,&mmz,NULL);CHKERRQ(ierr);
+
+	int i,k;
+
+	for (k=sz; k<sz+mmz; k++) {
+		for (i=sx; i<sx+mmx; i++) {
+			if (i==Nx-1){
+				ff[k][Nx-1]= (ff[k][Nx-1] + ff[k][Nx])/esc;
+			}
+			if (i==0){
+				ff[k][0]= (ff[k][-1] + ff[k][0])/esc;
+			}
+		}
+	}
+
+	ierr = DMDAVecRestoreArray(da,local_F,&ff);CHKERRQ(ierr);
+	ierr = DMLocalToGlobalBegin(da,local_F,INSERT_VALUES,F);CHKERRQ(ierr);
+	ierr = DMLocalToGlobalEnd(da,local_F,INSERT_VALUES,F);CHKERRQ(ierr);
+	ierr = DMRestoreLocalVector(da,&local_F);CHKERRQ(ierr);
+
+	PetscPrintf(PETSC_COMM_WORLD,"passou periodic boundary\n");
+
+
+
 	PetscFunctionReturn(0);
 
 }

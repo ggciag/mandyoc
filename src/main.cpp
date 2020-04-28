@@ -139,6 +139,9 @@ int main(int argc,char **args)
 
 	pressure_in_rheol=0;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-pressure_in_rheol",&pressure_in_rheol,NULL);CHKERRQ(ierr);
+
+	periodic_boundary=0;
+	ierr = PetscOptionsGetInt(NULL,NULL,"-periodic_boundary",&periodic_boundary,NULL);CHKERRQ(ierr);
 	
 	dx_const = Lx/(Nx-1);
 	dz_const = depth/(Nz-1);

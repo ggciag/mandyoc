@@ -111,7 +111,7 @@ PetscErrorCode calc_pressure()
 	}
 	
 	printf("%d %d %d %d Pressure\n",sez,sez+mz,sex,sex+mx);
-	//printf("%d %d %d %d Pressure\n",sez,sez+mz,sex,sex+mx);
+	printf("%d %d %d %d Veloc\n",sez1,sez1+mz1,sex1,sex1+mx1);
 	
 	PetscReal interp_interfaces[n_interfaces];
 	

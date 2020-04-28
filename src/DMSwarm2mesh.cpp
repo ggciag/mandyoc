@@ -2,6 +2,8 @@
 #include <petscdmda.h>
 #include <petscdmswarm.h>
 
+PetscErrorCode mean_value_periodic_boundary(DM da,Vec F,Vec local_F, PetscScalar **ff,int esc);
+
 extern DM dms;
 
 extern DM da_Thermal;
@@ -27,6 +29,7 @@ extern PetscInt visc_const_per_element;
 extern PetscScalar *inter_rho;
 extern PetscScalar *inter_H;
 
+extern PetscInt periodic_boundary;
 
 PetscErrorCode Swarm2Mesh(){
 
@@ -238,6 +241,14 @@ PetscErrorCode Swarm2Mesh(){
 	ierr = DMDAVecRestoreArray(da_Thermal,local_geoq_cont,&qq_cont);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalBegin(da_Thermal,local_geoq_cont,ADD_VALUES,geoq_cont);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalEnd(da_Thermal,local_geoq_cont,ADD_VALUES,geoq_cont);CHKERRQ(ierr);
+
+	if (periodic_boundary==1){
+		ierr = mean_value_periodic_boundary(da_Thermal,geoq_rho,local_geoq_rho,qq_rho,1);
+		ierr = mean_value_periodic_boundary(da_Thermal,geoq_H,local_geoq_H,qq_H,1);
+		ierr = mean_value_periodic_boundary(da_Thermal,geoq,local_geoq,qq,1);
+		ierr = mean_value_periodic_boundary(da_Thermal,geoq_strain,local_geoq_strain,qq_strain,1);
+		ierr = mean_value_periodic_boundary(da_Thermal,geoq_cont,local_geoq_cont,qq_cont,1);
+	}
 	
 	//VecPointwiseMax(geoq_cont,geoq_cont,geoqOnes);
 	VecPointwiseDivide(geoq,geoq,geoq_cont);

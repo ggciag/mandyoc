@@ -82,6 +82,8 @@ extern Vec local_dRho;
 
 extern PetscReal rtol;
 
+extern PetscInt periodic_boundary;
+
 
 PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 {
@@ -105,9 +107,17 @@ PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz
 	
 	
 	dof           = 1;
-	stencil_width = 1;
-	ierr          = DMDACreate2d(PETSC_COMM_WORLD,DM_BOUNDARY_NONE,DM_BOUNDARY_NONE,DMDA_STENCIL_BOX,
+	if (periodic_boundary==0)	{
+		stencil_width = 1;
+		ierr          = DMDACreate2d(PETSC_COMM_WORLD,DM_BOUNDARY_NONE,DM_BOUNDARY_NONE,DMDA_STENCIL_BOX,
 								 mx+1,mz+1,Px,Pz,dof,stencil_width,NULL,NULL,&da_Thermal);CHKERRQ(ierr);
+	}
+	else {
+		stencil_width = 2;
+		ierr          = DMDACreate2d(PETSC_COMM_WORLD,DM_BOUNDARY_PERIODIC,DM_BOUNDARY_NONE,DMDA_STENCIL_BOX,
+								 mx+1,mz+1,Px,Pz,dof,stencil_width,NULL,NULL,&da_Thermal);CHKERRQ(ierr);
+	}
+
 	ierr = DMSetFromOptions(da_Thermal);CHKERRQ(ierr);
 	ierr = DMSetUp(da_Thermal);CHKERRQ(ierr);
 	
@@ -213,10 +223,11 @@ PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz
 		for (i=sx; i<sx+mmx; i++) {
 			ff[k][i] = 1.0;
 			
-			if (i==0   && bcT_left==1) ff[k][i] = 0.0;
-			
-			
-			if (i==M-1 && bcT_right==1)ff[k][i] = 0.0;
+			if (periodic_boundary==0){
+				if (i==0   && bcT_left==1) ff[k][i] = 0.0;
+				
+				if (i==M-1 && bcT_right==1)ff[k][i] = 0.0;
+			}
 			
 			
 			if (k==0   && bcT_bot==1) ff[k][i] = 0.0;

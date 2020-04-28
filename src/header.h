@@ -299,6 +299,8 @@ PetscInt RK4;
 
 PetscInt pressure_in_rheol;
 
+PetscInt periodic_boundary;
+
 unsigned int seed;
 
 
