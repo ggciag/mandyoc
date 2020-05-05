@@ -7,6 +7,9 @@ extern int rheol;
 extern double visc_MAX;
 extern double visc_MIN;
 
+extern double visc_MAX_comp;
+extern double visc_MIN_comp;
+
 extern int geoq_on;
 
 extern double visco_r;
@@ -16,6 +19,8 @@ extern double Delta_T;
 extern PetscInt WITH_NON_LINEAR;
 
 extern PetscInt pressure_in_rheol;
+
+extern int tcont;
 
 
 double strain_softening(double strain, double f1, double f2){
@@ -207,6 +212,13 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 	
 	if (visco_real>visc_MAX) visco_real=visc_MAX;
 	if (visco_real<visc_MIN) visco_real=visc_MIN;
+
+	if (tcont==0){
+		double f1 = PetscLogReal(visc_MAX_comp/visc_MIN_comp);
+		double f2 = PetscLogReal(visc_MAX/visc_MIN);
+		double f3 = PetscLogReal(visco_real/visc_MIN);
+		visco_real = visc_MIN_comp*PetscExpReal(f1*f3/f2);
+	}
 	
 	return(visco_real);
 	

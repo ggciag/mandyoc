@@ -137,8 +137,12 @@ int main(int argc,char **args)
 	checkered=0;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-checkered",&checkered,NULL);CHKERRQ(ierr);
 
-	pressure_in_rheol=0;
+	pressure_in_rheol=2;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-pressure_in_rheol",&pressure_in_rheol,NULL);CHKERRQ(ierr);
+	if (pressure_in_rheol==2) {
+		PetscPrintf(PETSC_COMM_WORLD,"Specify pressure_in_rheol!\n\n");
+		exit(1);
+	}
 
 	periodic_boundary=0;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-periodic_boundary",&periodic_boundary,NULL);CHKERRQ(ierr);
@@ -161,10 +165,40 @@ int main(int argc,char **args)
 		PetscPrintf(PETSC_COMM_WORLD,"Swarm FIM\n");
 	}
 	
-	
-	
-	ierr = veloc_total(); CHKERRQ(ierr);
-	
+
+	// Gerya p. 215
+	if (visc_MAX>visc_MIN){
+		double visc_contrast = PetscLog10Real(visc_MAX/visc_MIN);
+
+		double visc_mean = PetscPowReal(10.0,PetscLog10Real(visc_MIN)+visc_contrast/2);
+
+		int n_visc=0;
+
+		visc_MIN_comp = visc_mean;
+		visc_MAX_comp = visc_mean;
+
+		PetscPrintf(PETSC_COMM_WORLD,"\n\n%.3lg %.3lg\n\n",visc_MIN_comp,visc_MAX_comp);
+
+		ierr = veloc_total(); CHKERRQ(ierr);
+
+		while ((visc_MIN_comp!=visc_MIN) && (visc_MAX_comp!=visc_MAX)){
+
+			visc_MIN_comp = visc_mean*PetscPowReal(10.0,-n_visc*1.0);
+			visc_MAX_comp = visc_mean*PetscPowReal(10.0,n_visc*1.0);
+
+			if (visc_MIN_comp<visc_MIN) visc_MIN_comp=visc_MIN;
+			if (visc_MAX_comp>visc_MAX) visc_MAX_comp=visc_MAX;
+
+			PetscPrintf(PETSC_COMM_WORLD,"\n\n%.3lg %.3lg\n\n",visc_MIN_comp,visc_MAX_comp);
+
+			ierr = veloc_total(); CHKERRQ(ierr);
+
+			n_visc++;
+		}
+	}
+	else {
+		ierr = veloc_total(); CHKERRQ(ierr);
+	}
 	
 	PetscPrintf(PETSC_COMM_WORLD,"passou veloc_total\n");
 	
