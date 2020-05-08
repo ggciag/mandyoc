@@ -256,6 +256,19 @@ PetscErrorCode shift_pressure() //necessary if the surface pressure is not close
 		}
 	}
 
+	int cont_air = 0, cont_air_all;
+    float pressure_air = 0.0, pressure_air_all;
+
+    for (k=sz; k<sz+mmz; k++) {
+        for (i=sx; i<sx+mmx; i++) {
+            if (k==Nz-1){
+                pressure_air+=pp_aux[k][i];
+                cont_air++;
+            }
+        }
+    }
+
+
 	//restore Pressure_aux
 	ierr = DMDAVecRestoreArray(da_Thermal,local_P_aux,&pp_aux);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalBegin(da_Thermal,local_P_aux,INSERT_VALUES,Pressure_aux);CHKERRQ(ierr);
@@ -287,11 +300,14 @@ PetscErrorCode shift_pressure() //necessary if the surface pressure is not close
 	ierr = DMLocalToGlobalBegin(da_Thermal,local_P_aux,INSERT_VALUES,Pressure_aux);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalEnd(da_Thermal,local_P_aux,INSERT_VALUES,Pressure_aux);CHKERRQ(ierr);*/
 
+	MPI_Allreduce(&cont_air,&cont_air_all,1,MPI_INT,MPI_SUM,PETSC_COMM_WORLD);
+    MPI_Allreduce(&pressure_air,&pressure_air_all,1,MPI_FLOAT,MPI_SUM,PETSC_COMM_WORLD);
 
 	PetscReal pressure_min;//,pressure_max;
 	PetscInt i_aux;
 
-	VecMin(Pressure_aux,&i_aux,&pressure_min);
+	//VecMin(Pressure_aux,&i_aux,&pressure_min);
+	pressure_min = pressure_air_all/cont_air_all;
 	pressure_min=-pressure_min;
 	VecShift(Pressure_aux,pressure_min);
 
