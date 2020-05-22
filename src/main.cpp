@@ -1,4 +1,82 @@
-static char help[] = "MANDYOC\n";
+static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
+"Flags:\n\n"\
+"   -Px [int]:            specify the number of cores in the x-direction of the domain\n"\
+"                         default value: PETSC_DECIDE\n\n"\
+"   -Pz [int]:            specify the number of cores in the z-direction of the domain\n"\
+"                         default value: PETSC_DECIDE\n\n"\
+"                         (the product of Px*Pz must be equal to the total number of cores)\n\n"
+"   -rtol [float]:        the absolute size of the residual norm (relevant only for iterative methods)\n"\
+"                         default value: PETSC_DEFAULT = 1e-5\n\n"\
+"   -te [0 or 1]:         initial temperature field from an external file (1) or internally calculated (0)\n"\
+"                         default value: 0\n\n"\
+"   -ve [0 or 1]:         initial velocity field from an external file (1) or null (0)\n"\
+"                         default value: 0\n\n"\
+"   -bcve [0 or 1]:       boundary condition for the velocity field from an external file (1) or defined from the parameter file (0)\n"\
+"                         default value: 0\n\n"\
+"   -denok [float]:       residual norm in the Uzawa scheme\n"\
+"                         default value: 1e-4\n\n"\
+"   -print_visc [0 or 1]: print (1) or not (0) the viscosity field\n"\
+"                         default value: 0\n\n"\
+"   -visc_const_per_element [0 or 1]:\n"\
+"                         assume the viscosity constant (1) of linearly variable (0) in each finite element\n"\
+"                         default value: 0\n\n"\
+"   -visc_harmonic_mean [0 or 1]:\n"\
+"                         assume the harmonic mean (1) or arithmetic mean (0) for the effective viscosity\n"\
+"                         default value: 1\n\n"\
+"   -particles_per_ele [int]:\n"\
+"                         number of Lagrangian particles per element\n"\
+"                         default value: 81\n\n"\
+"   -particles_perturb_factor [float: 0.0-1.0]:\n"\
+"                         amplitude of the perturbation of the initial position of the Lagrangian particles.\n"\
+"                         0.0 means no perturbation (particles aligned in a grid).\n"\
+"                         default value: 0.5\n\n"\
+"   -free_surface_stab [0 or 1]:\n"\
+"                         use (1) or not (0) of the Free Surface Stabilization Algorithm (Kaus et al., 2010)\n"\
+"                         default value: 1\n\n"\
+"   -theta_FSSA [float: 0.0-1.0]:\n"\
+"                         weight factor for the Free Surface Stabilization Algorithm (Kaus et al., 2010)\n"\
+"                         only relevant if -free_surface_stab 1\n"\
+"                         default value: 0.5\n\n"\
+"   -sub_division_time_step [float]:\n"\
+"                         factor that rescale the time step: new_time_step = time_step/sub_division_time_step\n"\
+"                         default value: 1.0\n\n"\
+"   -print_step_files [0 or 1]:\n"\
+"                         print (1) or not (0) the 'step files' containing the position of the Lagrangian particles\n"\
+"                         default value: 1\n\n"\
+"   -checkered [0 or 1]:  in the 'step files', save only one particle per element (0) or\n"\
+"                         a sequence of particles in the horizontal direction and in the vertical one per element (checkered) (1)\n"\
+"                         default value: 0\n\n"\
+"   -direct_solver [0 or 1]:\n"\
+"                         use direct (1) or iterative (0) solver for the momentum equation\n"\
+"                         default value: 1\n\n"\
+"   -RK4 [0 or 1]:        UNDER CONSTRUCTION (ONLY EULER IS WORKING)\n"\
+"                         use Euler (0) or 4th order Runge-Kutta (1) scheme for particles advection\n"\
+"                         default value: 0\n\n"\
+"   -xi_min [float]:      convergence criterium for non-linear problems\n"\
+"                         default value: 1e-14\n\n"\
+"   -seed [int]:          specify one layer for weak plastic criterium (seed layer)\n"\
+"                         default value: no layer specified\n\n"\
+"   -pressure_in_rheol [0 or 1]:\n"\
+"                         (0) if the effective viscosity is depth dependent\n"\
+"                         (1) if the effective viscosity is pressure dependent\n"\
+"                         this flag is mandatory even is the adopted rheology is not depth/pressure dependent!\n"\
+"                         no default value\n\n"\
+"   -h_air [float]:       if pressure_in_rheol 1, the user must specify the thickness of the sticky air layer.\n"\
+"                         only relevant if pressure_in_rheol 1 and is mandatory in this case\n"\
+"                         no default value\n\n"\
+"   -initial_dynamic_range [0 or 1]:\n"\
+"                         adopt (1) or not (0) a progressive increase in the viscosity range, solving the momentum equation\n"\
+"                         in each range until the viscosity range is from visc_MIN to visc_MAX. Only used in the first step.\n"\
+"                         Useful to make a smooth convergence of the solution in the case of large viscosity contrasts\n"\
+"                         (for details, see 'Introduction to Numerical Geodynamic Modelling' 1st edition, Taras Gerya, p. 215)\n"\
+"                         default value: 1\n\n"\
+"   -periodic_boundary [0 or 1]:\n"\
+"                         if (1) assume periodic boundary condition in the x-direction\n"\
+"                         default value: 0\n\n"\
+"";
+
+
+
 
 /* Contributed by Dave May */
 
@@ -59,6 +137,14 @@ int main(int argc,char **args)
 	PetscInt       Px,Pz;
 	
 	ierr = PetscInitialize(&argc,&args,(char*)0,help);CHKERRQ(ierr);
+
+
+	PetscBool      flags;
+	ierr = PetscOptionsHasName(NULL,NULL,"-flags",&flags);
+	if (flags){
+		PetscPrintf(PETSC_COMM_WORLD,"%s",help);
+		exit(1);
+	}
 	
 	int rank;
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
@@ -144,6 +230,19 @@ int main(int argc,char **args)
 		exit(1);
 	}
 
+	h_air=-1.0;
+	ierr = PetscOptionsGetReal(NULL,NULL,"-h_air",&h_air,NULL);CHKERRQ(ierr);
+	if (pressure_in_rheol==0 && h_air<0.0){
+		PetscPrintf(PETSC_COMM_WORLD,"Specify the thickness of the air layer with the flag -h_air\n");
+		PetscPrintf(PETSC_COMM_WORLD,"(you adopted depth dependent rheology: -pressure_in_rheol 0)\n");
+		exit(1);
+	}
+	else h_air=0.0;
+
+	initial_dynamic_range=0;
+	ierr = PetscOptionsGetInt(NULL,NULL,"-initial_dynamic_range",&initial_dynamic_range,NULL);CHKERRQ(ierr);
+
+
 	periodic_boundary=0;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-periodic_boundary",&periodic_boundary,NULL);CHKERRQ(ierr);
 	
@@ -167,7 +266,7 @@ int main(int argc,char **args)
 	
 
 	// Gerya p. 215
-	if (visc_MAX>visc_MIN){
+	if (visc_MAX>visc_MIN && initial_dynamic_range>0){
 		double visc_contrast = PetscLog10Real(visc_MAX/visc_MIN);
 
 		double visc_mean = PetscPowReal(10.0,PetscLog10Real(visc_MIN)+visc_contrast/2);
@@ -197,6 +296,8 @@ int main(int argc,char **args)
 		}
 	}
 	else {
+		visc_MIN_comp = visc_MIN;
+		visc_MAX_comp = visc_MAX;
 		ierr = veloc_total(); CHKERRQ(ierr);
 	}
 	

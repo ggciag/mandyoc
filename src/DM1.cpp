@@ -600,7 +600,7 @@ PetscErrorCode Thermal_init(Vec F,DM thermal_da)
 		
 	}
 	else{
-		/* get acces to the vector */
+		/* get access to the vector */
 		ierr = DMGetLocalVector(thermal_da,&local_F);CHKERRQ(ierr);
 		ierr = VecZeroEntries(local_F);CHKERRQ(ierr);
 		ierr = DMDAVecGetArray(thermal_da,local_F,&ff);CHKERRQ(ierr);

@@ -304,7 +304,7 @@ PetscErrorCode shift_pressure() //necessary if the surface pressure is not close
     MPI_Allreduce(&pressure_air,&pressure_air_all,1,MPI_FLOAT,MPI_SUM,PETSC_COMM_WORLD);
 
 	PetscReal pressure_min;//,pressure_max;
-	PetscInt i_aux;
+	//PetscInt i_aux;
 
 	//VecMin(Pressure_aux,&i_aux,&pressure_min);
 	pressure_min = pressure_air_all/cont_air_all;

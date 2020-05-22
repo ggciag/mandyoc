@@ -313,6 +313,8 @@ PetscInt seed_layer;
 
 PetscInt checkered;
 
+PetscInt initial_dynamic_range;
+
 
 ////// Flags
 PetscInt WITH_NON_LINEAR = 0; // Controla o uso da reologia plástica e/ou viscosidade não linear

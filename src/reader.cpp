@@ -270,7 +270,7 @@ PetscErrorCode reader(int rank){
 		if (strcmp (str,"T_initial") == 0) fscanf(f_parametros,"%d",&T_initial_cond);
 		else {printf("T_initial error\n"); exit(1);}
 		
-		
+		/*
 		fscanf(f_parametros,"%s",str);
 		if (strcmp (str,"H_lito") == 0) fscanf(f_parametros,"%lf",&H_lito);
 		else {printf("H_lito error\n"); exit(1);}
@@ -291,6 +291,7 @@ PetscErrorCode reader(int rank){
 		fscanf(f_parametros,"%s",str);
 		if (strcmp (str,"ramp_end") == 0) fscanf(f_parametros,"%lf",&ramp_end);
 		else {printf("ramp_end error\n"); exit(1);}
+		*/
 		
 		fclose(f_parametros);
 		
@@ -364,14 +365,14 @@ PetscErrorCode reader(int rank){
 	
 	MPI_Bcast(&T_initial_cond,1,MPI_INT,0,PETSC_COMM_WORLD);
 	
-	MPI_Bcast(&H_lito,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
+	/*MPI_Bcast(&H_lito,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	
 	MPI_Bcast(&h_air,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	
 	MPI_Bcast(&beta_max,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	
 	MPI_Bcast(&ramp_begin,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&ramp_end,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&ramp_end,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);*/
 	
 	
 	

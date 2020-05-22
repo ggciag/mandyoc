@@ -20,6 +20,8 @@ extern PetscInt WITH_NON_LINEAR;
 
 extern PetscInt pressure_in_rheol;
 
+extern double h_air;
+
 extern int tcont;
 
 
@@ -45,6 +47,13 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 						double A, double n_exp, double QE, double VE){
 	
 	double visco_real;
+	double depth;
+	if (pressure_in_rheol==0){
+		depth = -(z + h_air);
+		if (depth<0.0) depth=0.0;
+	}
+	if (P<0.0) P=0.0;
+
 	
 	if (e2_inva<1.0E-36) e2_inva=1.0E-36; ///!!!! e2_inva min
 	
@@ -131,7 +140,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		
 		//double aux = -(T+273);
 		if (pressure_in_rheol==0) {
-			visco_real = visco_r*A*exp(-(QE+VE*10.0*3300.*(-z))/(R*TK));
+			visco_real = visco_r*A*exp(-(QE+VE*10.0*3300.*(depth))/(R*TK));
 		}
 		else {
 			visco_real = visco_r*A*exp(-(QE+VE*P)/(R*TK));
@@ -152,7 +161,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 			double TK = T+273.;
 			
 			if (pressure_in_rheol==0) {
-				visco_real = pow(A,-1./n_exp)*pow(e2_inva,(1.-n_exp)/(n_exp))*exp((QE+VE*10.0*3300.*(-z))/(n_exp*R*TK));
+				visco_real = pow(A,-1./n_exp)*pow(e2_inva,(1.-n_exp)/(n_exp))*exp((QE+VE*10.0*3300.*(depth))/(n_exp*R*TK));
 			}
 			else {
 				visco_real = pow(A,-1./n_exp)*pow(e2_inva,(1.-n_exp)/(n_exp))*exp((QE+VE*P)/(n_exp*R*TK));
@@ -182,7 +191,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		double mu = strain_softening(strain_cumulate,0.261799,0.034906);
 		double tau_yield;
 		if (pressure_in_rheol==0){
-			tau_yield = c0*cos(mu) + sin(mu)*10.0*3300.*(-z);//!!!!
+			tau_yield = c0*cos(mu) + sin(mu)*10.0*3300.*(depth);//!!!!
 		}
 		else {
 			tau_yield = c0*cos(mu) + sin(mu)*P;
