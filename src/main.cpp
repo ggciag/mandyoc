@@ -73,6 +73,12 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 "   -periodic_boundary [0 or 1]:\n"\
 "                         if (1) assume periodic boundary condition in the x-direction\n"\
 "                         default value: 0\n\n"\
+"   -variable_bcv [0 or 1]:\n"\
+"                         if (1) use the file scale_bcv.txt to rescale the velocity field.\n"\
+"                         The scale_bcv.txt file is composed of two columns, with the first line indicating the number of instants:\n"\
+"                         [number of instants]\n"\
+"                         [instant to change the velocity in Myr] [scale factor]\n"\
+"                         default value: 0\n\n"\
 "";
 
 
@@ -126,6 +132,7 @@ PetscErrorCode write_tempo(int cont);
 
 PetscErrorCode veloc_total();
 
+PetscErrorCode rescaleVeloc(Vec Veloc_fut, double tempo);
 
 
 
@@ -145,6 +152,9 @@ int main(int argc,char **args)
 		PetscPrintf(PETSC_COMM_WORLD,"%s",help);
 		exit(1);
 	}
+
+	variable_bcv=0;
+	ierr = PetscOptionsGetInt(NULL,NULL,"-variable_bcv",&variable_bcv,NULL);CHKERRQ(ierr);
 	
 	int rank;
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
@@ -322,7 +332,8 @@ int main(int argc,char **args)
 	
 	for (tempo = dt_calor,tcont=1;tempo<=timeMAX && tcont<=stepMAX;tempo+=dt_calor, tcont++){
 		PetscPrintf(PETSC_COMM_WORLD,"\n\nstep = %d, time = %.3g Myr, dt = %.3g Myr\n",tcont,tempo,dt_calor);
-		
+
+		ierr = rescaleVeloc(Veloc_fut,tempo);
 		
 		ierr = build_thermal_3d();CHKERRQ(ierr);
 
@@ -452,3 +463,54 @@ PetscErrorCode write_tempo(int cont){
 	
 }
 
+
+PetscErrorCode rescaleVeloc(Vec Veloc_fut,double tempo)
+{
+	PetscErrorCode ierr;
+	if (cont_var_bcv<n_var_bcv){
+		if (tempo>1.0E6*var_bcv_time[cont_var_bcv]){
+			PetscScalar v_norm;
+			VecNorm(Veloc_fut,NORM_1,&v_norm);
+			PetscPrintf(PETSC_COMM_WORLD,"v_norm = %lf\n\n",v_norm);
+			VecScale(Veloc_fut,var_bcv_scale[cont_var_bcv]);
+			VecScale(Veloc_0,var_bcv_scale[cont_var_bcv]);
+			cont_var_bcv++;
+			VecNorm(Veloc_fut,NORM_1,&v_norm);
+			PetscPrintf(PETSC_COMM_WORLD,"v_norm = %lf\n\n",v_norm);
+
+			PetscPrintf(PETSC_COMM_WORLD,"velocity rescale\n\n");
+
+			if (visc_MAX>visc_MIN && initial_dynamic_range>0){
+				double visc_contrast = PetscLog10Real(visc_MAX/visc_MIN);
+
+				double visc_mean = PetscPowReal(10.0,PetscLog10Real(visc_MIN)+visc_contrast/2);
+
+				int n_visc=0;
+
+				visc_MIN_comp = visc_mean;
+				visc_MAX_comp = visc_mean;
+
+				PetscPrintf(PETSC_COMM_WORLD,"\n\n%.3lg %.3lg\n\n",visc_MIN_comp,visc_MAX_comp);
+
+				ierr = veloc_total(); CHKERRQ(ierr);
+
+				while ((visc_MIN_comp!=visc_MIN) && (visc_MAX_comp!=visc_MAX)){
+
+					visc_MIN_comp = visc_mean*PetscPowReal(10.0,-n_visc*1.0);
+					visc_MAX_comp = visc_mean*PetscPowReal(10.0,n_visc*1.0);
+
+					if (visc_MIN_comp<visc_MIN) visc_MIN_comp=visc_MIN;
+					if (visc_MAX_comp>visc_MAX) visc_MAX_comp=visc_MAX;
+
+					PetscPrintf(PETSC_COMM_WORLD,"\n\n%.3lg %.3lg\n\n",visc_MIN_comp,visc_MAX_comp);
+
+					ierr = veloc_total(); CHKERRQ(ierr);
+
+					n_visc++;
+				}
+			}
+		}
+	}
+	
+	PetscFunctionReturn(0);
+}

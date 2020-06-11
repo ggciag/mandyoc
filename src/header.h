@@ -315,6 +315,14 @@ PetscInt checkered;
 
 PetscInt initial_dynamic_range;
 
+PetscInt variable_bcv;
+
+PetscScalar *var_bcv_time;
+PetscScalar *var_bcv_scale;
+PetscInt n_var_bcv;
+PetscInt cont_var_bcv=0;
+
+
 
 ////// Flags
 PetscInt WITH_NON_LINEAR = 0; // Controla o uso da reologia plástica e/ou viscosidade não linear

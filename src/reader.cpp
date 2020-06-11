@@ -87,6 +87,12 @@ extern PetscInt WITH_NON_LINEAR;
 extern PetscInt WITH_ADIABATIC_H;
 extern PetscInt WITH_RADIOGENIC_H;
 
+extern PetscInt variable_bcv;
+
+extern PetscScalar *var_bcv_time;
+extern PetscScalar *var_bcv_scale;
+extern PetscInt n_var_bcv;
+
 char str[100];
 
 PetscErrorCode reader(int rank){
@@ -492,6 +498,33 @@ PetscErrorCode reader(int rank){
 		MPI_Bcast(inter_V,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 		
 	//!!!x }
+
+
+	if (variable_bcv==1){
+		FILE *f_bcv;
+		f_bcv = fopen("scale_bcv.txt","r");
+		if (f_bcv==NULL) {
+			PetscPrintf(PETSC_COMM_WORLD,"\n\n\n\nscale_bcv.txt not found\n\n\n\n");
+			exit(1);
+		}
+		if (rank==0){
+			fscanf(f_bcv,"%d",&n_var_bcv);
+		}
+		MPI_Bcast(&n_var_bcv,1,MPI_INT,0,PETSC_COMM_WORLD);
+		PetscCalloc1(n_var_bcv,&var_bcv_scale);
+		PetscCalloc1(n_var_bcv,&var_bcv_time);
+		if (rank==0){
+			printf("Variable boundary condition for velocity\n");
+			for (int i=0;i<n_var_bcv;i++){
+				fscanf(f_bcv,"%lf%lf",&var_bcv_time[i],&var_bcv_scale[i]);
+				printf("%lf %lf\n",var_bcv_time[i],var_bcv_scale[i]);
+			}
+			printf("\n\n");
+			fclose(f_bcv);
+		}
+		MPI_Bcast(var_bcv_time,n_var_bcv,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+		MPI_Bcast(var_bcv_scale,n_var_bcv,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+	}
 	
 	PetscFunctionReturn(0);
 

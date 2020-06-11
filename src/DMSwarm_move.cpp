@@ -177,6 +177,8 @@ PetscErrorCode moveSwarm(PetscReal dt)
 
 	e2_aux_MAX = 0.0;
 	e2_aux_MIN = 1.0E50;
+
+	PetscPrintf(PETSC_COMM_WORLD,"DM_Swarm_0\n");
 	
 	for (p=0; p<nlocal; p++) {
 		PetscReal cx,cz,vx,vz,tp,Pp;
@@ -360,6 +362,7 @@ PetscErrorCode moveSwarm(PetscReal dt)
 		
 		
 	}
+	PetscPrintf(PETSC_COMM_WORLD,"DM_Swarm_1\n");
 
 	//printf("e2_min = %lg, e2_max = %lg\n",e2_aux_MIN,e2_aux_MAX);
 
@@ -384,6 +387,7 @@ PetscErrorCode moveSwarm(PetscReal dt)
 	ierr = DMDAVecRestoreArray(da_Thermal,local_P_aux,&pp_aux);CHKERRQ(ierr);
 	
 	//exit(1);
+	PetscPrintf(PETSC_COMM_WORLD,"DM_Swarm_2\n");
 	
 	PetscFunctionReturn(0);
 	
@@ -460,6 +464,8 @@ PetscErrorCode Swarm_add_remove()
 		if (mz>k) mz=k;
 	
 	}
+
+	printf("Swarm move: %d %d %d %d\n",mx,Mx,mz,Mz);
 	
 	PetscInt max_particles_per_ele=particles_per_ele+particles_per_ele/10+2;
 	PetscInt min_particles_per_ele=particles_per_ele-particles_per_ele/10-2;
@@ -604,6 +610,8 @@ PetscErrorCode Swarm_add_remove()
 		}
 	
 	}
+
+	PetscPrintf(PETSC_COMM_WORLD,"Swarm move: 1\n");
 	
 	
 	//ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
@@ -674,7 +682,7 @@ PetscErrorCode Swarm_add_remove()
 	
 	ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
 	//printf("nlocal_%d %d %d_depois2\n",nlocal,cont_p_add,particles_add_remove);
-	
+	PetscPrintf(PETSC_COMM_WORLD,"Swarm move: 2\n");
 	
 	//exit(1);
 	PetscFunctionReturn(0);
