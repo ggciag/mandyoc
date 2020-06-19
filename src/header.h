@@ -41,7 +41,7 @@ int tcont=0;
 
 double seg_per_ano = 365.0*24.0*3600.0;
 
-double dt_calor = 10000.0;
+double dt_calor = 0.0;
 double dt_calor_sec=dt_calor*seg_per_ano;
 
 double tempo=0;

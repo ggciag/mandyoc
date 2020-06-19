@@ -284,7 +284,7 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 
 			if (free_surface_stab==1){
 				for (i=0;i<T_NE;i++) rho_ele[i]=rr[indr[i].j][indr[i].i];
-				
+				/*
 				rho_mean_bottom = (rho_ele[0] + rho_ele[1] + rho_ele[2] + rho_ele[3])/4.0; 
 				rho_mean_top =    (rho_ele[0] + rho_ele[1] + rho_ele[2] + rho_ele[3])/4.0;	
 
@@ -299,6 +299,16 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 				Ke_veloc_final[5*9] +=traction_top;
 				Ke_veloc_final[7*9] +=traction_top;
 				}
+				*/
+				rho_mean_bottom = (-rho_ele[0] - rho_ele[1] + rho_ele[2] + rho_ele[3])/2.0; 
+				traction_bottom = theta_FSSA*dt_calor_sec*rho_mean_bottom*gravity*dx_const/2.0;
+
+				Ke_veloc_final[1*9] += traction_bottom;
+				Ke_veloc_final[3*9] += traction_bottom;
+
+				Ke_veloc_final[5*9] += traction_bottom;
+				Ke_veloc_final[7*9] += traction_bottom;
+
 			}
 
 			/////////////
