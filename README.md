@@ -23,7 +23,6 @@ the appropriate directory for PETSc.
 
     ```bash
     cp mandyoc ../examples/vanKeken1997/
-
     cd ../examples/vanKeken1997/
     ```
 
