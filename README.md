@@ -13,7 +13,7 @@ the appropriate directory for PETSc.
 
 * Compile the code in the `mandyoc/src/` directory:
 
-    ```bash
+    ```
     make all
     ```
 
@@ -21,10 +21,11 @@ the appropriate directory for PETSc.
 ### Steps to run the van Keken et al. (1997) example ###
 * From the `src/` folder, copy the executable to the `examples/vanKeken1997/` folder:
 
-    ```bash
+    ```
     cp mandyoc ../examples/vanKeken1997/
     ```
-    ```bash
+
+    ```
     cd ../examples/vanKeken1997/
     ```
 
@@ -32,13 +33,13 @@ the appropriate directory for PETSc.
 
 * Run the `run.sh` script:
 
-    ```bash
+    ```
     sh run.sh
     ```
 
 * To visualize the evolution of the density structure, run:
 
-    ```bash
+    ```
     ipython rho_imshow.py
     ```
 
