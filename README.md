@@ -9,7 +9,7 @@ MANtle DYnamics simulatOr Code
 * In the mandyoc/src/ directory, modify the first two lines of the makefile to the appropriate directory for PETSc.
 * Compile the code in the mandyoc/src/ directory:
 ```bash
-make all 
+make all
 ```
 
 ### Steps to run the van Keken et al. (1997) example ###
@@ -28,3 +28,8 @@ sh run.sh
 ipython rho_imshow.py
 ```
 
+## License
+This is free software, you can redistribute it and/or modify it under the terms
+ of the **BSD 3-clause License**.
+ A copy of this license is provided in
+ [LICENSE](/https://bitbucket.org/victorsacek/mandyoc/src/master/LICENSE).
