@@ -53,3 +53,9 @@ makes much easier to manage, inspect and visualize the results.
 
 You can find installation instructions and examples at the
 [tapIOca website](https://github.com/aguspesce/tapioca).
+
+## License
+This is free software, you can redistribute it and/or modify it under the terms
+ of the **BSD 3-clause License**.
+ A copy of this license is provided in
+ [LICENSE](/https://bitbucket.org/victorsacek/mandyoc/src/master/LICENSE).
