@@ -98,7 +98,7 @@ PetscReal linear_interpolation(PetscReal rx, PetscReal rz,PetscScalar V0, PetscS
 
 PetscInt get_i(PetscReal cx){
 	PetscInt i = (int)(cx/dx_const);
-	if (i<0 || i>=Nx-1) {printf("estranho i=%d\n",i); exit(1);}
+	if (i<0 || i>=Nx-1) {printf("estranho i=%d get_i cx = %lf\n",i,cx); exit(1);}
 	if (i==Nx-1) i=Nx-2;
 
 	return i;
@@ -106,7 +106,7 @@ PetscInt get_i(PetscReal cx){
 
 PetscInt get_k(PetscReal cz){
 	PetscInt k = (int)((cz+depth)/dz_const);
-	if (k<0 || k>=Nz-1) {printf("estranho k=%d cz=%lf\n",k,cz); exit(1);}
+	if (k<0 || k>=Nz-1) {printf("estranho k=%d get_k cz=%lf\n",k,cz); exit(1);}
 	if (k==Nz-1) k=Nz-2;
 
 	return k;
@@ -203,6 +203,10 @@ PetscErrorCode moveSwarm(PetscReal dt)
 			k = get_k(cz);
 			rx = get_rx(cx,i);
 			rz = get_rz(cz,k);
+
+			tp = linear_interpolation(rx,rz,tt[k][i],tt[k][i+1],tt[k+1][i],tt[k+1][i+1]);
+			Pp = linear_interpolation(rx,rz,pp_aux[k][i],pp_aux[k][i+1],pp_aux[k+1][i],pp_aux[k+1][i+1]);
+
 			xA = cx;
 			zA = cz;
 			vxA = linear_interpolation(rx,rz,VV[k][i].u,VV[k][i+1].u,VV[k+1][i].u,VV[k+1][i+1].u);
@@ -263,6 +267,10 @@ PetscErrorCode moveSwarm(PetscReal dt)
 			k = get_k(cz);
 			rx = get_rx(cx,i);
 			rz = get_rz(cz,k);
+
+			tp = linear_interpolation(rx,rz,tt[k][i],tt[k][i+1],tt[k+1][i],tt[k+1][i+1]);
+			Pp = linear_interpolation(rx,rz,pp_aux[k][i],pp_aux[k][i+1],pp_aux[k+1][i],pp_aux[k+1][i+1]);
+
 			vx = linear_interpolation(rx,rz,VV[k][i].u,VV[k][i+1].u,VV[k+1][i].u,VV[k+1][i+1].u);
 			vz = linear_interpolation(rx,rz,VV[k][i].w,VV[k][i+1].w,VV[k+1][i].w,VV[k+1][i+1].w);
 
@@ -276,7 +284,7 @@ PetscErrorCode moveSwarm(PetscReal dt)
 		}
 
 
-		i = get_i(cx);
+		/*i = get_i(cx);
 		k = get_k(cz);
 		rx = get_rx(cx,i);
 		rz = get_rz(cz,k);
@@ -284,7 +292,7 @@ PetscErrorCode moveSwarm(PetscReal dt)
 		tp = linear_interpolation(rx,rz,tt[k][i],tt[k][i+1],tt[k+1][i],tt[k+1][i+1]);
 
 		//Pp = pp_aux[k][i];
-		Pp = linear_interpolation(rx,rz,pp_aux[k][i],pp_aux[k][i+1],pp_aux[k+1][i],pp_aux[k+1][i+1]);
+		Pp = linear_interpolation(rx,rz,pp_aux[k][i],pp_aux[k][i+1],pp_aux[k+1][i],pp_aux[k+1][i+1]);*/
 		///////// strain
 		
 		
@@ -447,8 +455,8 @@ PetscErrorCode Swarm_add_remove()
 		i = (int)(cx/dx_const);
 		k = (int)((cz+depth)/dz_const);
 		
-		if (i<0 || i>=Nx-1) {printf("estranho i=%d\n",i); exit(1);}
-		if (k<0 || k>=Nz-1) {printf("estranho k=%d\n",k); exit(1);}
+		if (i<0 || i>=Nx-1) {printf("estranho i=%d  add remove cx = %lf\n",i,cx); exit(1);}
+		if (k<0 || k>=Nz-1) {printf("estranho k=%d  add remove cz = %lf\n",k,cz); exit(1);}
 		
 		if (i==Nx-1) i=Nx-2;
 		if (k==Nz-1) k=Nz-2;
