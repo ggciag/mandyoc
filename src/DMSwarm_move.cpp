@@ -194,6 +194,7 @@ PetscErrorCode moveSwarm(PetscReal dt)
 		PetscInt ii,kk;
 		
 		PetscReal kx,kz,ex,ez;
+		PetscReal epsilon_x = 1.0E-30;
 
 		if (RK4==1){
 			//fourth-order Runge-Kutta scheme
@@ -262,7 +263,25 @@ PetscErrorCode moveSwarm(PetscReal dt)
 		}
 		else {
 			cx = array[2*p];
+			if (cx>=Lx) {
+				printf("moveSwarm - outside: cx=%lf>=%lf\n",cx,Lx);
+				cx=Lx-epsilon_x;
+			}
+			if (cx<=0.0) {
+				printf("moveSwarm - outside: cx=%lf<=0.0\n",cx);
+				cx=epsilon_x;
+			}
+
 			cz = array[2*p+1];
+			if (cz>=0){
+				printf("moveSwarm - outside: cz=%lf>=0.0\n",cz);
+				cz=-epsilon_x;
+			}
+			if (cz<=-depth){
+				printf("moveSwarm - outside: cz=%lf<=-%lf\n",cz,depth);
+				cz=-depth+epsilon_x;
+			}
+
 			i = get_i(cx);
 			k = get_k(cz);
 			rx = get_rx(cx,i);
@@ -445,13 +464,31 @@ PetscErrorCode Swarm_add_remove()
 	PetscReal cx,cz,dx,dz;
 	PetscInt i,k;
 	PetscReal cx_v[10],cz_v[10];
+	PetscReal epsilon_x = 1.0E-30;
 	
 	for (p=0; p<nlocal; p++) {
 
 		
 		cx = array[2*p];
+		if (cx>=Lx) {
+			printf("Swarm_add_remove - outside: cx=%lf>=%lf\n",cx,Lx);
+			cx=Lx-epsilon_x;
+		}
+		if (cx<=0.0) {
+			printf("Swarm_add_remove - outside: cx=%lf<=0.0\n",cx);
+			cx=epsilon_x;
+		}
+
 		cz = array[2*p+1];
-		
+		if (cz>=0){
+			printf("Swarm_add_remove - outside: cz=%lf>=0.0\n",cz);
+			cz=-epsilon_x;
+		}
+		if (cz<=-depth){
+			printf("Swarm_add_remove - outside: cz=%lf<=-%lf\n",cz,depth);
+			cz=-depth+epsilon_x;
+		}
+
 		i = (int)(cx/dx_const);
 		k = (int)((cz+depth)/dz_const);
 		

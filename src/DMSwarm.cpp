@@ -393,7 +393,7 @@ PetscErrorCode createSwarm()
 
 				i = (int)(cx/dx_const);
 				
-				if (i<0 || i>=Nx-1) {printf("estranho i=%d\n",i); exit(1);}
+				if (i<0 || i>=Nx-1) {printf("estranho i=%d create cx = %lf\n",i,cx); exit(1);}
 				
 				if (i==Nx-1) i=Nx-2;
 				

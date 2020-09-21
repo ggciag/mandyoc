@@ -87,13 +87,30 @@ PetscErrorCode Swarm2Mesh(){
 	ierr = DMSwarmGetField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 
+	PetscReal epsilon_x = 1.0E-30;
 	for (p=0; p<nlocal; p++) {
 		PetscReal cx,cz;
 		PetscReal rx,rz,rfac;
 		PetscInt i,k;
 		
 		cx = array[2*p];
+		if (cx>=Lx) {
+			printf("Swarm2Mesh - outside: cx=%lf>=%lf\n",cx,Lx);
+			cx=Lx-epsilon_x;
+		}
+		if (cx<=0.0) {
+			printf("Swarm2Mesh - outside: cx=%lf<=0.0\n",cx);
+			cx=epsilon_x;
+		}
 		cz = array[2*p+1];
+		if (cz>=0){
+			printf("Swarm2Mesh - outside: cz=%lf>=0.0\n",cz);
+			cz=-epsilon_x;
+		}
+		if (cz<=-depth){
+			printf("Swarm2Mesh - outside: cz=%lf<=-%lf\n",cz,depth);
+			cz=-depth+epsilon_x;
+		}
 		
 		i = (int)(cx/dx_const);
 		k = (int)((cz+depth)/dz_const);
@@ -149,7 +166,23 @@ PetscErrorCode Swarm2Mesh(){
 				PetscInt i,k;
 				
 				cx = array[2*p];
+				if (cx>=Lx) {
+					printf("Swarm2Mesh visc_harmonic_mean 1 - outside: cx=%lf>=%lf\n",cx,Lx);
+					cx=Lx-epsilon_x;
+				}
+				if (cx<=0.0) {
+					printf("Swarm2Mesh visc_harmonic_mean 1 - outside: cx=%lf<=0.0\n",cx);
+					cx=epsilon_x;
+				}
 				cz = array[2*p+1];
+				if (cz>=0){
+					printf("Swarm2Mesh visc_harmonic_mean 1 - outside: cz=%lf>=0.0\n",cz);
+					cz=-epsilon_x;
+				}
+				if (cz<=-depth){
+					printf("Swarm2Mesh visc_harmonic_mean 1 - outside: cz=%lf<=-%lf\n",cz,depth);
+					cz=-depth+epsilon_x;
+				}
 				
 				i = (int)(cx/dx_const);
 				k = (int)((cz+depth)/dz_const);
@@ -188,7 +221,23 @@ PetscErrorCode Swarm2Mesh(){
 				PetscInt i,k;
 				
 				cx = array[2*p];
+				if (cx>=Lx) {
+					printf("Swarm2Mesh visc_harmonic_mean 0 - outside: cx=%lf>=%lf\n",cx,Lx);
+					cx=Lx-epsilon_x;
+				}
+				if (cx<=0.0) {
+					printf("Swarm2Mesh visc_harmonic_mean 0 - outside: cx=%lf<=0.0\n",cx);
+					cx=epsilon_x;
+				}
 				cz = array[2*p+1];
+				if (cz>=0){
+					printf("Swarm2Mesh visc_harmonic_mean 0 - outside: cz=%lf>=0.0\n",cz);
+					cz=-epsilon_x;
+				}
+				if (cz<=-depth){
+					printf("Swarm2Mesh visc_harmonic_mean 0 - outside: cz=%lf<=-%lf\n",cz,depth);
+					cz=-depth+epsilon_x;
+				}
 				
 				i = (int)(cx/dx_const);
 				k = (int)((cz+depth)/dz_const);
