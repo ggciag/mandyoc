@@ -87,7 +87,7 @@ PetscErrorCode Swarm2Mesh(){
 	ierr = DMSwarmGetField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 
-	PetscReal epsilon_x = 1.0E-30;
+	PetscReal epsilon_x = 1.0E-7;
 	for (p=0; p<nlocal; p++) {
 		PetscReal cx,cz;
 		PetscReal rx,rz,rfac;

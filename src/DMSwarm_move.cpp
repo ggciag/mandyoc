@@ -194,7 +194,7 @@ PetscErrorCode moveSwarm(PetscReal dt)
 		PetscInt ii,kk;
 		
 		PetscReal kx,kz,ex,ez;
-		PetscReal epsilon_x = 1.0E-30;
+		PetscReal epsilon_x = 1.0E-7;
 
 		if (RK4==1){
 			//fourth-order Runge-Kutta scheme
@@ -464,7 +464,7 @@ PetscErrorCode Swarm_add_remove()
 	PetscReal cx,cz,dx,dz;
 	PetscInt i,k;
 	PetscReal cx_v[10],cz_v[10];
-	PetscReal epsilon_x = 1.0E-30;
+	PetscReal epsilon_x = 1.0E-7;
 	
 	for (p=0; p<nlocal; p++) {
 
