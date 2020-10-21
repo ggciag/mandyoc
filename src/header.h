@@ -1,4 +1,6 @@
-
+#ifndef GIT_VERSION
+#define GIT_VERSION "git-version-unavailable"
+#endif
 
 long Nx,Nz;
 long layers;
@@ -270,6 +272,9 @@ DM dms;
 
 PetscInt particles_per_ele;
 
+PetscInt nx_ppe;
+PetscInt nz_ppe;
+
 PetscInt particles_add_remove;
 
 PetscInt *ppp;
@@ -328,3 +333,35 @@ PetscInt cont_var_bcv=0;
 PetscInt WITH_NON_LINEAR = 0; // Controla o uso da reologia plástica e/ou viscosidade não linear
 PetscInt WITH_ADIABATIC_H = 0;     // Controla a adição do calor adiabático
 PetscInt WITH_RADIOGENIC_H = 0;    // Controla a adição do calor radiogênico
+
+PetscInt initial_print_step;
+PetscReal initial_print_max_time;
+PetscInt print_step_aux;
+
+PetscBool sp_surface_tracking;
+Vec sp_surface_global;
+Vec sp_surface_global_n;
+Vec sp_surface_coords_global;
+Vec sp_top_surface_global;
+Vec sp_bot_surface_global;
+Vec sp_mean_surface_global;
+Vec sp_top_surface_global_n;
+Vec sp_bot_surface_global_n;
+PetscReal sp_dt;
+PetscReal sp_eval_time;
+PetscReal sp_last_eval_time;
+
+PetscBool sp_surface_processes;
+long sp_n_profiles;
+PetscScalar *topo_var_time;
+PetscScalar *topo_var_rate;
+
+Vec sp_surface_global_aux;
+
+PetscScalar *global_surface_array_helper;
+PetscScalar *global_surface_array_helper_aux;
+
+PetscInt sp_mode;
+PetscScalar sp_d_c;
+
+PetscBool plot_sediment;

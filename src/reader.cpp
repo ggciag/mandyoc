@@ -95,6 +95,16 @@ extern PetscInt n_var_bcv;
 
 char str[100];
 
+extern PetscBool sp_surface_processes;
+extern long sp_n_profiles;
+extern PetscScalar *topo_var_time;
+extern PetscScalar *topo_var_rate;
+extern PetscScalar *global_surface_array_helper;
+extern PetscScalar *global_surface_array_helper_aux;
+
+PetscErrorCode load_topo_var(int rank);
+
+
 PetscErrorCode reader(int rank){
 	if (rank==0){
 		FILE *f_parametros;
@@ -528,6 +538,66 @@ PetscErrorCode reader(int rank){
 	
 	PetscFunctionReturn(0);
 
+}
+
+
+/* Filename: topo_var.txt */
+/* File format: */
+/*   #number_of_profiles*/
+/*   t0 h h h ... h (#Nx h values) */
+/*   t1 h h h ... h (#Nx h values) */
+PetscErrorCode load_topo_var(int rank)
+{
+    PetscInt i;
+    PetscInt j;
+    FILE *f_topo_var;
+
+
+    f_topo_var = fopen("topo_var.txt", "r");
+    if (f_topo_var == NULL) {
+        PetscPrintf(PETSC_COMM_WORLD, "\n\n\n\ntopo_var.txt not found\n\n\n\n");
+        exit(-1);
+    }
+
+    sp_n_profiles = 0;
+
+    if (rank == 0) {
+        fscanf(f_topo_var, "%ld", &sp_n_profiles);
+    }
+
+    MPI_Barrier(PETSC_COMM_WORLD);
+    MPI_Bcast(&sp_n_profiles, 1, MPI_LONG, 0, PETSC_COMM_WORLD);
+
+    if (sp_n_profiles == 0) {
+        PetscPrintf(PETSC_COMM_WORLD, "\n\n\n\nerror topo_var.txt\n\n\n\n");
+        exit(-1);
+    }
+
+    PetscSynchronizedPrintf(PETSC_COMM_WORLD, "rank=%d Nx=%d sp_n_profiles=%d\n", rank, Nx, sp_n_profiles);
+    PetscSynchronizedFlush(PETSC_COMM_WORLD, PETSC_STDOUT);
+    MPI_Barrier(PETSC_COMM_WORLD);
+
+    MPI_Barrier(PETSC_COMM_WORLD);
+    PetscCalloc1(sp_n_profiles, &topo_var_time);
+    PetscCalloc1(Nx*sp_n_profiles, &topo_var_rate);
+
+    if (rank == 0) {
+        for(i = 0; i < sp_n_profiles; i++) {
+            fscanf(f_topo_var, "%lf", &topo_var_time[i]);
+
+            for(j = 0; j < Nx; j++) {
+                fscanf(f_topo_var, "%lf", &topo_var_rate[j + i*Nx]);
+            }
+        }
+    }
+
+    fclose(f_topo_var);
+
+    MPI_Barrier(PETSC_COMM_WORLD);
+    MPI_Bcast(topo_var_time, sp_n_profiles, MPIU_SCALAR, 0, PETSC_COMM_WORLD);
+    MPI_Bcast(topo_var_rate, Nx*sp_n_profiles, MPIU_SCALAR, 0, PETSC_COMM_WORLD);
+
+    PetscFunctionReturn(0);
 }
 
 void ErrorInterfaces(){

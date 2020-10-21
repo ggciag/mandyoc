@@ -79,6 +79,32 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 "                         [number of instants]\n"\
 "                         [instant to change the velocity in Myr] [scale factor]\n"\
 "                         default value: 0\n\n"\
+"   -nx_ppe [int]:        Number of particles per element in x-direction.\n\n"
+"   -nz_ppe [int]:        Number of particles per element in z-direction.\n\n"
+"   -initial_print_step [int]:\n"\
+"                         if higher than 0, overwrite initial `print_step` param option\n"\
+"                         default value: 0\n\n"\
+"   -initial_print_max_time [float]:\n"\
+"                         define the maximum simulation time (years) in which initial_print_step takes precedence over print_step.\n"\
+"                         If -initial_print_step is not specified, this option is ignored\n"\
+"                         default value: 1.0e6\n\n"\
+"   -sp_surface_tracking [bool]:\n"
+"                         enable surface tracking (requires `geoq_on` set to 1 in param file)"
+"                         default value: PETSC_FALSE\n\n"\
+"   -sp_surface_processes [bool]:\n"
+"                         enable surface processes (requires `-sp_surface_tracking` set to true)"
+"                         default value: PETSC_FALSE\n\n"\
+"   -sp_dt [float]:       Time step (in years) for surface processes.\n"\
+"                         default value: 10x the last (main) time step (dynamically evaluated)\n\n"\
+"   -sp_mode [int]:       Choose surface processes computation scheme.\n"\
+"                         default value: 1\n"\
+"                         options:\n"\
+"                             1: topo_var.txt (input file)\n"\
+"                             2: diffusion (use option -sp_d_c to set up coefficient)\n\n"\
+"   -sp_d_c [float]:      Diffusion coeficient for surface processes -sp_mode 2 option.\n"\
+"                         default value: 1.0\n\n"\
+"   -plot_sediment [bool]:\n"
+"                         enable dump of all sediment particles\n\n"\
 "";
 
 
@@ -134,17 +160,24 @@ PetscErrorCode veloc_total();
 
 PetscErrorCode rescaleVeloc(Vec Veloc_fut, double tempo);
 
-
+PetscErrorCode sp_create_surface_vec();
+PetscErrorCode sp_interpolate_surface_particles_to_vec();
+PetscErrorCode evaluate_surface_processes();
+PetscErrorCode sp_write_surface_vec(PetscInt i);
+PetscErrorCode sp_destroy();
+PetscErrorCode load_topo_var(int rank);
 
 
 int main(int argc,char **args)
 {
 	PetscErrorCode ierr;
 	char prefix[PETSC_MAX_PATH_LEN];
+	PetscChar sp_prefix[PETSC_MAX_PATH_LEN];
 	PetscInt       Px,Pz;
 	
 	ierr = PetscInitialize(&argc,&args,(char*)0,help);CHKERRQ(ierr);
 
+	ierr = PetscPrintf(PETSC_COMM_WORLD, "*** Git version: %s ***\n\n", GIT_VERSION);CHKERRQ(ierr);
 
 	PetscBool      flags;
 	ierr = PetscOptionsHasName(NULL,NULL,"-flags",&flags);
@@ -155,7 +188,10 @@ int main(int argc,char **args)
 
 	variable_bcv=0;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-variable_bcv",&variable_bcv,NULL);CHKERRQ(ierr);
-	
+
+	sp_mode=1;
+	ierr = PetscOptionsGetInt(NULL,NULL,"-sp_mode",&sp_mode,NULL);CHKERRQ(ierr);
+
 	int rank;
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
 	
@@ -255,7 +291,55 @@ int main(int argc,char **args)
 
 	periodic_boundary=0;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-periodic_boundary",&periodic_boundary,NULL);CHKERRQ(ierr);
-	
+
+
+	nx_ppe = 0;
+	ierr = PetscOptionsGetInt(NULL, NULL, "-nx_ppe", &nx_ppe, NULL); CHKERRQ(ierr);
+	if (nx_ppe < 0) {
+		nx_ppe = 0;
+	}
+
+	nz_ppe = 0;
+	ierr = PetscOptionsGetInt(NULL, NULL, "-nz_ppe", &nz_ppe, NULL); CHKERRQ(ierr);
+	if (nz_ppe < 0) {
+		nz_ppe = 0;
+	}
+
+	initial_print_step = 0;
+	ierr = PetscOptionsGetInt(NULL, NULL, "-initial_print_step", &initial_print_step, NULL); CHKERRQ(ierr);
+	if (initial_print_step < 0) {
+		initial_print_step = 0;
+	}
+
+	initial_print_max_time = 1.0e6; // 1 Ma
+	ierr = PetscOptionsGetReal(NULL, NULL, "-initial_print_max_time", &initial_print_max_time, NULL); CHKERRQ(ierr);
+
+	sp_surface_tracking = PETSC_FALSE;
+	ierr = PetscOptionsGetBool(NULL, NULL, "-sp_surface_tracking", &sp_surface_tracking, NULL); CHKERRQ(ierr);
+
+	sp_surface_processes = PETSC_FALSE;
+	ierr = PetscOptionsGetBool(NULL, NULL, "-sp_surface_processes", &sp_surface_processes, NULL); CHKERRQ(ierr);
+
+	PetscBool set_sp_dt = PETSC_FALSE;
+	ierr = PetscOptionsGetReal(NULL, NULL, "-sp_dt", &sp_dt, &set_sp_dt); CHKERRQ(ierr);
+
+	if (sp_surface_processes && sp_surface_tracking && sp_mode == 1) {
+		load_topo_var(rank);
+	}
+
+	PetscBool set_sp_d_c = PETSC_FALSE;
+	sp_d_c = 1.0;
+	ierr = PetscOptionsGetReal(NULL, NULL, "-sp_d_c", &sp_d_c, &set_sp_d_c); CHKERRQ(ierr);
+	if (sp_mode == 2 && PETSC_FALSE == set_sp_d_c) {
+		ierr = PetscPrintf(PETSC_COMM_WORLD,"-sp_mode 2 (diffusion) using default value: sp_d_c %e\n", sp_d_c); CHKERRQ(ierr);
+	} else if (sp_mode == 2) {
+		ierr = PetscPrintf(PETSC_COMM_WORLD,"-sp_mode 2 (diffusion) using custom value: sp_d_c %e\n", sp_d_c); CHKERRQ(ierr);
+	}
+
+	plot_sediment = PETSC_FALSE;
+	ierr = PetscOptionsGetBool(NULL, NULL, "-plot_sediment", &plot_sediment, NULL); CHKERRQ(ierr);
+
+
 	dx_const = Lx/(Nx-1);
 	dz_const = depth/(Nz-1);
 	
@@ -273,7 +357,14 @@ int main(int argc,char **args)
 		ierr = createSwarm();CHKERRQ(ierr);
 		PetscPrintf(PETSC_COMM_WORLD,"Swarm FIM\n");
 	}
-	
+
+	// surface processes swarm
+	if (geoq_on && sp_surface_tracking) {
+		PetscPrintf(PETSC_COMM_WORLD, "SP Swarm INICIO\n");
+		ierr = sp_create_surface_vec(); CHKERRQ(ierr);
+		PetscPrintf(PETSC_COMM_WORLD, "SP Swarm FIM\n");
+		ierr = sp_interpolate_surface_particles_to_vec(); CHKERRQ(ierr);
+	}
 
 	// Gerya p. 215
 	if (visc_MAX>visc_MIN && initial_dynamic_range>0){
@@ -319,7 +410,11 @@ int main(int argc,char **args)
 	ierr = write_pressure(tcont);
 	ierr = write_geoq_(tcont);
 	ierr = write_tempo(tcont);
-	
+
+	if (sp_surface_tracking) {
+		sp_write_surface_vec(tcont);
+	}
+
 	VecCopy(Veloc_fut,Veloc);
 	
 	PetscPrintf(PETSC_COMM_WORLD,"passou impressao\n");
@@ -327,11 +422,32 @@ int main(int argc,char **args)
 	ierr = Calc_dt_calor();
 	
 	//float aux_le;
-	
-	
-	
+
+	if (initial_print_step > 0) {
+		print_step_aux = print_step;
+		print_step = initial_print_step;
+
+		PetscPrintf(PETSC_COMM_WORLD, "\n\n*** Using custom initial print_step = %d until %.3g Myr\n\n", print_step, initial_print_max_time);
+	}
+
+	if (sp_surface_processes && PETSC_FALSE == set_sp_dt) {
+		sp_dt = 10.0 * dt_calor;
+
+		PetscPrintf(PETSC_COMM_WORLD, "\n\n*** Using default sp_dt\n\n");
+	}
+	sp_eval_time = sp_dt;
+	sp_last_eval_time = 0.0;
+
 	for (tempo = dt_calor,tcont=1;tempo<=timeMAX && tcont<=stepMAX;tempo+=dt_calor, tcont++){
+		if ((tempo > initial_print_max_time || fabs(tempo-initial_print_max_time) < 0.0001) && initial_print_step > 0) {
+			initial_print_step = 0;
+			print_step = print_step_aux;
+			PetscPrintf(PETSC_COMM_WORLD, "\n\n*** Restored print_step = %d\n\n", print_step);
+		}
+
 		PetscPrintf(PETSC_COMM_WORLD,"\n\nstep = %d, time = %.3g Myr, dt = %.3g Myr\n",tcont,tempo,dt_calor);
+
+		PetscPrintf(PETSC_COMM_WORLD,"next sp %.3g Myr\n\n", sp_eval_time);
 
 		ierr = rescaleVeloc(Veloc_fut,tempo);
 		
@@ -340,7 +456,16 @@ int main(int argc,char **args)
 		ierr = solve_thermal_3d();CHKERRQ(ierr);
 		
 		ierr = veloc_total(); CHKERRQ(ierr);
-		
+
+		if (sp_surface_processes && (tempo > sp_eval_time || fabs(tempo-sp_eval_time)) < 0.0001) {
+			PetscPrintf(PETSC_COMM_WORLD,"\nEvaluating sp...\n");
+
+			evaluate_surface_processes();
+
+			sp_eval_time += sp_dt;
+			sp_last_eval_time = tempo;
+		}
+
 		if (geoq_on){
 			if (RK4==1){
 				VecCopy(Veloc_fut,Veloc_weight);
@@ -360,7 +485,11 @@ int main(int argc,char **args)
 			Swarm_add_remove();
 			//exit(1);
 		}
-		
+
+		if (sp_surface_tracking) {
+			ierr = sp_interpolate_surface_particles_to_vec(); CHKERRQ(ierr);
+		}
+
 		if (tcont%print_step==0){
 			ierr = write_thermal_(tcont);
 			ierr = write_geoq_(tcont);
@@ -371,6 +500,10 @@ int main(int argc,char **args)
 			if (geoq_on){
 				if (print_step_files==1){
 					ierr = SwarmViewGP(dms,prefix);CHKERRQ(ierr);
+				}
+
+				if (sp_surface_tracking) {
+					ierr = sp_write_surface_vec(tcont); CHKERRQ(ierr);
 				}
 			}
 		}
@@ -392,6 +525,8 @@ int main(int argc,char **args)
 	ierr = destroy_thermal_();CHKERRQ(ierr);
 	
 	destroy_veloc_3d();
+
+	sp_destroy();
 
 	PetscTime(&Tempo2);
 	

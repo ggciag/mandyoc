@@ -25,6 +25,8 @@ extern double H_lito;
 extern double escala_viscosidade;
 
 extern PetscInt particles_per_ele;
+extern PetscInt nx_ppe;
+extern PetscInt nz_ppe;
 
 extern double H_per_mass;
 
@@ -60,6 +62,9 @@ extern PetscInt print_step_files;
 extern PetscInt seed_layer;
 
 extern PetscInt checkered;
+
+extern PetscBool plot_sediment;
+
 
 
 PetscErrorCode _DMLocatePoints_DMDARegular_IS(DM dm,Vec pos,IS *iscell)
@@ -190,7 +195,7 @@ PetscErrorCode SwarmViewGP(DM dms,const char prefix[])
 	ierr = DMSwarmGetField(dms,"layer",NULL,NULL,(void**)&layer_array);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	for (p=0; p<npoints; p++) {
-		if (iarray[p]>9999)
+		if (iarray[p]>9999 || (PETSC_TRUE == plot_sediment && layer_array[p] == n_interfaces - 1))
 			fprintf(fp,"%+1.5e %+1.5e %d %d %1.4e\n",
 					array[2*p],array[2*p+1],
 					iarray[p],layer_array[p],(double)strain_fac[p]);
@@ -229,6 +234,14 @@ PetscErrorCode createSwarm()
 
 	PetscInt nz_part = (int)PetscSqrtReal(particles_per_ele*dz_const/dx_const);
 	PetscInt nx_part = (int)(particles_per_ele/nz_part);
+
+	if (nx_ppe > 0) {
+		nx_part = nx_ppe;
+	}
+
+	if (nz_ppe > 0) {
+		nz_part = nz_ppe;
+	}
 
 	particles_per_ele = nx_part*nz_part;
 
