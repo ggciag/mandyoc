@@ -457,7 +457,7 @@ int main(int argc,char **args)
 		
 		ierr = veloc_total(); CHKERRQ(ierr);
 
-		if (sp_surface_processes && (tempo > sp_eval_time || fabs(tempo-sp_eval_time)) < 0.0001) {
+		if (sp_surface_processes && (tempo > sp_eval_time || fabs(tempo-sp_eval_time) < 0.0001)) {
 			PetscPrintf(PETSC_COMM_WORLD,"\nEvaluating sp...\n");
 
 			evaluate_surface_processes();
