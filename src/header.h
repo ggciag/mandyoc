@@ -314,7 +314,14 @@ unsigned int seed;
 
 PetscReal Xi_min;
 
-PetscInt seed_layer;
+PetscInt *seed_layer;
+PetscInt seed_layer_size;
+PetscBool seed_layer_set = PETSC_FALSE;
+
+PetscReal *strain_seed_layer;
+PetscInt strain_seed_layer_size;
+PetscBool strain_seed_layer_set = PETSC_FALSE;
+
 
 PetscInt checkered;
 

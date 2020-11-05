@@ -54,8 +54,10 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 "                         default value: 0\n\n"\
 "   -xi_min [float]:      convergence criterium for non-linear problems\n"\
 "                         default value: 1e-14\n\n"\
-"   -seed [int]:          specify one layer for weak plastic criterium (seed layer)\n"\
+"   -seed [int]:          specify one (or more, comma separated) layer for weak plastic criterium (seed layer)\n"\
 "                         default value: no layer specified\n\n"\
+"   -strain_seed [float]: specify one (or more, comma separated) value for the seed layer strain\n"\
+"                         default value: 2.0\n\n"\
 "   -pressure_in_rheol [0 or 1]:\n"\
 "                         (0) if the effective viscosity is depth dependent\n"\
 "                         (1) if the effective viscosity is pressure dependent\n"\
@@ -174,7 +176,7 @@ int main(int argc,char **args)
 	char prefix[PETSC_MAX_PATH_LEN];
 	PetscChar sp_prefix[PETSC_MAX_PATH_LEN];
 	PetscInt       Px,Pz;
-	
+
 	ierr = PetscInitialize(&argc,&args,(char*)0,help);CHKERRQ(ierr);
 
 	ierr = PetscPrintf(PETSC_COMM_WORLD, "*** Git version: %s ***\n\n", GIT_VERSION);CHKERRQ(ierr);
@@ -194,43 +196,43 @@ int main(int argc,char **args)
 
 	int rank;
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
-	
+
 	seed = rank;
-	
+
 	reader(rank);
-	
+
 	PetscLogDouble Tempo1,Tempo2;
-	
+
 	PetscTime(&Tempo1);
-	
-	
+
+
 	Px   = Pz = PETSC_DECIDE;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-Px",&Px,NULL);CHKERRQ(ierr);
 	Pz = Px;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-Pz",&Pz,NULL);CHKERRQ(ierr);
-	
+
 	rtol = PETSC_DEFAULT;
 	ierr = PetscOptionsGetReal(NULL,NULL,"-rtol",&rtol,NULL);CHKERRQ(ierr);
-	
+
 	temper_extern = 0;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-te",&temper_extern,NULL);CHKERRQ(ierr);
-	
+
 	veloc_extern = 0;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-ve",&veloc_extern,NULL);CHKERRQ(ierr);
-	
+
 	bcv_extern = 0;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-bcve",&bcv_extern,NULL);CHKERRQ(ierr);
-	
-	
+
+
 	denok_min = 1.0E-4;
 	ierr = PetscOptionsGetReal(NULL,NULL,"-denok",&denok_min,NULL);CHKERRQ(ierr);
-	
+
 	print_visc = 0;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-print_visc",&print_visc,NULL);CHKERRQ(ierr);
-	
+
 	visc_const_per_element=0;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-visc_const_per_element",&visc_const_per_element,NULL);CHKERRQ(ierr);
-	
+
 	visc_harmonic_mean=1;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-visc_harmonic_mean",&visc_harmonic_mean,NULL);CHKERRQ(ierr);
 
@@ -263,8 +265,31 @@ int main(int argc,char **args)
 	Xi_min=1.0E-14;
 	ierr = PetscOptionsGetReal(NULL,NULL,"-xi_min",&Xi_min,NULL);CHKERRQ(ierr);
 
-	seed_layer=-1;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-seed",&seed_layer,NULL);CHKERRQ(ierr);
+	ierr = PetscCalloc1(n_interfaces, &seed_layer); CHKERRQ(ierr);
+	seed_layer_size = n_interfaces;
+	ierr = PetscOptionsGetIntArray(NULL,NULL,"-seed",seed_layer,&seed_layer_size,&seed_layer_set); CHKERRQ(ierr);
+
+	ierr = PetscCalloc1(n_interfaces, &strain_seed_layer); CHKERRQ(ierr);
+	strain_seed_layer_size = n_interfaces;
+	ierr = PetscOptionsGetRealArray(NULL,NULL,"-strain_seed",strain_seed_layer,&strain_seed_layer_size,&strain_seed_layer_set); CHKERRQ(ierr);
+	if (strain_seed_layer_set == PETSC_TRUE && seed_layer_set == PETSC_FALSE) {
+		PetscPrintf(PETSC_COMM_WORLD,"Specify the seed layer with the flag -seed (required by -strain_seed)\n");
+		exit(1);
+	}
+	if (strain_seed_layer_set == PETSC_TRUE && seed_layer_set == PETSC_TRUE && seed_layer_size != strain_seed_layer_size) {
+		PetscPrintf(PETSC_COMM_WORLD,"Specify the same number of values in the list for flags -seed and -strain_seed\n");
+		exit(1);
+	}
+	if (strain_seed_layer_set == PETSC_FALSE && seed_layer_set == PETSC_TRUE) {
+		PetscPrintf(PETSC_COMM_WORLD,"Using default value '2.0' for -strain_seed (for all seed layers)\n");
+		for (int k = 0; k < seed_layer_size; k++) {
+			strain_seed_layer[k] = 2.0;
+		}
+	}
+	PetscPrintf(PETSC_COMM_WORLD,"Number of seed layers: %d\n", seed_layer_size);
+	for (int k = 0; k < seed_layer_size; k++) {
+		PetscPrintf(PETSC_COMM_WORLD,"seed layer: %d - strain: %lf\n", seed_layer[k], strain_seed_layer[k]);
+	}
 
 	checkered=0;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-checkered",&checkered,NULL);CHKERRQ(ierr);
@@ -342,14 +367,14 @@ int main(int argc,char **args)
 
 	dx_const = Lx/(Nx-1);
 	dz_const = depth/(Nz-1);
-	
+
 	if (rank==0) printf("%lf %lf\n",dx_const,dz_const);
-	
-	
+
+
 	ierr = create_thermal_2d(Nx-1,Nz-1,Px,Pz);CHKERRQ(ierr);
 
 	ierr = write_thermal_(-1);
-	
+
 	ierr = create_veloc_3d(Nx-1,Nz-1,Px,Pz);CHKERRQ(ierr);
 
 	if (geoq_on){
@@ -401,9 +426,9 @@ int main(int argc,char **args)
 		visc_MAX_comp = visc_MAX;
 		ierr = veloc_total(); CHKERRQ(ierr);
 	}
-	
+
 	PetscPrintf(PETSC_COMM_WORLD,"passou veloc_total\n");
-	
+
 	ierr = write_veloc_3d(tcont);
 	ierr = write_veloc_cond(tcont);
 	ierr = write_thermal_(tcont);
@@ -416,11 +441,11 @@ int main(int argc,char **args)
 	}
 
 	VecCopy(Veloc_fut,Veloc);
-	
+
 	PetscPrintf(PETSC_COMM_WORLD,"passou impressao\n");
-	
+
 	ierr = Calc_dt_calor();
-	
+
 	//float aux_le;
 
 	if (initial_print_step > 0) {
@@ -450,11 +475,11 @@ int main(int argc,char **args)
 		PetscPrintf(PETSC_COMM_WORLD,"next sp %.3g Myr\n\n", sp_eval_time);
 
 		ierr = rescaleVeloc(Veloc_fut,tempo);
-		
+
 		ierr = build_thermal_3d();CHKERRQ(ierr);
 
 		ierr = solve_thermal_3d();CHKERRQ(ierr);
-		
+
 		ierr = veloc_total(); CHKERRQ(ierr);
 
 		if (sp_surface_processes && (tempo > sp_eval_time || fabs(tempo-sp_eval_time) < 0.0001)) {
@@ -507,45 +532,45 @@ int main(int argc,char **args)
 				}
 			}
 		}
-		
 
-		
+
+
 		//if (rank==0) scanf("%f",&aux_le);
-		
+
 		//MPI_Barrier(PETSC_COMM_WORLD);
-		
-		
+
+
 		ierr = Calc_dt_calor();
-		
+
 	}
 	if (rank==0) printf("write\n");
-	
-	
-	
+
+
+
 	ierr = destroy_thermal_();CHKERRQ(ierr);
-	
+
 	destroy_veloc_3d();
 
 	sp_destroy();
 
 	PetscTime(&Tempo2);
-	
+
 	//if (rank==0) printf("Tempo: %lf\n",Tempo2-Tempo1);
-	
+
 	ierr = PetscFinalize();
 	return 0;
 }
 
 
 PetscErrorCode Calc_dt_calor(){
-	
+
 	int rank;
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
-	
+
 	//////calc dt
 	PetscInt ind_v_max,ind_v_min,ind_v_mod;
 	PetscReal min_v,max_v,max_mod_v,dh_v_mod;
-	
+
 	VecMax(Veloc_fut,&ind_v_min,&max_v);
 	VecMin(Veloc_fut,&ind_v_max,&min_v);
 	//printf("max_v = %g\n",max_v);
@@ -561,13 +586,13 @@ PetscErrorCode Calc_dt_calor(){
 	if (rank==0) printf("dt = %g",(dh_v_mod/max_mod_v)/seg_per_ano);
 	dt_calor = 0.1*(dh_v_mod/max_mod_v)/(seg_per_ano*sub_division_time_step);
 	if (dt_calor>dt_MAX) dt_calor=dt_MAX;
-	
+
 	//dt_calor=1000000.0; /// !!!! apenas teste
 	dt_calor_sec = dt_calor*seg_per_ano;
 	////////fim calc dt
-	
+
 	PetscFunctionReturn(0);
-	
+
 }
 
 
@@ -575,27 +600,27 @@ PetscErrorCode write_tempo(int cont){
 
 	int rank;
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
-	
+
 	PetscViewer viewer;
-	
+
 	char nome[100];
-	
+
 	sprintf(nome,"Tempo_%d.txt",cont);
-	
+
 	PetscReal aa[1];
-	
+
 	aa[0]=tempo;
-	
+
 	PetscViewerASCIIOpen(PETSC_COMM_WORLD,nome,&viewer);
 	PetscRealView(1,aa,viewer);
 	PetscViewerDestroy(&viewer);
-	
+
 	if (rank==0) printf("Tempo: %lf\n",tempo);
-	
-	
-	
+
+
+
 	PetscFunctionReturn(0);
-	
+
 }
 
 
@@ -646,6 +671,6 @@ PetscErrorCode rescaleVeloc(Vec Veloc_fut,double tempo)
 			}
 		}
 	}
-	
+
 	PetscFunctionReturn(0);
 }
