@@ -20,6 +20,9 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 "   -visc_const_per_element [0 or 1]:\n"\
 "                         assume the viscosity constant (1) of linearly variable (0) in each finite element\n"\
 "                         default value: 0\n\n"\
+"   -sticky_blanket_air [0 or 1]:\n"\
+"                         create a blanket of sticky air just above the crust.\n"\
+"                         default value: 0\n\n"\
 "   -visc_harmonic_mean [0 or 1]:\n"\
 "                         assume the harmonic mean (1) or arithmetic mean (0) for the effective viscosity\n"\
 "                         default value: 1\n\n"\
@@ -232,6 +235,9 @@ int main(int argc,char **args)
 
 	visc_const_per_element=0;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-visc_const_per_element",&visc_const_per_element,NULL);CHKERRQ(ierr);
+
+	sticky_blanket_air=0;
+	ierr = PetscOptionsGetInt(NULL,NULL,"-sticky_blanket_air",&sticky_blanket_air,NULL);CHKERRQ(ierr);
 
 	visc_harmonic_mean=1;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-visc_harmonic_mean",&visc_harmonic_mean,NULL);CHKERRQ(ierr);

@@ -334,6 +334,8 @@ PetscScalar *var_bcv_scale;
 PetscInt n_var_bcv;
 PetscInt cont_var_bcv=0;
 
+PetscInt sticky_blanket_air;
+
 
 
 ////// Flags
