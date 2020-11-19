@@ -72,6 +72,8 @@ extern PetscInt checkered;
 
 extern PetscBool plot_sediment;
 
+extern PetscReal random_initial_strain;
+
 
 
 PetscErrorCode _DMLocatePoints_DMDARegular_IS(DM dm,Vec pos,IS *iscell)
@@ -405,13 +407,17 @@ PetscErrorCode createSwarm()
 			PetscReal cx,cz;
 			PetscReal rx,rfac;
 			PetscReal interp_interfaces[n_interfaces];
-			PetscInt in,verif,i;
+			PetscInt in,verif,i,k;
+
+			unsigned int seed_strain;
 
 			for (p=0; p<nlocal; p++){
 				cx = array[2*p];
 				cz = array[2*p+1];
 
 				i = (int)(cx/dx_const);
+				k = (int)((cz+depth)/dz_const);
+				seed_strain=(k*Nx+i)*(k*Nx+i);
 
 				if (i<0 || i>=Nx-1) {printf("estranho i=%d create cx = %lf\n",i,cx); exit(1);}
 
@@ -443,6 +449,10 @@ PetscErrorCode createSwarm()
 					layer_array[p] = n_interfaces;
 					//printf("entrei!\n");
 				}
+
+				rand_r(&seed_strain);
+				strain_array[p]=random_initial_strain*(float)rand_r(&seed_strain)/RAND_MAX;
+				
 				if (seed_layer_set == PETSC_TRUE) {
 					if (seed_layer_size == 1 && layer_array[p] == seed_layer[0]) {
 						strain_array[p] = strain_seed_layer[0];

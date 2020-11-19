@@ -311,6 +311,8 @@ PetscInt periodic_boundary;
 
 unsigned int seed;
 
+PetscReal random_initial_strain;
+
 
 PetscReal Xi_min;
 

@@ -61,6 +61,10 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 "                         default value: no layer specified\n\n"\
 "   -strain_seed [float]: specify one (or more, comma separated) value for the seed layer strain\n"\
 "                         default value: 2.0\n\n"\
+"   -random_initial_strain: [float]\n"\
+"                         initiate a random initial strain perturbation over all the domain\n"\
+"                         varying from 0 to the value specified.\n"\
+"                         default value: 0.0\n\n"\
 "   -pressure_in_rheol [0 or 1]:\n"\
 "                         (0) if the effective viscosity is depth dependent\n"\
 "                         (1) if the effective viscosity is pressure dependent\n"\
@@ -74,7 +78,7 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 "                         in each range until the viscosity range is from visc_MIN to visc_MAX. Only used in the first step.\n"\
 "                         Useful to make a smooth convergence of the solution in the case of large viscosity contrasts\n"\
 "                         (for details, see 'Introduction to Numerical Geodynamic Modelling' 1st edition, Taras Gerya, p. 215)\n"\
-"                         default value: 1\n\n"\
+"                         default value: 0\n\n"\
 "   -periodic_boundary [0 or 1]:\n"\
 "                         if (1) assume periodic boundary condition in the x-direction\n"\
 "                         default value: 0\n\n"\
@@ -296,6 +300,9 @@ int main(int argc,char **args)
 	for (int k = 0; k < seed_layer_size; k++) {
 		PetscPrintf(PETSC_COMM_WORLD,"seed layer: %d - strain: %lf\n", seed_layer[k], strain_seed_layer[k]);
 	}
+
+	random_initial_strain=0.0;
+	ierr = PetscOptionsGetReal(NULL,NULL,"-random_initial_strain",&random_initial_strain,NULL);CHKERRQ(ierr);
 
 	checkered=0;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-checkered",&checkered,NULL);CHKERRQ(ierr);
