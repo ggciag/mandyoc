@@ -114,6 +114,8 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 "                         default value: 1.0\n\n"\
 "   -plot_sediment [bool]:\n"
 "                         enable dump of all sediment particles\n\n"\
+"   -a2l [bool]:          Allow (by default) air-to-land particles properties update.\n"
+"                         default value: true\n\n"\
 "";
 
 
@@ -376,6 +378,9 @@ int main(int argc,char **args)
 
 	plot_sediment = PETSC_FALSE;
 	ierr = PetscOptionsGetBool(NULL, NULL, "-plot_sediment", &plot_sediment, NULL); CHKERRQ(ierr);
+
+	a2l = PETSC_TRUE;
+	ierr = PetscOptionsGetBool(NULL, NULL, "-a2l", &a2l, NULL); CHKERRQ(ierr);
 
 
 	dx_const = Lx/(Nx-1);

@@ -44,6 +44,8 @@ extern PetscScalar *global_surface_array_helper_aux;
 
 extern PetscInt sp_mode;
 extern PetscScalar sp_d_c;
+extern PetscBool a2l;
+
 
 PetscErrorCode sp_create_surface_vec();
 PetscErrorCode sp_interpolate_surface_particles_to_vec();
@@ -415,7 +417,7 @@ PetscErrorCode update_particles_properties()
         epsilon = 1.00e-10;
 
         // (A2L) air particle bellow the surface => assign land properties
-        if (layer[p] == n_interfaces) {
+        if (a2l == PETSC_TRUE && layer[p] == n_interfaces) {
 
             if (py < ys_aux) {
                 // set local surface to a level below the air particle
@@ -572,7 +574,7 @@ PetscErrorCode sp_diffusion(PetscReal dt, PetscInt size)
         }
 
         for (j = 0; j < size; j++) {
-             sp_y_aux[j] = global_surface_array_helper[j];
+            sp_y_aux[j] = global_surface_array_helper[j];
         }
     }
 
