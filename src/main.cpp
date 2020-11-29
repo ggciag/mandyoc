@@ -374,6 +374,8 @@ int main(int argc,char **args)
 		ierr = PetscPrintf(PETSC_COMM_WORLD,"-sp_mode 2 (diffusion) using default value: sp_d_c %e\n", sp_d_c); CHKERRQ(ierr);
 	} else if (sp_mode == 2) {
 		ierr = PetscPrintf(PETSC_COMM_WORLD,"-sp_mode 2 (diffusion) using custom value: sp_d_c %e\n", sp_d_c); CHKERRQ(ierr);
+	} else if (sp_mode == 3) {
+		ierr = PetscPrintf(PETSC_COMM_WORLD,"-sp_mode 3 (fluvial erosion) using custom value: sp_d_c %e\n", sp_d_c); CHKERRQ(ierr);
 	}
 
 	plot_sediment = PETSC_FALSE;
