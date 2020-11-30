@@ -378,3 +378,6 @@ PetscScalar sp_d_c;
 PetscBool plot_sediment;
 
 PetscBool a2l;
+
+PetscScalar K_fluvial;
+PetscScalar sea_level;

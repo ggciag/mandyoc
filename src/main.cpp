@@ -116,6 +116,10 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 "                         enable dump of all sediment particles\n\n"\
 "   -a2l [bool]:          Allow (by default) air-to-land particles properties update.\n"
 "                         default value: true\n\n"\
+"   -K_fluvial [float]:   Fluvial coefficient.\n"\
+"                         default value: 2.0E-7\n\n"\
+"   -sea_level [float]:   Sea level.\n"\
+"                         default value: 0.0\n\n"\
 "";
 
 
@@ -370,12 +374,21 @@ int main(int argc,char **args)
 	PetscBool set_sp_d_c = PETSC_FALSE;
 	sp_d_c = 1.0;
 	ierr = PetscOptionsGetReal(NULL, NULL, "-sp_d_c", &sp_d_c, &set_sp_d_c); CHKERRQ(ierr);
+
+	K_fluvial = 2.0E-7;
+	ierr = PetscOptionsGetReal(NULL,NULL,"-K_fluvial",&K_fluvial,NULL);CHKERRQ(ierr);
+
+	sea_level = 0.0;
+	ierr = PetscOptionsGetReal(NULL,NULL,"-sea_level",&sea_level,NULL);CHKERRQ(ierr);
+
 	if (sp_mode == 2 && PETSC_FALSE == set_sp_d_c) {
 		ierr = PetscPrintf(PETSC_COMM_WORLD,"-sp_mode 2 (diffusion) using default value: sp_d_c %e\n", sp_d_c); CHKERRQ(ierr);
 	} else if (sp_mode == 2) {
 		ierr = PetscPrintf(PETSC_COMM_WORLD,"-sp_mode 2 (diffusion) using custom value: sp_d_c %e\n", sp_d_c); CHKERRQ(ierr);
 	} else if (sp_mode == 3) {
-		ierr = PetscPrintf(PETSC_COMM_WORLD,"-sp_mode 3 (fluvial erosion) using custom value: sp_d_c %e\n", sp_d_c); CHKERRQ(ierr);
+		ierr = PetscPrintf(PETSC_COMM_WORLD,"-sp_mode 3 (fluvial erosion) using K_fluvial: %e and sea_level %e\n", K_fluvial,sea_level); CHKERRQ(ierr);
+	}else if (sp_mode == 4) {
+		ierr = PetscPrintf(PETSC_COMM_WORLD,"-sp_mode 4 (fluvial erosion mode 2) using K_fluvial: %e and sea_level %e\n", K_fluvial,sea_level); CHKERRQ(ierr);
 	}
 
 	plot_sediment = PETSC_FALSE;
