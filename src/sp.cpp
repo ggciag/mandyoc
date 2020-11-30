@@ -588,14 +588,16 @@ PetscErrorCode sp_fluvial(PetscReal dt, PetscInt size)
 {
     PetscErrorCode ierr;
     PetscInt t;
-    PetscInt j,cont;
+    PetscInt j,jj,cont,imax;
     PetscInt max_steps;
 
     PetscReal sp_dx;
     PetscReal sp_dt;
-    PetscScalar *h,*h_aux,*q,*fc;
-    PetscInt *hi;
-    PetscReal sum;
+    PetscScalar *h,*h_aux,*q;
+    PetscInt *hi,*fc;
+    PetscInt ci,cf,out;
+    PetscInt sum;
+    PetscReal hmax;
     
     PetscReal K = 2.0E-7;
 
@@ -645,46 +647,72 @@ PetscErrorCode sp_fluvial(PetscReal dt, PetscInt size)
     for (j=0;j<size;j++) h_aux[j]=h[j];
 
     for (t=0; t < max_steps; t++) {
-        for (j=0;j<size;j++) q[j] = 2000.0;    
+        for (j=0;j<size;j++) q[j] = sp_dx;    
         for (j=0;j<size;j++) {
             fc[j]=1;
             if (h[j]<hsl) fc[j]=0;
+        }
+        for (j=0;j<size;j++){
+            if (j*sp_dx<200.0E3 || j*sp_dx>Lx-200.0E3) fc[j]=0;
         }
         fc[0]=0;
         fc[size-1]=0;
         for (j=0;j<size;j++) {if (h[j]<hsl) h[j]=hsl;}
         for (j=0;j<size;j++) hi[j]=j;
-        
-        for (sum=0.0,j=0;j<size;j++) sum+=fc[j];
+
+
+        ci=1;
+        cf=1;
+        out = 0;
+        for (j=1;j<size;j++){
+            if (out==0 && fc[j]==1){ 
+                ci=j;
+                cf=j;
+                out=1;
+            }
+            if (out==1 && fc[j]==1){
+                cf=j;
+            }
+            if (out==1 && fc[j]==0){
+                imax=ci;
+                hmax=h[imax];
+                for (jj=ci;jj<cf+1;jj++){//ii in range(ci,cf+1):
+                    if (hmax<h[jj]){
+                        imax=jj;
+                        hmax=h[imax];
+                    }
+                }
+                for (jj=ci;jj<imax;jj++){//ii in range(ci,imax):
+                    hi[jj]=jj-1;
+                }
+                for (jj=imax;jj<cf+1;jj++){//ii in range(imax,cf+1):
+                    hi[jj]=jj+1;
+                }
+                out=0;
+            }
+        }
+
+
+        for (sum=0,j=0;j<size;j++) sum+=fc[j];
+        printf("sum = %d\n",sum);
         while (sum>0){
             for (j=0;j<size;j++) {if (fc[j]==1) fc[j]=2;}
             for (j=1;j<size-1;j++){
                 if (fc[j]>0){
-                    if (h[j]>h[j-1]){
-                        if (h[j+1]<h[j-1]){
-                            hi[j]=j+1;
-                            if (fc[j+1]>1) fc[j+1]=1;
-                        }
-                        else{
-                            hi[j]=j-1;
-                            if (fc[j-1]>1) fc[j-1]=1;
-                        }
-                    }
-                    else if (h[j]>h[j+1]){
-                        hi[j]=j+1;
-                        if (fc[j+1]>1) fc[j+1]=1;
+                    if (fc[hi[j]]>0){
+                        fc[hi[j]]=1;
                     }
                 }
             }
             for (j=1;j<size-1;j++){
                 if (fc[j]==2){
-                    h_aux[j]=h[j]-q[j]*K*sp_dt*(h[j]-h[hi[j]])/sp_dx;
+                    if (h[j]>h[hi[j]]) h_aux[j]=h[j]-q[j]*K*sp_dt*(h[j]-h[hi[j]])/sp_dx;
                     q[hi[j]]+=q[j];
                     fc[j]=0;
                     if (h_aux[j]<hsl) h_aux[j]=hsl;
                 }
             }
-            for (sum=0.0,j=0;j<size;j++) sum+=fc[j];
+            for (sum=0,j=0;j<size;j++) sum+=fc[j];
             printf("sum = %d\n",sum);
         }
         for (j=0;j<size;j++) h[j]=h_aux[j];
