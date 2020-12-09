@@ -201,6 +201,10 @@ Vec geoq_strain;
 Vec local_geoq_strain;
 
 
+Vec geoq_strain_rate;
+Vec local_geoq_strain_rate;
+
+
 PetscReal denok_min;
 
 PetscInt print_visc;
@@ -286,6 +290,7 @@ PetscReal *p_add_r;
 PetscInt *p_add_i;
 PetscInt *p_add_layer;
 PetscReal *p_add_r_strain;
+PetscReal *p_add_r_strain_rate;
 
 
 

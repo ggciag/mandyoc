@@ -71,6 +71,9 @@ extern Vec local_geoq;
 extern Vec geoq_strain;
 extern Vec local_geoq_strain;
 
+extern Vec geoq_strain_rate;
+extern Vec local_geoq_strain_rate;
+
 
 extern Vec Precon;
 extern Vec local_Precon;

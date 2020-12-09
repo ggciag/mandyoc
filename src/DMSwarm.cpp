@@ -54,6 +54,7 @@ extern PetscReal *p_add_r;
 extern PetscInt *p_add_i;
 extern PetscInt *p_add_layer;
 extern PetscReal *p_add_r_strain;
+extern PetscReal *p_add_r_strain_rate;
 
 extern unsigned int seed;
 
@@ -279,6 +280,7 @@ PetscErrorCode createSwarm()
 	ierr = DMSwarmRegisterPetscDatatypeField(dms,"layer",1,PETSC_INT);CHKERRQ(ierr);
 	ierr = DMSwarmRegisterPetscDatatypeField(dms,"geoq_fac",1,PETSC_REAL);CHKERRQ(ierr);
 	ierr = DMSwarmRegisterPetscDatatypeField(dms,"strain_fac",1,PETSC_REAL);CHKERRQ(ierr);
+	ierr = DMSwarmRegisterPetscDatatypeField(dms,"strain_rate_fac",1,PETSC_REAL);CHKERRQ(ierr);
 	ierr = DMSwarmRegisterPetscDatatypeField(dms,"cont",1,PETSC_INT);CHKERRQ(ierr);
 	ierr = DMSwarmFinalizeFieldRegister(dms);CHKERRQ(ierr);
 
@@ -511,6 +513,7 @@ PetscErrorCode createSwarm()
 	ierr = PetscCalloc1(particles_add_remove ,&p_add_i);
 	ierr = PetscCalloc1(particles_add_remove ,&p_add_layer);
 	ierr = PetscCalloc1(particles_add_remove ,&p_add_r_strain);
+	ierr = PetscCalloc1(particles_add_remove ,&p_add_r_strain_rate);
 
 
 

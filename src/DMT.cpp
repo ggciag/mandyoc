@@ -48,6 +48,7 @@ extern Vec geoq,local_geoq;
 extern Vec geoq_rho,local_geoq_rho;
 extern Vec geoq_H,local_geoq_H;
 extern Vec geoq_strain,local_geoq_strain;
+extern Vec geoq_strain_rate,local_geoq_strain_rate;
 
 extern Vec geoq_cont,local_geoq_cont;
 
@@ -165,6 +166,7 @@ PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz
 	ierr = DMCreateGlobalVector(da_Thermal,&geoq_rho);CHKERRQ(ierr);
 	ierr = DMCreateGlobalVector(da_Thermal,&geoq_H);CHKERRQ(ierr);
 	ierr = DMCreateGlobalVector(da_Thermal,&geoq_strain);CHKERRQ(ierr);
+	ierr = DMCreateGlobalVector(da_Thermal,&geoq_strain_rate);CHKERRQ(ierr);
 	ierr = DMCreateGlobalVector(da_Thermal,&geoq_cont);CHKERRQ(ierr);
 	
 	ierr = DMCreateGlobalVector(da_Thermal,&dRho);CHKERRQ(ierr);
@@ -183,6 +185,7 @@ PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz
 	ierr = DMCreateLocalVector(da_Thermal,&local_geoq_rho);
 	ierr = DMCreateLocalVector(da_Thermal,&local_geoq_H);
 	ierr = DMCreateLocalVector(da_Thermal,&local_geoq_strain);
+	ierr = DMCreateLocalVector(da_Thermal,&local_geoq_strain_rate);
 	ierr = DMCreateLocalVector(da_Thermal,&local_geoq_cont);
 	
 	ierr = DMCreateLocalVector(da_Thermal,&local_dRho);
@@ -471,9 +474,19 @@ PetscErrorCode write_geoq_(int cont)
 	PetscViewerASCIIOpen(PETSC_COMM_WORLD,nome,&viewer);
 	VecView(geoq_strain,viewer);
 	PetscViewerDestroy(&viewer);
+
+
+	PetscTime(&Tempo2);
+	if (rank==0) printf("strain write: %lf\n",Tempo2-Tempo1);
+	
+	sprintf(nome,"strain_rate_%d.txt",cont);
+	
+	PetscViewerASCIIOpen(PETSC_COMM_WORLD,nome,&viewer);
+	VecView(geoq_strain_rate,viewer);
+	PetscViewerDestroy(&viewer);
 	
 	PetscTime(&Tempo2);
-	if (rank==0) printf("H write: %lf\n",Tempo2-Tempo1);
+	if (rank==0) printf("strain rate write: %lf\n",Tempo2-Tempo1);
 	
 	PetscFunctionReturn(0);
 }
