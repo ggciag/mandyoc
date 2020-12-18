@@ -20,6 +20,8 @@ extern PetscInt WITH_NON_LINEAR;
 
 extern PetscInt pressure_in_rheol;
 
+extern PetscReal pressure_const;
+
 extern double h_air;
 
 extern int tcont;
@@ -53,6 +55,8 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		if (depth<0.0) depth=0.0;
 	}
 	if (P<0.0) P=0.0;
+
+	if (pressure_const>=0.0) P = pressure_const;
 
 	
 	if (e2_inva<1.0E-36) e2_inva=1.0E-36; ///!!!! e2_inva min

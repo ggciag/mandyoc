@@ -70,6 +70,9 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 "                         (1) if the effective viscosity is pressure dependent\n"\
 "                         this flag is mandatory even is the adopted rheology is not depth/pressure dependent!\n"\
 "                         no default value\n\n"\
+"   -pressure_const [float]:  Assume constant pressure to be used in the plastic rheology.\n"\
+"                         relevant only for models in horizontal slices.\n"\
+"                         default value: -1.0 (i.e. not used)\n\n"\
 "   -h_air [float]:       if pressure_in_rheol 1, the user must specify the thickness of the sticky air layer.\n"\
 "                         only relevant if pressure_in_rheol 1 and is mandatory in this case\n"\
 "                         no default value\n\n"\
@@ -319,6 +322,9 @@ int main(int argc,char **args)
 		PetscPrintf(PETSC_COMM_WORLD,"Specify pressure_in_rheol!\n\n");
 		exit(1);
 	}
+
+	pressure_const = -1.0;
+	ierr = PetscOptionsGetReal(NULL,NULL,"-pressure_const",&pressure_const,NULL);CHKERRQ(ierr);
 
 	h_air=-1.0;
 	ierr = PetscOptionsGetReal(NULL,NULL,"-h_air",&h_air,NULL);CHKERRQ(ierr);
