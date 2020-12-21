@@ -643,8 +643,11 @@ PetscErrorCode sp_fluvial(PetscReal dt, PetscInt size)
 
     PetscReal hsl = mean_h+sea_level;
 
+    PetscReal dif1,dif2;
+
 
     ierr = PetscCalloc1(size, &h_aux); CHKERRQ(ierr);
+    ierr = PetscCalloc1(size, &h_aux2); CHKERRQ(ierr);
     ierr = PetscCalloc1(size, &q); CHKERRQ(ierr);
     ierr = PetscCalloc1(size, &fc); CHKERRQ(ierr);
     ierr = PetscCalloc1(size, &hi); CHKERRQ(ierr);
@@ -664,6 +667,19 @@ PetscErrorCode sp_fluvial(PetscReal dt, PetscInt size)
         
         for (sum=0,j=0;j<size;j++) sum+=fc[j];
         while (sum>0){
+
+            for (j=0;j<size;j++) h_aux2[j] = h[j];
+
+            for (tt=0;tt<10;tt++){
+                dif1=h[j-1];
+                for (j=1;j<size-1;j++){
+                    dif2=h[j];
+                    h[j]+=0.2*(dif1-2*h[j]+h[j+1]);
+                    dif1=dif2;
+                }
+            }
+
+
             for (j=0;j<size;j++) {if (fc[j]==1) fc[j]=2;}
             for (j=1;j<size-1;j++){
                 if (fc[j]>0){
@@ -683,6 +699,9 @@ PetscErrorCode sp_fluvial(PetscReal dt, PetscInt size)
                     }
                 }
             }
+
+            for (j=0;j<size;j++) h[j] = h_aux2[j];
+
             for (j=1;j<size-1;j++){
                 if (fc[j]==2){
                     h_aux[j]=h[j]-q[j]*K*sp_dt*(h[j]-h[hi[j]])/sp_dx;
@@ -704,6 +723,7 @@ PetscErrorCode sp_fluvial(PetscReal dt, PetscInt size)
 
     PetscFree(h);
     PetscFree(h_aux);
+    PetscFree(h_aux2);
     PetscFree(fc);
     PetscFree(q);
     PetscFree(hi);
