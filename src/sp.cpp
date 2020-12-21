@@ -594,13 +594,13 @@ PetscErrorCode sp_diffusion(PetscReal dt, PetscInt size)
 PetscErrorCode sp_fluvial(PetscReal dt, PetscInt size)
 {
     PetscErrorCode ierr;
-    PetscInt t;
+    PetscInt t,tt;
     PetscInt j,cont;
     PetscInt max_steps;
 
     PetscReal sp_dx;
     PetscReal sp_dt;
-    PetscScalar *h,*h_aux,*q,*fc;
+    PetscScalar *h,*h_aux,*h_aux2,*q,*fc;
     PetscInt *hi;
     PetscInt sum;
     
