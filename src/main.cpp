@@ -482,6 +482,7 @@ int main(int argc,char **args)
 		}
 	}
 	else {
+		if (visc_MAX==visc_MIN) visc_MAX = visc_MIN*1.0001;  //avoiding the problem to the f2 in the denominator (Gerya...)
 		visc_MIN_comp = visc_MIN;
 		visc_MAX_comp = visc_MAX;
 		ierr = veloc_total(); CHKERRQ(ierr);
