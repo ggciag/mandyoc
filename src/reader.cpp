@@ -93,6 +93,14 @@ extern PetscScalar *var_bcv_time;
 extern PetscScalar *var_bcv_scale;
 extern PetscInt n_var_bcv;
 
+extern PetscInt variable_climate;
+
+extern PetscScalar *var_climate_time;
+extern PetscScalar *var_climate_scale;
+extern PetscInt n_var_climate;
+
+extern PetscInt climate_change;
+
 char str[100];
 
 extern PetscBool sp_surface_processes;
@@ -535,7 +543,36 @@ PetscErrorCode reader(int rank){
 		MPI_Bcast(var_bcv_time,n_var_bcv,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 		MPI_Bcast(var_bcv_scale,n_var_bcv,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	}
-	
+
+	PetscPrintf(PETSC_COMM_WORLD,"\nclimate_change %d\n",climate_change);
+	if (climate_change==1){
+		FILE *f_climate;
+		f_climate = fopen("climate.txt","r");
+		if (f_climate==NULL) {
+			PetscPrintf(PETSC_COMM_WORLD,"\n\n\n\nclimate.txt not found\n\n\n\n");
+			exit(1);
+		}
+		if (rank==0){
+			fscanf(f_climate,"%d",&n_var_climate);
+		}
+		MPI_Bcast(&n_var_climate,1,MPI_INT,0,PETSC_COMM_WORLD);
+		PetscCalloc1(n_var_climate,&var_climate_scale);
+		PetscCalloc1(n_var_climate,&var_climate_time);
+		if (rank==0){
+			printf("Variable climate\n");
+			for (int i=0;i<n_var_climate;i++){
+				fscanf(f_climate,"%lf%lf",&var_climate_time[i],&var_climate_scale[i]);
+				printf("%lf %lf\n",var_climate_time[i],var_climate_scale[i]);
+			}
+			printf("\n\n");
+			fclose(f_climate);
+		}
+		MPI_Bcast(var_climate_time,n_var_climate,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+		MPI_Bcast(var_climate_scale,n_var_climate,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+
+
+	}
+
 	PetscFunctionReturn(0);
 
 }

@@ -121,6 +121,15 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 "                         default value: true\n\n"\
 "   -K_fluvial [float]:   Fluvial coefficient.\n"\
 "                         default value: 2.0E-7\n\n"\
+"   -precipitation_profile [0 or 1]:\n"\
+"                         If 1, import the precipitation profile from the file precipitation.txt\n"\
+"                         default value: 0\n\n"\
+"   -climate_change [0 or 1]:\n"\
+"                         If 1, import the file climate.txt that rescale the actual precipitation\n"\
+"                         with the first line indicating the number of instants:\n"\
+"                         [number of instants]\n"\
+"                         [instant to change the velocity in Myr] [scale factor]\n"\
+"                         default value: 0\n\n"\
 "   -sea_level [float]:   Sea level.\n"\
 "                         default value: 0.0\n\n"\
 "";
@@ -185,6 +194,8 @@ PetscErrorCode sp_write_surface_vec(PetscInt i);
 PetscErrorCode sp_destroy();
 PetscErrorCode load_topo_var(int rank);
 
+PetscErrorCode rescalePrecipitation(double tempo);
+
 
 int main(int argc,char **args)
 {
@@ -209,6 +220,13 @@ int main(int argc,char **args)
 
 	sp_mode=1;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-sp_mode",&sp_mode,NULL);CHKERRQ(ierr);
+
+
+	precipitation_profile=0;
+	ierr = PetscOptionsGetInt(NULL,NULL,"-precipitation_profile",&precipitation_profile,NULL);CHKERRQ(ierr);
+
+	climate_change=0;
+	ierr = PetscOptionsGetInt(NULL,NULL,"-climate_change",&climate_change,NULL);CHKERRQ(ierr);
 
 	int rank;
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
@@ -384,6 +402,9 @@ int main(int argc,char **args)
 	K_fluvial = 2.0E-7;
 	ierr = PetscOptionsGetReal(NULL,NULL,"-K_fluvial",&K_fluvial,NULL);CHKERRQ(ierr);
 
+	m_fluvial = 1.0;
+	ierr = PetscOptionsGetReal(NULL,NULL,"-m_fluvial",&m_fluvial,NULL);CHKERRQ(ierr);
+
 	sea_level = 0.0;
 	ierr = PetscOptionsGetReal(NULL,NULL,"-sea_level",&sea_level,NULL);CHKERRQ(ierr);
 
@@ -523,6 +544,8 @@ int main(int argc,char **args)
 
 		if (sp_surface_processes && (tempo > sp_eval_time || fabs(tempo-sp_eval_time) < 0.0001)) {
 			PetscPrintf(PETSC_COMM_WORLD,"\nEvaluating sp...\n");
+
+			ierr = rescalePrecipitation(tempo);
 
 			evaluate_surface_processes();
 
@@ -708,6 +731,20 @@ PetscErrorCode rescaleVeloc(Vec Veloc_fut,double tempo)
 					n_visc++;
 				}
 			}
+		}
+	}
+
+	PetscFunctionReturn(0);
+}
+
+
+PetscErrorCode rescalePrecipitation(double tempo)
+{
+	PetscErrorCode ierr;
+	if (cont_var_climate<n_var_climate){
+		if (tempo>1.0E6*var_climate_time[cont_var_climate]){
+			prec_factor*=var_climate_scale[cont_var_climate];
+			cont_var_climate++;
 		}
 	}
 

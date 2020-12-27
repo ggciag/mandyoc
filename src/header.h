@@ -387,4 +387,15 @@ PetscBool plot_sediment;
 PetscBool a2l;
 
 PetscScalar K_fluvial;
+PetscScalar m_fluvial;
 PetscScalar sea_level;
+
+PetscInt precipitation_profile;
+PetscInt climate_change;
+
+PetscScalar prec_factor=1.0;
+
+PetscScalar *var_climate_time;
+PetscScalar *var_climate_scale;
+PetscInt n_var_climate;
+PetscInt cont_var_climate=0;

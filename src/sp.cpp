@@ -47,7 +47,12 @@ extern PetscScalar sp_d_c;
 extern PetscBool a2l;
 
 extern PetscScalar K_fluvial;
+extern PetscScalar m_fluvial;
 extern PetscScalar sea_level;
+
+extern PetscInt precipitation_profile;
+extern PetscInt climate_change;
+extern PetscScalar prec_factor;
 
 PetscErrorCode sp_create_surface_vec();
 PetscErrorCode sp_interpolate_surface_particles_to_vec();
@@ -59,6 +64,7 @@ PetscErrorCode sp_topo_var(PetscReal dt, PetscInt size);
 PetscErrorCode sp_diffusion(PetscReal dt, PetscInt size);
 PetscErrorCode sp_fluvial(PetscReal dt, PetscInt size);
 PetscErrorCode sp_fluvial2(PetscReal dt, PetscInt size);
+PetscErrorCode sp_forced(PetscReal dt, PetscInt size);
 PetscErrorCode DMDAGetElementCorners(DM da,PetscInt *sx,PetscInt *sz,PetscInt *mx,PetscInt *mz);
 
 
@@ -302,6 +308,8 @@ PetscErrorCode evaluate_surface_processes()
             sp_fluvial(dt, size);
         } else if (4 == sp_mode) {
             sp_fluvial2(dt, size);
+        } else if (5 == sp_mode){
+            sp_forced(dt,size);
         } else {
             ierr = PetscPrintf(PETSC_COMM_WORLD,"ERROR evaluate_surface_processes sp_mode undetermined\n"); CHKERRQ(ierr);
             exit(1);
@@ -600,7 +608,7 @@ PetscErrorCode sp_fluvial(PetscReal dt, PetscInt size)
 
     PetscReal sp_dx;
     PetscReal sp_dt;
-    PetscScalar *h,*h_aux,*h_aux2,*q,*fc;
+    PetscScalar *h,*h_aux,*h_aux2,*q,*fc,*vR;
     PetscInt *hi;
     PetscInt sum;
     
@@ -651,11 +659,30 @@ PetscErrorCode sp_fluvial(PetscReal dt, PetscInt size)
     ierr = PetscCalloc1(size, &q); CHKERRQ(ierr);
     ierr = PetscCalloc1(size, &fc); CHKERRQ(ierr);
     ierr = PetscCalloc1(size, &hi); CHKERRQ(ierr);
+    ierr = PetscCalloc1(size, &vR); CHKERRQ(ierr);
+
+    for (j=0;j<size;j++) vR[j] = 1.0;//PetscExpReal(-PetscPowReal(sp_dx*j-Lx/2,4)/PetscPowReal(Lx/8,4));
+
+    
+	if (precipitation_profile==1){
+		FILE *f_prec;
+		f_prec = fopen("precipitation.txt","r");
+		if (f_prec==NULL) {
+			PetscPrintf(PETSC_COMM_WORLD,"\n\n\n\nprecipitation.txt not found\n\n\n\n");
+			exit(1);
+		}
+		for (j=0;j<size;j++){
+			fscanf(f_prec,"%lf",&vR[j]);
+		}
+        fclose(f_prec);
+	}
+
+    for (j=0;j<size;j++) vR[j] *= prec_factor;
 
     for (j=0;j<size;j++) h_aux[j]=h[j];
 
     for (t=0; t < max_steps; t++) {
-        for (j=0;j<size;j++) q[j] = 2000.0;    
+        for (j=0;j<size;j++) q[j] = sp_dx*vR[j];    
         for (j=0;j<size;j++) {
             fc[j]=1;
             if (h[j]<hsl) fc[j]=0;
@@ -704,7 +731,8 @@ PetscErrorCode sp_fluvial(PetscReal dt, PetscInt size)
 
             for (j=1;j<size-1;j++){
                 if (fc[j]==2){
-                    h_aux[j]=h[j]-q[j]*K*sp_dt*(h[j]-h[hi[j]])/sp_dx;
+                    //h_aux[j]=h[j]-q[j]*K*sp_dt*(h[j]-h[hi[j]])/sp_dx;
+                    h_aux[j]=h[j]-PetscPowReal(q[j],m_fluvial)*K*sp_dt*(h[j]-h[hi[j]])/sp_dx;
                     q[hi[j]]+=q[j];
                     fc[j]=0;
                     if (h_aux[j]<hsl) h_aux[j]=hsl;
@@ -905,3 +933,100 @@ PetscErrorCode sp_fluvial2(PetscReal dt, PetscInt size)
     PetscFunctionReturn(0);
 }
 
+PetscErrorCode sp_forced(PetscReal dt, PetscInt size)
+{
+    PetscErrorCode ierr;
+    PetscInt j,cont;
+    PetscInt max_steps;
+
+    PetscReal sp_dx;
+    PetscReal sp_dt;
+    PetscScalar *h,*h_aux,*h_aux2,*q,*fc,*vR;
+    PetscInt *hi;
+
+
+    ierr = PetscCalloc1(size, &h); CHKERRQ(ierr);
+    ierr = PetscArraycpy(h, global_surface_array_helper, size); CHKERRQ(ierr);
+
+    sp_dx = Lx/(size-1);
+
+    //sp_dt = sp_dx*sp_dx/sp_d_c/4.0;
+    //max_steps = (int)(PetscFloorReal(dt/sp_dt)) + 1;
+    //if (max_steps < 10) {
+    //    max_steps = 10;
+    //}
+    sp_dt = 5000.0;
+    max_steps=(int)(dt/sp_dt);
+    sp_dt = dt/max_steps;
+
+    //r = sp_d_c*sp_dt/(sp_dx*sp_dx);
+
+    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] dt=%e\n", dt); CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] size=%d\n", size); CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] sp_dx=%e\n", sp_dx); CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] sp_dt=%e\n", sp_dt); CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] max_steps=%d\n", max_steps); CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] sp_d_c=%e\n", sp_d_c); CHKERRQ(ierr);
+    //ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] r=%e\n", r); CHKERRQ(ierr);
+    // for (j = 0; j < size; j++) {
+    //     ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] sp_y_aux=%e\n", sp_y_aux[j]); CHKERRQ(ierr);
+    // }
+
+    PetscReal mean_h=0.0;
+    for (j = 0,cont=0; j < size/4; j++) {
+        mean_h+=h[j];
+        cont++;
+    }
+    mean_h/=cont;
+
+    PetscReal hsl = mean_h+sea_level;
+
+
+    ierr = PetscCalloc1(size, &h_aux); CHKERRQ(ierr);
+    ierr = PetscCalloc1(size, &h_aux2); CHKERRQ(ierr);
+    ierr = PetscCalloc1(size, &q); CHKERRQ(ierr);
+    ierr = PetscCalloc1(size, &fc); CHKERRQ(ierr);
+    ierr = PetscCalloc1(size, &hi); CHKERRQ(ierr);
+    ierr = PetscCalloc1(size, &vR); CHKERRQ(ierr);
+
+    for (j=0;j<size;j++) vR[j] = 1.0;//PetscExpReal(-PetscPowReal(sp_dx*j-Lx/2,4)/PetscPowReal(Lx/8,4));
+
+    
+	if (precipitation_profile==1){
+		FILE *f_prec;
+		f_prec = fopen("precipitation.txt","r");
+		if (f_prec==NULL) {
+			PetscPrintf(PETSC_COMM_WORLD,"\n\n\n\nprecipitation.txt not found\n\n\n\n");
+			exit(1);
+		}
+		for (j=0;j<size;j++){
+			fscanf(f_prec,"%lf",&vR[j]);
+		}
+        fclose(f_prec);
+	}
+
+    for (j=0;j<size;j++) vR[j] *= prec_factor;
+
+    for (j=0;j<size;j++) {
+        if (h[j]>hsl){
+            h[j] -= vR[j]*dt;
+            if (h[j]<hsl) h[j]=hsl;
+        }
+    }
+
+    for (j = 0; j < size; j++) {
+        global_surface_array_helper[j] = h[j];
+    }
+
+    PetscFree(h);
+    PetscFree(h_aux);
+    PetscFree(h_aux2);
+    PetscFree(fc);
+    PetscFree(q);
+    PetscFree(hi);
+    
+
+   
+
+    PetscFunctionReturn(0);
+}
