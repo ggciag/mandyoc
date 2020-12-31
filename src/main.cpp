@@ -744,7 +744,7 @@ PetscErrorCode rescalePrecipitation(double tempo)
 	PetscErrorCode ierr;
 	if (cont_var_climate<n_var_climate){
 		if (tempo>1.0E6*var_climate_time[cont_var_climate]){
-			prec_factor*=var_climate_scale[cont_var_climate];
+			prec_factor=var_climate_scale[cont_var_climate];
 			cont_var_climate++;
 		}
 	}
