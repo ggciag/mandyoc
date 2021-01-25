@@ -256,7 +256,7 @@ PetscErrorCode sp_interpolate_surface_particles_to_vec()
 
 PetscErrorCode evaluate_surface_processes()
 {
-    PetscErrorCode ierr;
+    PetscErrorCode ierr=0;
     PetscMPIInt rank;
     PetscInt j;
     PetscInt low;
@@ -265,8 +265,8 @@ PetscErrorCode evaluate_surface_processes()
     PetscReal dt;
     PetscReal *y;
     PetscReal *y_aux;
-    PetscReal dt_sp;
-    PetscReal dt_aux;
+    //PetscReal dt_sp;
+    //PetscReal dt_aux;
 
     VecScatter ctx;
     Vec seq_surface;
@@ -349,7 +349,7 @@ PetscErrorCode evaluate_surface_processes()
 
 PetscErrorCode update_particles_properties()
 {
-    PetscErrorCode ierr;
+    PetscErrorCode ierr=0;
     PetscMPIInt rank;
     PetscInt i;
     PetscInt p;
@@ -490,7 +490,7 @@ PetscErrorCode update_particles_properties()
 
 PetscErrorCode sp_write_surface_vec(PetscInt i)
 {
-    PetscErrorCode ierr;
+    PetscErrorCode ierr=0;
     PetscMPIInt rank;
     PetscViewer viewer;
     char filename[100];
@@ -509,7 +509,7 @@ PetscErrorCode sp_write_surface_vec(PetscInt i)
 
 PetscErrorCode sp_destroy()
 {
-    PetscErrorCode ierr;
+    PetscErrorCode ierr=0;
 
     ierr = VecDestroy(&sp_surface_global); CHKERRQ(ierr);
     ierr = VecDestroy(&sp_surface_global_n); CHKERRQ(ierr);
@@ -545,7 +545,7 @@ PetscErrorCode sp_topo_var(PetscReal dt, PetscInt size)
 
 PetscErrorCode sp_diffusion(PetscReal dt, PetscInt size)
 {
-    PetscErrorCode ierr;
+    PetscErrorCode ierr=0;
     PetscInt t;
     PetscInt j;
     PetscInt max_steps;

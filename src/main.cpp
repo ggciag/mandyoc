@@ -201,7 +201,7 @@ int main(int argc,char **args)
 {
 	PetscErrorCode ierr;
 	char prefix[PETSC_MAX_PATH_LEN];
-	PetscChar sp_prefix[PETSC_MAX_PATH_LEN];
+	//PetscChar sp_prefix[PETSC_MAX_PATH_LEN];
 	PetscInt       Px,Pz;
 
 	ierr = PetscInitialize(&argc,&args,(char*)0,help);CHKERRQ(ierr);
@@ -644,7 +644,7 @@ PetscErrorCode Calc_dt_calor(){
 		max_mod_v = fabs(min_v);
 		ind_v_mod = ind_v_min;
 	}
-	if (ind_v_mod%2==0) dh_v_mod = dx_const; //!!! 2d
+	dh_v_mod = dx_const; //!!! 2d
 	if (ind_v_mod%2==1) dh_v_mod = dz_const; //!!! 2d
 	if (rank==0) printf("dt = %g",(dh_v_mod/max_mod_v)/seg_per_ano);
 	dt_calor = 0.1*(dh_v_mod/max_mod_v)/(seg_per_ano*sub_division_time_step);
@@ -741,7 +741,7 @@ PetscErrorCode rescaleVeloc(Vec Veloc_fut,double tempo)
 
 PetscErrorCode rescalePrecipitation(double tempo)
 {
-	PetscErrorCode ierr;
+	//PetscErrorCode ierr;
 	if (cont_var_climate<n_var_climate){
 		if (tempo>1.0E6*var_climate_time[cont_var_climate]){
 			prec_factor=var_climate_scale[cont_var_climate];

@@ -247,8 +247,8 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	
 	PetscReal visc_meio;
 
-	PetscReal rho_mean_bottom, rho_mean_top;
-	PetscReal traction_bottom,traction_top;
+	PetscReal rho_mean_bottom;//, rho_mean_top;
+	PetscReal traction_bottom;//,traction_top;
 	
 
 	for (ek = sez; ek < sez+mz; ek++) {

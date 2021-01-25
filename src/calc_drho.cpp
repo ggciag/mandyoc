@@ -84,10 +84,10 @@ PetscErrorCode calc_pressure()
 	
 	//PetscInt i,j,k,c,n,g;
 	
-	MatStencil indr[T_NE];
+	//MatStencil indr[T_NE];
 	
 	int M,P;
-	double xx,zz;
+	double zz;
 	
 	PetscFunctionBeginUser;
 	ierr = DMDAGetInfo(da_Thermal,0,&M,&P,NULL,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
@@ -117,12 +117,12 @@ PetscErrorCode calc_pressure()
 	
 	for (ek = sez; ek < sez+mz; ek++) {
 		for (ei = sex; ei < sex+mx; ei++) {
-			indr[0].i=ei  ; indr[0].j=ek  ;
+			/*indr[0].i=ei  ; indr[0].j=ek  ;
 			indr[1].i=ei+1; indr[1].j=ek  ;
 			indr[2].i=ei  ; indr[2].j=ek+1;
 			indr[3].i=ei+1; indr[3].j=ek+1;
 			
-			xx = ei*Lx/(M-1);
+			xx = ei*Lx/(M-1);*/
 			zz = -(P-1-ek)*depth/(P-1);
 			
 			
