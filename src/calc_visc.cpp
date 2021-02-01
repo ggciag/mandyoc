@@ -203,7 +203,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		
 		double visco_yield = visc_MAX;
 		
-		if (e2_inva>0) visco_yield = tau_yield/e2_inva;
+		if (e2_inva>0) visco_yield = tau_yield/(2*e2_inva);
 		
 		if (visco_real>visco_yield) visco_real = visco_yield;
 

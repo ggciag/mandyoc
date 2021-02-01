@@ -369,7 +369,9 @@ PetscErrorCode moveSwarm(PetscReal dt)
 		strain[1]-=strain_mean;
 		strain[2]-=strain_mean;
 		E2_invariant = 0;
-		for (ii=0;ii<6;ii++) E2_invariant+=strain[ii]*strain[ii];
+		for (ii=0;ii<3;ii++) E2_invariant+=strain[ii]*strain[ii];
+		for (ii=3;ii<6;ii++) E2_invariant+=2*strain[ii]*strain[ii];
+		
 		E2_invariant = PetscSqrtReal(E2_invariant/2.0);
 
 		if (E2_invariant<e2_aux_MIN) e2_aux_MIN=E2_invariant;
