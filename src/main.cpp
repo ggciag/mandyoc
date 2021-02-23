@@ -132,6 +132,10 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 "                         default value: 0\n\n"\
 "   -sea_level [float]:   Sea level.\n"\
 "                         default value: 0.0\n\n"\
+"   -basal_heat [float]:  Basal heat.\n"\
+"                         If a positive or null value is specified, the base of the model will have the\n"\
+"                         prescribed heat flow.\n"\
+"                         default value: -1.0 (i.e. not activated)\n\n"\
 "";
 
 
@@ -407,6 +411,9 @@ int main(int argc,char **args)
 
 	sea_level = 0.0;
 	ierr = PetscOptionsGetReal(NULL,NULL,"-sea_level",&sea_level,NULL);CHKERRQ(ierr);
+
+	basal_heat = -1.0;
+	ierr = PetscOptionsGetReal(NULL,NULL,"-basal_heat",&basal_heat,NULL);CHKERRQ(ierr);
 
 	if (sp_mode == 2 && PETSC_FALSE == set_sp_d_c) {
 		ierr = PetscPrintf(PETSC_COMM_WORLD,"-sp_mode 2 (diffusion) using default value: sp_d_c %e\n", sp_d_c); CHKERRQ(ierr);

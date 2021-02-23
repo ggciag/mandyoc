@@ -19,7 +19,11 @@ PetscErrorCode AssembleF_Thermal(Vec F,DM thermal_da,PetscReal *TKe,PetscReal *T
 
 PetscErrorCode Thermal_init(Vec F,DM thermal_da);
 
+PetscErrorCode Heat_flow_at_the_base();
+
 extern double Lx, Ly, depth;
+
+extern double dz_const;
 
 extern PetscReal *NT;
 extern PetscReal *NT_x;
@@ -85,6 +89,10 @@ extern PetscReal rtol;
 
 extern PetscInt periodic_boundary;
 
+extern PetscScalar basal_heat;
+extern double kappa;
+extern double RHOM;
+extern double c_heat_capacity;
 
 PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 {
@@ -318,12 +326,50 @@ PetscErrorCode solve_thermal_3d()
 	
 	ierr = KSPSolve(T_ksp,Tf,Temper);CHKERRQ(ierr);
 
+	if (basal_heat>0) Heat_flow_at_the_base();
+
 	PetscTime(&Tempo2);
 	if (rank==0) printf("Thermal solve: %lf\n",Tempo2-Tempo1);
 	
 	PetscFunctionReturn(0);
 	
 }
+
+
+PetscErrorCode Heat_flow_at_the_base(){
+	PetscErrorCode ierr;
+	PetscScalar  **TT;
+
+	ierr = DMGlobalToLocalBegin(da_Thermal,Temper,INSERT_VALUES,local_Temper);
+	ierr = DMGlobalToLocalEnd(  da_Thermal,Temper,INSERT_VALUES,local_Temper);
+	
+	ierr = DMDAVecGetArray(da_Thermal,local_Temper,&TT);CHKERRQ(ierr);
+
+	PetscInt       sx,sz,mmx,mmz;
+	
+	ierr = DMDAGetCorners(da_Thermal,&sx,&sz,NULL,&mmx,&mmz,NULL);CHKERRQ(ierr);
+	
+	int k,i;
+
+	PetscScalar condutivity = kappa*RHOM*c_heat_capacity;
+	PetscScalar delta_T_basal = basal_heat*dz_const/condutivity;
+	
+	for (k=sz; k<sz+mmz; k++) {
+		for (i=sx; i<sx+mmx; i++) {
+			if (k==0){
+				TT[k][i]=TT[k+1][i]+delta_T_basal;
+			}
+		}
+	}
+
+	ierr = DMDAVecRestoreArray(da_Thermal,local_Temper,&TT);CHKERRQ(ierr);
+	ierr = DMLocalToGlobalBegin(da_Thermal,local_Temper,INSERT_VALUES,Temper);CHKERRQ(ierr);
+	ierr = DMLocalToGlobalEnd(da_Thermal,local_Temper,INSERT_VALUES,Temper);CHKERRQ(ierr);
+
+	PetscFunctionReturn(0);
+
+}
+
 /*
 air_temperature()
 {
