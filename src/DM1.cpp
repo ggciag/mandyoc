@@ -3,7 +3,7 @@
 
 #include <petsctime.h>
 
-PetscErrorCode montaKeThermal_simplif(double *Ke_local,double *Ke);
+PetscErrorCode montaKeThermal_simplif(double *Ke_local,double *Ke,double  kappa_eff);
 PetscErrorCode ascii2bin(char *s1, char *s2);
 PetscErrorCode mean_value_periodic_boundary(DM da,Vec F,Vec local_F, PetscScalar **ff,int esc);
 
@@ -77,6 +77,8 @@ extern PetscInt WITH_RADIOGENIC_H;
 extern unsigned int seed;
 
 extern PetscInt periodic_boundary;
+
+extern PetscInt high_kappa_in_asthenosphere;
 
 
 typedef struct {
@@ -162,6 +164,15 @@ PetscErrorCode AssembleA_Thermal(Mat A,DM thermal_da,PetscReal *TKe,PetscReal *T
 	ierr = DMDAVecGetArray(thermal_da,local_TC,&TTC);CHKERRQ(ierr);
 	
 	////////
+
+	PetscScalar **tt;
+
+	ierr = VecZeroEntries(local_Temper);CHKERRQ(ierr);
+	
+	ierr = DMGlobalToLocalBegin(thermal_da,Temper,INSERT_VALUES,local_Temper);
+	ierr = DMGlobalToLocalEnd(thermal_da,Temper,INSERT_VALUES,local_Temper);
+	
+	ierr = DMDAVecGetArray(thermal_da,local_Temper,&tt);CHKERRQ(ierr);
 	
 	
 	
@@ -209,6 +220,9 @@ PetscErrorCode AssembleA_Thermal(Mat A,DM thermal_da,PetscReal *TKe,PetscReal *T
 	}
 	
 	ierr = DMDAGetElementCorners(thermal_da,&sex,&sez,&mx,&mz);CHKERRQ(ierr);
+
+	PetscReal tt_ele[4],tt_mean,tt_ref=1330.0;
+	double kappa_eff;
 	
 	for (ek = sez; ek < sez+mz; ek++) {
 		for (ei = sex; ei < sex+mx; ei++) {
@@ -222,8 +236,23 @@ PetscErrorCode AssembleA_Thermal(Mat A,DM thermal_da,PetscReal *TKe,PetscReal *T
 				v_vec_aux_ele[i*2+0] = VV[ind[i].j][ind[i].i].u;
 				v_vec_aux_ele[i*2+1] = VV[ind[i].j][ind[i].i].w;
 			}
+
+			kappa_eff = kappa;
+			if (high_kappa_in_asthenosphere==1){
+				tt_ele[0] = tt[ek][ei];
+				tt_ele[1] = tt[ek][ei+1];
+				tt_ele[2] = tt[ek+1][ei];
+				tt_ele[3] = tt[ek+1][ei+1];
+
+				tt_mean = (tt_ele[0]+tt_ele[1]+tt_ele[2]+tt_ele[3])/4;
+
+				if (tt_mean > tt_ref){
+					kappa_eff=kappa*(1.0 + (tt_mean-tt_ref)*5);
+				}
+				if (kappa_eff>kappa*50) kappa_eff = kappa*50;
+			}
 			
-			montaKeThermal_simplif(TCe_fut, TKe);//modificar
+			montaKeThermal_simplif(TCe_fut, TKe, kappa_eff);//modificar
 			
 			for (c=0;c<T_NE*T_NE;c++) Ttotal[c] = TMe[c] + alpha_thermal*dt_calor_sec*TCe_fut[c];
 			
@@ -254,6 +283,7 @@ PetscErrorCode AssembleA_Thermal(Mat A,DM thermal_da,PetscReal *TKe,PetscReal *T
 	
 	ierr = DMDAVecRestoreArray(veloc_da,local_V,&VV);CHKERRQ(ierr);
 	ierr = DMDAVecRestoreArray(thermal_da,local_TC,&TTC);CHKERRQ(ierr);
+	ierr = DMDAVecRestoreArray(thermal_da,local_Temper,&tt);CHKERRQ(ierr);
 	
 	
 	PetscFunctionReturn(0);
@@ -335,8 +365,9 @@ PetscErrorCode AssembleF_Thermal(Vec F,DM thermal_da,PetscReal *TKe,PetscReal *T
 	PetscReal H_efetivo;
 	
 	
-	
-	
+	PetscReal tt_ele[4],tt_mean,tt_ref=1330.0;
+	double kappa_eff;
+
 	ierr = DMDAGetElementCorners(thermal_da,&sex,&sez,&mx,&mz);CHKERRQ(ierr);
 	for (ek = sez; ek < sez+mz; ek++) {
 		for (ei = sex; ei < sex+mx; ei++) {
@@ -353,9 +384,23 @@ PetscErrorCode AssembleF_Thermal(Vec F,DM thermal_da,PetscReal *TKe,PetscReal *T
 				v_vec_aux_ele[i*2+0] = VV[ind[i].j][ind[i].i].u;
 				v_vec_aux_ele[i*2+1] = VV[ind[i].j][ind[i].i].w;
 			}
-			
-			
-			montaKeThermal_simplif(TCe, TKe);//modificar
+
+			kappa_eff = kappa;
+			if (high_kappa_in_asthenosphere==1){
+				tt_ele[0] = tt[ek][ei];
+				tt_ele[1] = tt[ek][ei+1];
+				tt_ele[2] = tt[ek+1][ei];
+				tt_ele[3] = tt[ek+1][ei+1];
+
+				tt_mean = (tt_ele[0]+tt_ele[1]+tt_ele[2]+tt_ele[3])/4;
+
+				if (tt_mean > tt_ref){
+					kappa_eff=kappa*(1.0 + (tt_mean-tt_ref)*5);
+				}
+				if (kappa_eff>kappa*50) kappa_eff = kappa*50;
+			}
+
+			montaKeThermal_simplif(TCe, TKe, kappa_eff);//modificar
 			
 			for (c=0;c<T_NE*T_NE;c++) Ttotal_b[c] = TMe[c] - comp_alpha_thermal*dt_calor_sec*TCe[c];
 			

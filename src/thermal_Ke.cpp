@@ -12,7 +12,6 @@ extern double r06;
 extern double r8p9;
 extern double r5p9;
 
-extern double kappa;
 
 extern double dx_const;
 extern double dz_const;
@@ -38,7 +37,7 @@ extern PetscReal *NT_y;
 extern PetscReal *NT_z;
 
 
-PetscErrorCode montaKeThermal_simplif(double *Ke_local,double *Ke){
+PetscErrorCode montaKeThermal_simplif(double *Ke_local,double *Ke,double kappa_eff){
 	long i,j,c;
 	
 	PetscErrorCode ierr=0;
@@ -92,9 +91,9 @@ PetscErrorCode montaKeThermal_simplif(double *Ke_local,double *Ke){
 	
 	
 	double eps[2],a_aux[2];
-	
-	a_aux[0]= vv[0]*dx_const/(kappa*2.0);
-	a_aux[1]= vv[1]*dz_const/(kappa*2.0);
+
+	a_aux[0]= vv[0]*dx_const/(kappa_eff*2.0);
+	a_aux[1]= vv[1]*dz_const/(kappa_eff*2.0);
 	
 	
 	for (i=0;i<2;i++){
@@ -159,7 +158,7 @@ PetscErrorCode montaKeThermal_simplif(double *Ke_local,double *Ke){
 	
 	//exit(0);
 	
-	for (i=0;i<V_NE*V_NE;i++) Ke_local[i]+=Ke[i];
+	for (i=0;i<V_NE*V_NE;i++) Ke_local[i]+=Ke[i]*kappa_eff;
 	
 	return (ierr);
 	
@@ -245,7 +244,7 @@ PetscErrorCode montaKeThermal_general(PetscReal *Ke, PetscReal *Me, PetscReal *F
 					 (kappa_arti*(N_x[i]*unit_vv[0]+N_y[i]*unit_vv[1]+N_z[i]*unit_vv[2])/mod_vv)*
 					 (N_x[j]*vv_local[0]+N_y[j]*vv_local[1]+N_z[j]*vv_local[2]);*/
 					
-					Ke[i*V_NE+j]+= kappa*prodH*volume*(N_x[i]*N_x[j]+N_z[i]*N_z[j]);
+					Ke[i*V_NE+j]+= prodH*volume*(N_x[i]*N_x[j]+N_z[i]*N_z[j]);
 				}
 			}
 			

@@ -415,6 +415,10 @@ int main(int argc,char **args)
 	basal_heat = -1.0;
 	ierr = PetscOptionsGetReal(NULL,NULL,"-basal_heat",&basal_heat,NULL);CHKERRQ(ierr);
 
+	high_kappa_in_asthenosphere=0;
+	ierr = PetscOptionsGetInt(NULL, NULL, "-high_kappa_in_asthenosphere", &high_kappa_in_asthenosphere, NULL); CHKERRQ(ierr);
+
+
 	if (sp_mode == 2 && PETSC_FALSE == set_sp_d_c) {
 		ierr = PetscPrintf(PETSC_COMM_WORLD,"-sp_mode 2 (diffusion) using default value: sp_d_c %e\n", sp_d_c); CHKERRQ(ierr);
 	} else if (sp_mode == 2) {

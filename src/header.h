@@ -401,3 +401,5 @@ PetscInt n_var_climate;
 PetscInt cont_var_climate=0;
 
 PetscScalar basal_heat;
+
+PetscInt high_kappa_in_asthenosphere;
