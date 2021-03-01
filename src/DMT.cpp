@@ -44,7 +44,7 @@ extern long V_GT;
 extern long V_GN;
 
 extern Mat TA, TB;
-extern Vec Tf, Temper;
+extern Vec Tf, Temper, Temper_0;
 
 extern Vec Pressure_aux;
 
@@ -164,6 +164,7 @@ PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz
 	ierr = DMCreateMatrix(da_Thermal,&TA);CHKERRQ(ierr);
 	ierr = DMCreateMatrix(da_Thermal,&TB);CHKERRQ(ierr);
 	ierr = DMCreateGlobalVector(da_Thermal,&Temper);CHKERRQ(ierr);
+	ierr = DMCreateGlobalVector(da_Thermal,&Temper_0);CHKERRQ(ierr);
 	ierr = DMCreateGlobalVector(da_Thermal,&Tf);CHKERRQ(ierr);
 
 	ierr = DMCreateGlobalVector(da_Thermal,&Pressure_aux);CHKERRQ(ierr);
@@ -180,7 +181,7 @@ PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz
 	ierr = DMCreateGlobalVector(da_Thermal,&dRho);CHKERRQ(ierr);
 	
 	ierr = Thermal_init(Temper,da_Thermal);
-	
+
 	//VecView(Temper,PETSC_VIEWER_STDOUT_WORLD);
 	
 	ierr = DMCreateLocalVector(da_Thermal,&local_FT);
@@ -254,8 +255,15 @@ PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz
 	
 	
 	///////
-	
-	
+
+
+	VecCopy(Temper,Temper_0);
+
+	VecScale(Temper_Cond, -1.0);
+	VecShift(Temper_Cond,  1.0); 
+	VecPointwiseMult(Temper_0,Temper_0,Temper_Cond);
+	VecScale(Temper_Cond, -1.0);
+	VecShift(Temper_Cond,  1.0); 
 	
 	
 	
@@ -325,6 +333,9 @@ PetscErrorCode solve_thermal_3d()
 	ierr = KSPSetTolerances(T_ksp,rtol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
 	
 	ierr = KSPSolve(T_ksp,Tf,Temper);CHKERRQ(ierr);
+
+	VecPointwiseMult(Temper,Temper,Temper_Cond); ///!!!ok ... apenas zerando nas b.c.
+	VecAXPY(Temper,1.0,Temper_0); ///!!!ok apenas colocando os valores de Teloc_0 em Teloc nas b.c.
 
 	if (basal_heat>0) Heat_flow_at_the_base();
 

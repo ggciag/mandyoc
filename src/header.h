@@ -169,7 +169,7 @@ PetscReal *v_vec_aux_ele;
 /////////
 
 Mat TA, TB;
-Vec Tf, Temper;
+Vec Tf, Temper, Temper_0;
 
 Vec dRho;
 
