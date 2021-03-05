@@ -179,6 +179,13 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		printf("rheol error: larger than maximum available option\n");
 		exit(1);
 	}*/
+
+	if (rheol==10){
+		double beta = 6.907755279;
+		double DT = 1000.0;
+
+		visco_real = visco_r * exp(-(beta*T/DT));
+	}
 	
 	if (geoq_on)
 		visco_real *= geoq_ponto;
