@@ -785,7 +785,7 @@ PetscReal montaKeVeloc_simplif(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_ele
 	long i,j;
 	
 	double Visc_local,Geoq_local;
-	double visc_meio;
+	double visc_meio=-1.0;
 	
 	//PetscErrorCode ierr=0;
 	
@@ -806,7 +806,7 @@ PetscReal montaKeVeloc_simplif(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_ele
 	//for (i=0;i<V_NE;i++) printf("%g ",Visc_ele[i]);
 	//printf("\n");
 	
-	double Hx,Hz,prodH;
+	double Hx,Hz;//,prodH;
 	
 	long point=0;//,cont_p=0;
 	
@@ -826,7 +826,7 @@ PetscReal montaKeVeloc_simplif(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_ele
 				
 				Geoq_local = 0.0;
 				
-				prodH = Hx*Hz;
+				//prodH = Hx*Hz;
 				cont=0;
 				for (ez=-1.;ez<=1.;ez+=2.){
 					for (ex=-1.;ex<=1.;ex+=2.){

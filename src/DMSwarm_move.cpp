@@ -538,7 +538,7 @@ PetscErrorCode Swarm_add_remove()
 	
 	
 	PetscReal dist,dist_p;
-	PetscInt chosen;
+	PetscInt chosen=0;
 	
 	//PetscRandom rand;
 	
@@ -619,7 +619,7 @@ PetscErrorCode Swarm_add_remove()
 				}
 				
 				dist = 0;
-				int p_prox,p_prox_total;
+				int p_prox,p_prox_total=0;
 				for (pp=0;pp<10;pp++){
 					cx = cx_v[pp];
 					cz = cz_v[pp];

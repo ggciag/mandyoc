@@ -573,7 +573,7 @@ PetscErrorCode Thermal_init(Vec F,DM thermal_da)
 	ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
 	
 	
-	PetscReal temper_aux,t1_aux;
+	PetscReal temper_aux=0.0,t1_aux;
 
 	PetscInt ix[1];
 	PetscScalar y[1];

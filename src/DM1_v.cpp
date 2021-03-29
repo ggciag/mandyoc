@@ -230,7 +230,7 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	
 	
 	
-	FILE *sai_visc;
+	FILE *sai_visc=NULL;
 	
 	if (print_visc==1 && tcont%print_step==0) {
 		

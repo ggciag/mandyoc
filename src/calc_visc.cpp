@@ -48,8 +48,8 @@ double strain_softening(double strain, double f1, double f2){
 double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,double e2_inva,double strain_cumulate,
 						double A, double n_exp, double QE, double VE){
 	
-	double visco_real;
-	double depth;
+	double visco_real = visc_MIN;
+	double depth = 0.0;
 	if (pressure_in_rheol==0){
 		depth = -(z + h_air);
 		if (depth<0.0) depth=0.0;
