@@ -306,30 +306,32 @@ int main(int argc,char **args)
 	Xi_min=1.0E-14;
 	ierr = PetscOptionsGetReal(NULL,NULL,"-xi_min",&Xi_min,NULL);CHKERRQ(ierr);
 
-	ierr = PetscCalloc1(n_interfaces, &seed_layer); CHKERRQ(ierr);
-	seed_layer_size = n_interfaces;
-	ierr = PetscOptionsGetIntArray(NULL,NULL,"-seed",seed_layer,&seed_layer_size,&seed_layer_set); CHKERRQ(ierr);
+	if (n_interfaces>0){
+		ierr = PetscCalloc1(n_interfaces, &seed_layer); CHKERRQ(ierr);
+		seed_layer_size = n_interfaces;
+		ierr = PetscOptionsGetIntArray(NULL,NULL,"-seed",seed_layer,&seed_layer_size,&seed_layer_set); CHKERRQ(ierr);
 
-	ierr = PetscCalloc1(n_interfaces, &strain_seed_layer); CHKERRQ(ierr);
-	strain_seed_layer_size = n_interfaces;
-	ierr = PetscOptionsGetRealArray(NULL,NULL,"-strain_seed",strain_seed_layer,&strain_seed_layer_size,&strain_seed_layer_set); CHKERRQ(ierr);
-	if (strain_seed_layer_set == PETSC_TRUE && seed_layer_set == PETSC_FALSE) {
-		PetscPrintf(PETSC_COMM_WORLD,"Specify the seed layer with the flag -seed (required by -strain_seed)\n");
-		exit(1);
-	}
-	if (strain_seed_layer_set == PETSC_TRUE && seed_layer_set == PETSC_TRUE && seed_layer_size != strain_seed_layer_size) {
-		PetscPrintf(PETSC_COMM_WORLD,"Specify the same number of values in the list for flags -seed and -strain_seed\n");
-		exit(1);
-	}
-	if (strain_seed_layer_set == PETSC_FALSE && seed_layer_set == PETSC_TRUE) {
-		PetscPrintf(PETSC_COMM_WORLD,"Using default value '2.0' for -strain_seed (for all seed layers)\n");
-		for (int k = 0; k < seed_layer_size; k++) {
-			strain_seed_layer[k] = 2.0;
+		ierr = PetscCalloc1(n_interfaces, &strain_seed_layer); CHKERRQ(ierr);
+		strain_seed_layer_size = n_interfaces;
+		ierr = PetscOptionsGetRealArray(NULL,NULL,"-strain_seed",strain_seed_layer,&strain_seed_layer_size,&strain_seed_layer_set); CHKERRQ(ierr);
+		if (strain_seed_layer_set == PETSC_TRUE && seed_layer_set == PETSC_FALSE) {
+			PetscPrintf(PETSC_COMM_WORLD,"Specify the seed layer with the flag -seed (required by -strain_seed)\n");
+			exit(1);
 		}
-	}
-	PetscPrintf(PETSC_COMM_WORLD,"Number of seed layers: %d\n", seed_layer_size);
-	for (int k = 0; k < seed_layer_size; k++) {
-		PetscPrintf(PETSC_COMM_WORLD,"seed layer: %d - strain: %lf\n", seed_layer[k], strain_seed_layer[k]);
+		if (strain_seed_layer_set == PETSC_TRUE && seed_layer_set == PETSC_TRUE && seed_layer_size != strain_seed_layer_size) {
+			PetscPrintf(PETSC_COMM_WORLD,"Specify the same number of values in the list for flags -seed and -strain_seed\n");
+			exit(1);
+		}
+		if (strain_seed_layer_set == PETSC_FALSE && seed_layer_set == PETSC_TRUE) {
+			PetscPrintf(PETSC_COMM_WORLD,"Using default value '2.0' for -strain_seed (for all seed layers)\n");
+			for (int k = 0; k < seed_layer_size; k++) {
+				strain_seed_layer[k] = 2.0;
+			}
+		}
+		PetscPrintf(PETSC_COMM_WORLD,"Number of seed layers: %d\n", seed_layer_size);
+		for (int k = 0; k < seed_layer_size; k++) {
+			PetscPrintf(PETSC_COMM_WORLD,"seed layer: %d - strain: %lf\n", seed_layer[k], strain_seed_layer[k]);
+		}
 	}
 
 	random_initial_strain=0.0;
@@ -455,7 +457,7 @@ int main(int argc,char **args)
 	}
 
 	// surface processes swarm
-	if (geoq_on && sp_surface_tracking) {
+	if (geoq_on && sp_surface_tracking && n_interfaces>0) {
 		PetscPrintf(PETSC_COMM_WORLD, "SP Swarm INICIO\n");
 		ierr = sp_create_surface_vec(); CHKERRQ(ierr);
 		PetscPrintf(PETSC_COMM_WORLD, "SP Swarm FIM\n");
@@ -508,7 +510,7 @@ int main(int argc,char **args)
 	ierr = write_geoq_(tcont);
 	ierr = write_tempo(tcont);
 
-	if (sp_surface_tracking) {
+	if (sp_surface_tracking && geoq_on && n_interfaces>0) {
 		sp_write_surface_vec(tcont);
 	}
 
@@ -554,7 +556,7 @@ int main(int argc,char **args)
 
 		ierr = veloc_total(); CHKERRQ(ierr);
 
-		if (sp_surface_processes && (tempo > sp_eval_time || fabs(tempo-sp_eval_time) < 0.0001)) {
+		if (sp_surface_processes && geoq_on && n_interfaces>0 && (tempo > sp_eval_time || fabs(tempo-sp_eval_time) < 0.0001)) {
 			PetscPrintf(PETSC_COMM_WORLD,"\nEvaluating sp...\n");
 
 			ierr = rescalePrecipitation(tempo);
@@ -585,7 +587,7 @@ int main(int argc,char **args)
 			//exit(1);
 		}
 
-		if (sp_surface_tracking) {
+		if (sp_surface_tracking && geoq_on && n_interfaces>0) {
 			ierr = sp_interpolate_surface_particles_to_vec(); CHKERRQ(ierr);
 		}
 
@@ -601,7 +603,7 @@ int main(int argc,char **args)
 					ierr = SwarmViewGP(dms,prefix);CHKERRQ(ierr);
 				}
 
-				if (sp_surface_tracking) {
+				if (sp_surface_tracking && n_interfaces>0) {
 					ierr = sp_write_surface_vec(tcont); CHKERRQ(ierr);
 				}
 			}
@@ -625,7 +627,7 @@ int main(int argc,char **args)
 
 	destroy_veloc_3d();
 
-	sp_destroy();
+	if (geoq_on && n_interfaces>0)	sp_destroy();
 
 	PetscTime(&Tempo2);
 

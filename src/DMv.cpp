@@ -139,6 +139,8 @@ extern PetscInt Verif_first_veloc;
 
 extern PetscInt periodic_boundary;
 
+extern int n_interfaces;
+
 
 PetscErrorCode create_veloc_3d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 {
@@ -437,7 +439,7 @@ PetscErrorCode build_veloc_3d()
 	if (Verif_first_veloc==1)	VecCopy(Veloc_fut,Veloc_weight);
 	Verif_first_veloc=1;
 
-	if (PRESSURE_INIT==0){
+	if (PRESSURE_INIT==0 && n_interfaces>0){
 		PRESSURE_INIT=1;
 		ierr = calc_pressure();
 		ierr = shift_pressure();
