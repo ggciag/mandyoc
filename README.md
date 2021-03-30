@@ -8,9 +8,12 @@ Before installing MANDYOC, we need to _install its dependencies_:
 
 - [PETSc](https://www.mcs.anl.gov/petsc/)
 - `gcc`
-- `gfortran`
 - `make`
 - `git`
+
+Optional dependencies:
+
+- `gfortran`
 
 ### Building and installing PETSc
 
