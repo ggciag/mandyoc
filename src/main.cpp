@@ -73,8 +73,8 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 "   -pressure_const [float]:  Assume constant pressure to be used in the plastic rheology.\n"\
 "                         relevant only for models in horizontal slices.\n"\
 "                         default value: -1.0 (i.e. not used)\n\n"\
-"   -h_air [float]:       if pressure_in_rheol 1, the user must specify the thickness of the sticky air layer.\n"\
-"                         only relevant if pressure_in_rheol 1 and is mandatory in this case\n"\
+"   -h_air [float]:       if pressure_in_rheol 0, the user must specify the thickness of the sticky air layer.\n"\
+"                         only relevant if pressure_in_rheol 0 and is mandatory in this case\n"\
 "                         no default value\n\n"\
 "   -initial_dynamic_range [0 or 1]:\n"\
 "                         adopt (1) or not (0) a progressive increase in the viscosity range, solving the momentum equation\n"\
