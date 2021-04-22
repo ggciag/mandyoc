@@ -74,6 +74,8 @@ Build and install MANDYOC by running:
 make all
 ```
 
+> Note: To print MANDYOC runtime options, run mandyoc with `-flags` command line argument.
+
 ## Examples
 
 ### Steps to run the van Keken et al. (1997) example
