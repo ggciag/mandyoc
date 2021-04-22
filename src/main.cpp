@@ -91,6 +91,13 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 "                         [number of instants]\n"\
 "                         [instant to change the velocity in Myr] [scale factor]\n"\
 "                         default value: 0\n\n"\
+"   -multi_velocity [0 or 1]:\n"\
+"                         if (1) allows the user to use many imput files for the velocity field.\n"\
+"                         The multi_veloc.txt file is composed of one columns, with the first line indicating the number of\n"\
+"                         additional velocity files:\n"\
+"                         [number of additional files]\n"\
+"                         [instant to change the velocity in Myr]\n"\
+"                         default value: 0\n\n"\
 "   -nx_ppe [int]:        Number of particles per element in x-direction.\n\n"
 "   -nz_ppe [int]:        Number of particles per element in z-direction.\n\n"
 "   -initial_print_step [int]:\n"\
@@ -174,6 +181,7 @@ PetscErrorCode moveSwarm(PetscReal dt);
 PetscErrorCode Swarm_add_remove();
 PetscErrorCode SwarmViewGP(DM dms,const char prefix[]);
 
+PetscErrorCode Init_Veloc();
 
 
 PetscErrorCode reader(int rank);
@@ -190,6 +198,7 @@ PetscErrorCode write_tempo(int cont);
 PetscErrorCode veloc_total();
 
 PetscErrorCode rescaleVeloc(Vec Veloc_fut, double tempo);
+PetscErrorCode multi_veloc_change(Vec Veloc_fut,double tempo);
 
 PetscErrorCode sp_create_surface_vec();
 PetscErrorCode sp_interpolate_surface_particles_to_vec();
@@ -221,6 +230,9 @@ int main(int argc,char **args)
 
 	variable_bcv=0;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-variable_bcv",&variable_bcv,NULL);CHKERRQ(ierr);
+
+	multi_velocity=0;
+	ierr = PetscOptionsGetInt(NULL,NULL,"-multi_velocity",&multi_velocity,NULL);CHKERRQ(ierr);
 
 	sp_mode=1;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-sp_mode",&sp_mode,NULL);CHKERRQ(ierr);
@@ -549,6 +561,7 @@ int main(int argc,char **args)
 		PetscPrintf(PETSC_COMM_WORLD,"next sp %.3g Myr\n\n", sp_eval_time);
 
 		ierr = rescaleVeloc(Veloc_fut,tempo);
+		ierr = multi_veloc_change(Veloc_fut,tempo);
 
 		ierr = build_thermal_3d();CHKERRQ(ierr);
 
@@ -748,6 +761,46 @@ PetscErrorCode rescaleVeloc(Vec Veloc_fut,double tempo)
 		}
 	}
 
+	PetscFunctionReturn(0);
+}
+
+PetscErrorCode multi_veloc_change(Vec Veloc_fut,double tempo){
+	PetscErrorCode ierr;
+	if (cont_mv<n_mv){
+		if (tempo>1.0E6*mv_time[cont_mv]){
+			cont_mv++;
+			Init_Veloc();
+			if (visc_MAX>visc_MIN && initial_dynamic_range>0){
+				double visc_contrast = PetscLog10Real(visc_MAX/visc_MIN);
+
+				double visc_mean = PetscPowReal(10.0,PetscLog10Real(visc_MIN)+visc_contrast/2);
+
+				int n_visc=0;
+
+				visc_MIN_comp = visc_mean;
+				visc_MAX_comp = visc_mean;
+
+				PetscPrintf(PETSC_COMM_WORLD,"\n\n%.3lg %.3lg\n\n",visc_MIN_comp,visc_MAX_comp);
+
+				ierr = veloc_total(); CHKERRQ(ierr);
+
+				while ((visc_MIN_comp!=visc_MIN) && (visc_MAX_comp!=visc_MAX)){
+
+					visc_MIN_comp = visc_mean*PetscPowReal(10.0,-n_visc*1.0);
+					visc_MAX_comp = visc_mean*PetscPowReal(10.0,n_visc*1.0);
+
+					if (visc_MIN_comp<visc_MIN) visc_MIN_comp=visc_MIN;
+					if (visc_MAX_comp>visc_MAX) visc_MAX_comp=visc_MAX;
+
+					PetscPrintf(PETSC_COMM_WORLD,"\n\n%.3lg %.3lg\n\n",visc_MIN_comp,visc_MAX_comp);
+
+					ierr = veloc_total(); CHKERRQ(ierr);
+
+					n_visc++;
+				}
+			}
+		}
+	}
 	PetscFunctionReturn(0);
 }
 

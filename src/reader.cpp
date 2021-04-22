@@ -88,6 +88,10 @@ extern PetscInt WITH_ADIABATIC_H;
 extern PetscInt WITH_RADIOGENIC_H;
 
 extern PetscInt variable_bcv;
+extern PetscInt multi_velocity;
+
+extern PetscScalar *mv_time;
+extern PetscInt n_mv;
 
 extern PetscScalar *var_bcv_time;
 extern PetscScalar *var_bcv_scale;
@@ -542,6 +546,30 @@ PetscErrorCode reader(int rank){
 		}
 		MPI_Bcast(var_bcv_time,n_var_bcv,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 		MPI_Bcast(var_bcv_scale,n_var_bcv,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+	}
+
+	if (multi_velocity==1){
+		FILE *f_mv;
+		f_mv = fopen("multi_veloc.txt","r");
+		if (f_mv==NULL){
+			PetscPrintf(PETSC_COMM_WORLD,"\n\n\n\nmulti_veloc.txt not found\n\n\n\n");
+			exit(1);
+		}
+		if (rank==0){
+			fscanf(f_mv,"%d",&n_mv);
+		}
+		MPI_Bcast(&n_mv,1,MPI_INT,0,PETSC_COMM_WORLD);
+		PetscCalloc1(n_mv,&mv_time);
+		if (rank==0){
+			printf("Multi velocity files\n");
+			for (int i=0;i<n_mv;i++){
+				fscanf(f_mv,"%lf",&mv_time[i]);
+				printf("%lf\n",mv_time[i]);
+			}
+			printf("\n\n");
+			fclose(f_mv);
+		}
+		MPI_Bcast(mv_time,n_mv,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	}
 
 	PetscPrintf(PETSC_COMM_WORLD,"\nclimate_change %d\n",climate_change);

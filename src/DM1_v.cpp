@@ -95,6 +95,7 @@ extern long Nx,Nz;
 extern double depth;
 
 extern PetscInt veloc_extern;
+extern PetscInt i_veloc;
 
 extern PetscInt print_visc;
 
@@ -722,8 +723,10 @@ PetscErrorCode Init_Veloc(){
 	if (veloc_extern==1){
 		char s1[100],s2[100];
 		
-		sprintf(s1,"veloc_0_3D.txt");
+		sprintf(s1,"veloc_%d_3D.txt",i_veloc);
 		sprintf(s2,"veloc_init.bin");
+
+		PetscPrintf(PETSC_COMM_WORLD,"Reading %s\n",s1);
 		
 		if (rank==0){
 			ierr = ascii2bin(s1,s2); CHKERRQ(ierr);
@@ -769,6 +772,9 @@ PetscErrorCode Init_Veloc(){
 		
 		DMDANaturalToGlobalBegin(da_Veloc,FN,INSERT_VALUES,Veloc);
 		DMDANaturalToGlobalEnd(da_Veloc,FN,INSERT_VALUES,Veloc);
+
+		ierr = VecDestroy(&FN);CHKERRQ(ierr);
+		ierr = VecDestroy(&Fprov);CHKERRQ(ierr);
 		
 		
 		//VecView(F,PETSC_VIEWER_STDOUT_WORLD);
@@ -777,6 +783,8 @@ PetscErrorCode Init_Veloc(){
 		
 		VecAssemblyBegin(Veloc);
 		VecAssemblyEnd(Veloc);
+
+		i_veloc++;
 
 	}
 	else {

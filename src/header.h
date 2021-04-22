@@ -60,6 +60,8 @@ PetscInt temper_extern;
 PetscInt veloc_extern;
 PetscInt bcv_extern;
 
+PetscInt i_veloc=0;
+
 PetscInt visc_const_per_element;
 
 /////////
@@ -337,11 +339,16 @@ PetscInt checkered;
 PetscInt initial_dynamic_range;
 
 PetscInt variable_bcv;
+PetscInt multi_velocity;
 
 PetscScalar *var_bcv_time;
 PetscScalar *var_bcv_scale;
-PetscInt n_var_bcv;
+PetscInt n_var_bcv=0;
 PetscInt cont_var_bcv=0;
+
+PetscScalar *mv_time;
+PetscInt n_mv=0;
+PetscInt cont_mv=0;
 
 PetscInt sticky_blanket_air;
 
