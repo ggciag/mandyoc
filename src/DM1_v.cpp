@@ -7,15 +7,19 @@ PetscErrorCode DMDAGetElementCorners(DM da,PetscInt *sx,PetscInt *sz,PetscInt *m
 
 PetscReal montaKeVeloc_simplif(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_ele);
 
-PetscErrorCode write_veloc_3d(int cont);
-PetscErrorCode write_veloc_cond(int cont);
+PetscErrorCode write_veloc_3d(int cont, PetscInt binary_out);
+PetscErrorCode write_veloc_cond(int cont, PetscInt binary_out);
 
 PetscErrorCode ascii2bin(char *s1, char *s2);
+
+PetscErrorCode write_all_(int cont,Vec u, char *variable_name, PetscInt binary_out);
 
 typedef struct {
 	PetscScalar u;
 	PetscScalar w;
 } Stokes;
+
+extern PetscInt binary_output;
 
 extern double Lx, depth;
 
@@ -812,8 +816,8 @@ PetscErrorCode Init_Veloc(){
 	VecCopy(Veloc,Veloc_fut);
 	VecCopy(Veloc,Veloc_0);
 	
-	write_veloc_3d(-1);
-	write_veloc_cond(-1);
+	write_veloc_3d(-1,binary_output);
+	write_veloc_cond(-1,binary_output);
 	
 	PetscFunctionReturn(0);
 	

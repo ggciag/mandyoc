@@ -435,7 +435,7 @@ PetscErrorCode destroy_thermal_()
 	PetscFunctionReturn(0);	
 }
 
-PetscErrorCode write_thermal_(int cont)
+PetscErrorCode write_all_(int cont,Vec u, char *variable_name, PetscInt binary_out)
 {
 	int rank;
 	
@@ -447,103 +447,53 @@ PetscErrorCode write_thermal_(int cont)
 	
 	char nome[100];
 	
-	sprintf(nome,"Temper_%d.txt",cont);
-	
-	PetscViewerASCIIOpen(PETSC_COMM_WORLD,nome,&viewer);
-	VecView(Temper,viewer);
+	if (binary_out==0){
+		sprintf(nome,"%s_%d.txt",variable_name,cont);
+		PetscViewerASCIIOpen(PETSC_COMM_WORLD,nome,&viewer);
+	}
+	else {
+		sprintf(nome,"%s_%d.bin",variable_name,cont);
+		PetscViewerBinaryOpen(PETSC_COMM_WORLD,nome,FILE_MODE_WRITE,&viewer);
+	}
+
+	VecView(u,viewer);
 	PetscViewerDestroy(&viewer);
 	
 	PetscTime(&Tempo2);
-	if (rank==0) printf("Thermal write: %lf\n",Tempo2-Tempo1);
+	if (rank==0) printf("%s write: %lf\n",variable_name,Tempo2-Tempo1);
 	
 	PetscFunctionReturn(0);	
 }
 
-PetscErrorCode write_pressure(int cont)
+PetscErrorCode write_pressure(int cont, PetscInt binary_out)
 {
-	int rank;
-	
-	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
-	PetscLogDouble Tempo1,Tempo2;
-	PetscTime(&Tempo1);
-	
-	PetscViewer viewer;
-	
-	char nome[100];
-	
-	sprintf(nome,"Pressure_%d.txt",cont);
-	
-	PetscViewerASCIIOpen(PETSC_COMM_WORLD,nome,&viewer);
-	VecView(Pressure_aux,viewer);
-	PetscViewerDestroy(&viewer);
-	
-	PetscTime(&Tempo2);
-	if (rank==0) printf("Pressure write: %lf\n",Tempo2-Tempo1);
+	char variable_name[100];
+
+	sprintf(variable_name,"Pressure");
+	write_all_(cont,Pressure_aux,variable_name,binary_out);
 	
 	PetscFunctionReturn(0);
 }
 
-PetscErrorCode write_geoq_(int cont)
+PetscErrorCode write_geoq_(int cont, PetscInt binary_out)
 {
-	int rank;
-	
-	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
-	PetscLogDouble Tempo1,Tempo2;
-	PetscTime(&Tempo1);
-	
-	PetscViewer viewer;
-	
-	char nome[100];
-	
-	sprintf(nome,"Geoq_%d.txt",cont);
-	
-	PetscViewerASCIIOpen(PETSC_COMM_WORLD,nome,&viewer);
-	VecView(geoq,viewer);
-	PetscViewerDestroy(&viewer);
-	
-	PetscTime(&Tempo2);
-	if (rank==0) printf("Geoq write: %lf\n",Tempo2-Tempo1);
-	
-	PetscTime(&Tempo1);
-	
 
-	sprintf(nome,"Rho_%d.txt",cont);
-	
-	PetscViewerASCIIOpen(PETSC_COMM_WORLD,nome,&viewer);
-	VecView(geoq_rho,viewer);
-	PetscViewerDestroy(&viewer);
-	
-	PetscTime(&Tempo2);
-	if (rank==0) printf("Rho write: %lf\n",Tempo2-Tempo1);
-	
-	
-	sprintf(nome,"H_%d.txt",cont);
-	
-	PetscViewerASCIIOpen(PETSC_COMM_WORLD,nome,&viewer);
-	VecView(geoq_H,viewer);
-	PetscViewerDestroy(&viewer);
-	
-	PetscTime(&Tempo2);
-	if (rank==0) printf("H write: %lf\n",Tempo2-Tempo1);
-	
-	sprintf(nome,"strain_%d.txt",cont);
-	
-	PetscViewerASCIIOpen(PETSC_COMM_WORLD,nome,&viewer);
-	VecView(geoq_strain,viewer);
-	PetscViewerDestroy(&viewer);
+	char variable_name[100];
 
+	sprintf(variable_name,"Geoq");
+	write_all_(cont,geoq,variable_name,binary_out);
+	
+	sprintf(variable_name,"Rho");
+	write_all_(cont,geoq_rho,variable_name,binary_out);
 
-	PetscTime(&Tempo2);
-	if (rank==0) printf("strain write: %lf\n",Tempo2-Tempo1);
-	
-	sprintf(nome,"strain_rate_%d.txt",cont);
-	
-	PetscViewerASCIIOpen(PETSC_COMM_WORLD,nome,&viewer);
-	VecView(geoq_strain_rate,viewer);
-	PetscViewerDestroy(&viewer);
-	
-	PetscTime(&Tempo2);
-	if (rank==0) printf("strain rate write: %lf\n",Tempo2-Tempo1);
+	sprintf(variable_name,"H");
+	write_all_(cont,geoq_H,variable_name,binary_out);
+
+	sprintf(variable_name,"strain");
+	write_all_(cont,geoq_strain,variable_name,binary_out);
+
+	sprintf(variable_name,"strain_rate");
+	write_all_(cont,geoq_strain_rate,variable_name,binary_out);
 	
 	PetscFunctionReturn(0);
 }

@@ -17,6 +17,9 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 "                         default value: 1e-4\n\n"\
 "   -print_visc [0 or 1]: print (1) or not (0) the viscosity field\n"\
 "                         default value: 0\n\n"\
+"   -binary_output [0 or 1]:\n"\
+"                         If 1, Export the files in binary format.\n"\
+"                         default value: 0 (i.e. ASCII)\n\n"\
 "   -visc_const_per_element [0 or 1]:\n"\
 "                         assume the viscosity constant (1) of linearly variable (0) in each finite element\n"\
 "                         default value: 0\n\n"\
@@ -168,11 +171,11 @@ PetscErrorCode solve_thermal_3d();
 
 PetscErrorCode destroy_thermal_();
 
-PetscErrorCode write_thermal_(int cont);
+PetscErrorCode write_all_(int cont,Vec u, char *variable_name, PetscInt binary_out);
 
-PetscErrorCode write_pressure(int cont);
+PetscErrorCode write_pressure(int cont, PetscInt binary_out);
 
-PetscErrorCode write_geoq_(int cont);
+PetscErrorCode write_geoq_(int cont, PetscInt binary_out);
 
 PetscErrorCode create_veloc_3d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz);
 
@@ -186,8 +189,8 @@ PetscErrorCode Init_Veloc();
 
 PetscErrorCode reader(int rank);
 
-PetscErrorCode write_veloc_3d(int cont);
-PetscErrorCode write_veloc_cond(int cont);
+PetscErrorCode write_veloc_3d(int cont, PetscInt binary_out);
+PetscErrorCode write_veloc_cond(int cont, PetscInt binary_out);
 
 PetscErrorCode destroy_veloc_3d();
 
@@ -257,6 +260,7 @@ int main(int argc,char **args)
 
 	PetscTime(&Tempo1);
 
+	char variable_name[100];
 
 	Px   = Pz = PETSC_DECIDE;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-Px",&Px,NULL);CHKERRQ(ierr);
@@ -281,6 +285,9 @@ int main(int argc,char **args)
 
 	print_visc = 0;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-print_visc",&print_visc,NULL);CHKERRQ(ierr);
+
+	binary_output = 0;
+	ierr = PetscOptionsGetInt(NULL,NULL,"-binary_output",&binary_output,NULL);CHKERRQ(ierr);
 
 	visc_const_per_element=0;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-visc_const_per_element",&visc_const_per_element,NULL);CHKERRQ(ierr);
@@ -460,7 +467,9 @@ int main(int argc,char **args)
 
 	ierr = create_thermal_2d(Nx-1,Nz-1,Px,Pz);CHKERRQ(ierr);
 
-	ierr = write_thermal_(-1);
+	//ierr = write_thermal_(-1,binary_output);
+	sprintf(variable_name,"Temper");
+	ierr = write_all_(-1,Temper, variable_name, binary_output);
 
 	ierr = create_veloc_3d(Nx-1,Nz-1,Px,Pz);CHKERRQ(ierr);
 
@@ -517,11 +526,13 @@ int main(int argc,char **args)
 
 	PetscPrintf(PETSC_COMM_WORLD,"passou veloc_total\n");
 
-	ierr = write_veloc_3d(tcont);
-	ierr = write_veloc_cond(tcont);
-	ierr = write_thermal_(tcont);
-	ierr = write_pressure(tcont);
-	ierr = write_geoq_(tcont);
+	ierr = write_veloc_3d(tcont,binary_output);
+	ierr = write_veloc_cond(tcont,binary_output);
+	//ierr = write_thermal_(tcont,binary_output);
+	sprintf(variable_name,"Temper");
+	ierr = write_all_(tcont,Temper,variable_name, binary_output);
+	ierr = write_pressure(tcont,binary_output);
+	ierr = write_geoq_(tcont,binary_output);
 	ierr = write_tempo(tcont);
 
 	if (sp_surface_tracking && geoq_on && n_interfaces>0) {
@@ -607,10 +618,12 @@ int main(int argc,char **args)
 		}
 
 		if (tcont%print_step==0){
-			ierr = write_thermal_(tcont);
-			ierr = write_geoq_(tcont);
-			ierr = write_veloc_3d(tcont);
-			ierr = write_pressure(tcont);
+			//ierr = write_thermal_(tcont,binary_output);
+			sprintf(variable_name,"Temper");
+			ierr = write_all_(tcont,Temper,variable_name,binary_output);
+			ierr = write_geoq_(tcont,binary_output);
+			ierr = write_veloc_3d(tcont,binary_output);
+			ierr = write_pressure(tcont,binary_output);
 			ierr = write_tempo(tcont);
 			PetscSNPrintf(prefix,PETSC_MAX_PATH_LEN-1,"step_%d",tcont);
 			if (geoq_on){

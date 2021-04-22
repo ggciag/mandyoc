@@ -141,6 +141,9 @@ int bcT_right;
 
 ///////
 
+PetscInt binary_output;
+///////
+
 PetscReal *TKe, *TCe, *TFe, *TCe_fut, *TMe, *Ttotal, *Ttotal_b;
 
 

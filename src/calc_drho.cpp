@@ -26,7 +26,6 @@ PetscErrorCode calc_drho()
 	
 }
 
-PetscErrorCode write_pressure(int cont);
 
 extern Vec local_P;
 extern Vec local_P_aux;

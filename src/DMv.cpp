@@ -45,15 +45,17 @@ PetscErrorCode calc_drho();
 
 PetscErrorCode calc_pressure();
 
-PetscErrorCode write_veloc_3d(int cont);
+PetscErrorCode write_veloc_3d(int cont, PetscInt binary_out);
 
-PetscErrorCode write_veloc_cond(int cont);
+PetscErrorCode write_veloc_cond(int cont, PetscInt binary_out);
 
-PetscErrorCode write_pressure(int cont);
+PetscErrorCode write_pressure(int cont, PetscInt binary_out);
 
 PetscErrorCode Init_Veloc();
 
 PetscErrorCode shift_pressure();
+
+PetscErrorCode write_all_(int cont,Vec u, char *variable_name, PetscInt binary_out);
 
 
 PetscErrorCode moveSwarm(PetscReal dt);
@@ -141,6 +143,7 @@ extern PetscInt periodic_boundary;
 
 extern int n_interfaces;
 
+extern PetscInt binary_output;
 
 PetscErrorCode create_veloc_3d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 {
@@ -443,7 +446,7 @@ PetscErrorCode build_veloc_3d()
 		PRESSURE_INIT=1;
 		ierr = calc_pressure();
 		ierr = shift_pressure();
-		write_pressure(-1);
+		write_pressure(-1,binary_output);
 	}
 
 	ierr = moveSwarm(0.0);
@@ -622,50 +625,21 @@ PetscErrorCode destroy_veloc_3d()
 	PetscFunctionReturn(0);
 }
 
-PetscErrorCode write_veloc_3d(int cont)
+PetscErrorCode write_veloc_3d(int cont, PetscInt binary_out)
 {
-	int rank;
-	
-	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
-	PetscLogDouble Tempo1,Tempo2;
-	PetscTime(&Tempo1);
-	
-	PetscViewer viewer;
-	
-	char nome[100];
-	
-	sprintf(nome,"Veloc_fut_%d.txt",cont);
-	
-	PetscViewerASCIIOpen(PETSC_COMM_WORLD,nome,&viewer);
-	VecView(Veloc_fut,viewer);
-	PetscViewerDestroy(&viewer);
-	
-	PetscTime(&Tempo2);
-	if (rank==0) printf("Velocity write: %lf\n",Tempo2-Tempo1);
-	
+	char variable_name[100];
+
+	sprintf(variable_name,"Veloc_fut");
+	write_all_(cont,Veloc_fut,variable_name,binary_out);
 	PetscFunctionReturn(0);
 }
 
-PetscErrorCode write_veloc_cond(int cont)
+PetscErrorCode write_veloc_cond(int cont, PetscInt binary_out)
 {
-	int rank;
-	
-	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
-	PetscLogDouble Tempo1,Tempo2;
-	PetscTime(&Tempo1);
-	
-	PetscViewer viewer;
-	
-	char nome[100];
-	
-	sprintf(nome,"Veloc_Cond_%d.txt",cont);
-	
-	PetscViewerASCIIOpen(PETSC_COMM_WORLD,nome,&viewer);
-	VecView(Veloc_Cond,viewer);
-	PetscViewerDestroy(&viewer);
-	
-	PetscTime(&Tempo2);
-	if (rank==0) printf("Velocity Cond write: %lf\n",Tempo2-Tempo1);
+	char variable_name[100];
+
+	sprintf(variable_name,"Veloc_Cond");
+	write_all_(cont,Veloc_Cond,variable_name,binary_out);
 	
 	PetscFunctionReturn(0);
 }
