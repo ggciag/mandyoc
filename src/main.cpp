@@ -73,8 +73,8 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 "   -pressure_const [float]:  Assume constant pressure to be used in the plastic rheology.\n"\
 "                         relevant only for models in horizontal slices.\n"\
 "                         default value: -1.0 (i.e. not used)\n\n"\
-"   -h_air [float]:       if pressure_in_rheol 1, the user must specify the thickness of the sticky air layer.\n"\
-"                         only relevant if pressure_in_rheol 1 and is mandatory in this case\n"\
+"   -h_air [float]:       if pressure_in_rheol 0, the user must specify the thickness of the sticky air layer.\n"\
+"                         only relevant if pressure_in_rheol 0 and is mandatory in this case\n"\
 "                         no default value\n\n"\
 "   -initial_dynamic_range [0 or 1]:\n"\
 "                         adopt (1) or not (0) a progressive increase in the viscosity range, solving the momentum equation\n"\
@@ -108,10 +108,10 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 "                         If -initial_print_step is not specified, this option is ignored\n"\
 "                         default value: 1.0e6\n\n"\
 "   -sp_surface_tracking [bool]:\n"
-"                         enable surface tracking (requires `geoq_on` set to 1 in param file)"
+"                         enable surface tracking (requires `geoq_on` set to 1 in param file)\n"\
 "                         default value: PETSC_FALSE\n\n"\
 "   -sp_surface_processes [bool]:\n"
-"                         enable surface processes (requires `-sp_surface_tracking` set to true)"
+"                         enable surface processes (requires `-sp_surface_tracking` set to true)\n"\
 "                         default value: PETSC_FALSE\n\n"\
 "   -sp_dt [float]:       Time step (in years) for surface processes.\n"\
 "                         default value: 10x the last (main) time step (dynamically evaluated)\n\n"\
@@ -219,7 +219,9 @@ int main(int argc,char **args)
 
 	ierr = PetscInitialize(&argc,&args,(char*)0,help);CHKERRQ(ierr);
 
+	#ifndef GIT_VERSION
 	ierr = PetscPrintf(PETSC_COMM_WORLD, "*** Git version: %s ***\n\n", GIT_VERSION);CHKERRQ(ierr);
+	#endif
 
 	PetscBool      flags;
 	ierr = PetscOptionsHasName(NULL,NULL,"-flags",&flags);

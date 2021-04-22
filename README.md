@@ -34,11 +34,10 @@ By default, we will install PETSc in `~/petsc`.
 cd $HOME/petsc
 ./configure \
   PETSC_DIR=$HOME/petsc \
-  PETSC_ARCH=arch-label-debug \
-  --with-debugging=1 \
+  PETSC_ARCH=arch-label-optimized \
+  --with-debugging=0 \
   --with-cc=gcc \
   --with-cxx=g++ \
-  --with-fc=gfortran \
   --download-fblaslapack \
   --download-mpich \
   --download-hdf5 \
@@ -47,8 +46,19 @@ cd $HOME/petsc
   --download-parmetis \
   --download-mumps \
   --download-scalapack \
-  --download-cmake
+  --download-cmake \
+  COPTFLAGS='-O3 -march=native -mtune=native' \
+  CXXOPTFLAGS='-O3 -march=native -mtune=native'
 ```
+
+> Note: If using `gfortran` optional dependency add the options
+`--with-fc=gfortran` and `FOPTFLAGS='-O3 -march=native -mtune=native'`
+to the PETSc build configuration above.
+
+> Note: If you are build a development version of MANDYOC you can build
+a debug version of PETSc by setting `--with-debugging=1` and removing the
+COPTFLAGS, CXXOPTFLAGS (and FOPTFLAGS) flags.
+In this case, you may set `PETSC_ARCH=arch-label-debug`.
 
 _Check_ the installation with:
 
@@ -63,6 +73,8 @@ Build and install MANDYOC by running:
 ```
 make all
 ```
+
+> Note: To print MANDYOC runtime options, run mandyoc with `-flags` command line argument.
 
 ## Examples
 
