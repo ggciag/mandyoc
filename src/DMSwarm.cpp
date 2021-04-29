@@ -75,6 +75,8 @@ extern PetscBool plot_sediment;
 
 extern PetscReal random_initial_strain;
 
+extern PetscInt binary_output;
+
 
 
 PetscErrorCode _DMLocatePoints_DMDARegular_IS(DM dm,Vec pos,IS *iscell)
@@ -193,8 +195,14 @@ PetscErrorCode SwarmViewGP(DM dms,const char prefix[])
 	PetscErrorCode ierr;
 
 	ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
-	PetscSNPrintf(name,PETSC_MAX_PATH_LEN-1,"%s-rank_new%d.txt",prefix,rank);
-	fp = fopen(name,"w");
+	if (binary_output==0){
+		PetscSNPrintf(name,PETSC_MAX_PATH_LEN-1,"%s-rank_new%d.txt",prefix,rank);
+		fp = fopen(name,"w");
+	}
+	else{
+		PetscSNPrintf(name,PETSC_MAX_PATH_LEN-1,"%s-rank_new%d.bin",prefix,rank);
+		fp = fopen(name,"wb");
+	}
 	//PetscSNPrintf(name,PETSC_MAX_PATH_LEN-1,"surf_%s-rank_new%d.txt",prefix,rank);
 	//fp2 = fopen(name,"w");
 	if (!fp) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Cannot open file %s",name);
@@ -204,15 +212,24 @@ PetscErrorCode SwarmViewGP(DM dms,const char prefix[])
 	ierr = DMSwarmGetField(dms,"itag",NULL,NULL,(void**)&iarray);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"layer",NULL,NULL,(void**)&layer_array);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
-	for (p=0; p<npoints; p++) {
-		if (iarray[p]>9999 || (PETSC_TRUE == plot_sediment && layer_array[p] == n_interfaces - 1))
-			fprintf(fp,"%+1.5e %+1.5e %d %d %1.4e\n",
-					array[2*p],array[2*p+1],
-					iarray[p],layer_array[p],(double)strain_fac[p]);
-		//if ((array[2*p+1]>-105.0E3)&&(array[2*p+1]<-95.0E3))
-		//	fprintf(fp2,"%+1.4e %+1.4e %d %d %1.4e\n",
-		//			array[2*p],array[2*p+1],
-		//			iarray[p],layer_array[p],(double)strain_fac[p]);
+	if (binary_output==0){
+		for (p=0; p<npoints; p++) {
+			if (iarray[p]>9999 || (PETSC_TRUE == plot_sediment && layer_array[p] == n_interfaces - 1))
+				fprintf(fp,"%+1.5e %+1.5e %d %d %1.4e\n",
+						array[2*p],array[2*p+1],
+						iarray[p],layer_array[p],(double)strain_fac[p]);
+			//if ((array[2*p+1]>-105.0E3)&&(array[2*p+1]<-95.0E3))
+			//	fprintf(fp2,"%+1.4e %+1.4e %d %d %1.4e\n",
+			//			array[2*p],array[2*p+1],
+			//			iarray[p],layer_array[p],(double)strain_fac[p]);
+		}
+	}
+	else{
+		fwrite(&npoints,sizeof(npoints),1,fp);
+		fwrite(array,sizeof(array[0]),npoints*2,fp);
+		fwrite(iarray,sizeof(iarray[0]),npoints,fp);
+		fwrite(layer_array,sizeof(layer_array[0]),npoints,fp);
+		fwrite(strain_fac,sizeof(strain_fac[0]),npoints,fp);
 	}
 	ierr = DMSwarmRestoreField(dms,"itag",NULL,NULL,(void**)&iarray);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"layer",NULL,NULL,(void**)&layer_array);CHKERRQ(ierr);
