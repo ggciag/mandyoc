@@ -12,8 +12,6 @@ PetscErrorCode write_veloc_cond(int cont, PetscInt binary_out);
 
 PetscErrorCode ascii2bin(char *s1, char *s2);
 
-PetscErrorCode write_all_(int cont,Vec u, char *variable_name, PetscInt binary_out);
-
 typedef struct {
 	PetscScalar u;
 	PetscScalar w;
@@ -100,8 +98,6 @@ extern double depth;
 
 extern PetscInt veloc_extern;
 extern PetscInt i_veloc;
-
-extern PetscInt print_visc;
 
 extern int tcont;
 extern long print_step;
@@ -235,20 +231,6 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	
 	
 	
-	FILE *sai_visc=NULL;
-	
-	if (print_visc==1 && tcont%print_step==0) {
-		
-		char nome[200];
-		
-		PetscMPIInt rank;
-		ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
-		
-		sprintf(nome,"visc_%d_%d.txt",tcont,rank);
-		
-		sai_visc = fopen(nome,"w");
-		
-	}
 	
 	PetscReal visc_meio;
 
@@ -281,9 +263,6 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 
 			visc_meio = montaKeVeloc_simplif(Ke_veloc,Ke_veloc_general,geoq_ele);
 			
-			if (print_visc==1 && tcont%print_step==0) {
-				fprintf(sai_visc,"%d %d %lg\n",ei,ek,visc_meio);
-			}
 			
 			for (i=0;i<V_GT*V_GT;i++) Ke_veloc_final[i]=Ke_veloc[i]*volume;
 
@@ -379,10 +358,6 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 				pc[ek][ei].u+=VCe[n]*VCe[n]/Ke_veloc_final[n*V_GT+n];
 			}
 		}
-	}
-	
-	if (print_visc==1 && tcont%print_step==0) {
-		fclose(sai_visc);
 	}
 	
 	ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);

@@ -15,8 +15,6 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 "                         default value: 0\n\n"\
 "   -denok [float]:       residual norm in the Uzawa scheme\n"\
 "                         default value: 1e-4\n\n"\
-"   -print_visc [0 or 1]: print (1) or not (0) the viscosity field\n"\
-"                         default value: 0\n\n"\
 "   -binary_output [0 or 1]:\n"\
 "                         If 1, Export the files in binary format.\n"\
 "                         default value: 0 (i.e. ASCII)\n\n"\
@@ -282,9 +280,6 @@ int main(int argc,char **args)
 
 	denok_min = 1.0E-4;
 	ierr = PetscOptionsGetReal(NULL,NULL,"-denok",&denok_min,NULL);CHKERRQ(ierr);
-
-	print_visc = 0;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-print_visc",&print_visc,NULL);CHKERRQ(ierr);
 
 	binary_output = 0;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-binary_output",&binary_output,NULL);CHKERRQ(ierr);

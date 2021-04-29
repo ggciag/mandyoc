@@ -212,8 +212,6 @@ Vec local_geoq_strain_rate;
 
 PetscReal denok_min;
 
-PetscInt print_visc;
-
 Mat VA, VB, VG;
 Vec Vf, Veloc, Veloc_fut,Veloc_weight,Veloc_0;
 
