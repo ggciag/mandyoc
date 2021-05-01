@@ -225,11 +225,36 @@ PetscErrorCode SwarmViewGP(DM dms,const char prefix[])
 		}
 	}
 	else{
-		fwrite(&npoints,sizeof(npoints),1,fp);
-		fwrite(array,sizeof(array[0]),npoints*2,fp);
-		fwrite(iarray,sizeof(iarray[0]),npoints,fp);
-		fwrite(layer_array,sizeof(layer_array[0]),npoints,fp);
-		fwrite(strain_fac,sizeof(strain_fac[0]),npoints,fp);
+		int cont_print=0;
+		for (p=0;p<npoints; p++) {
+			if (iarray[p]>9999 || (PETSC_TRUE == plot_sediment && layer_array[p] == n_interfaces - 1)) cont_print++;
+		}
+		fwrite(&cont_print,sizeof(cont_print),1,fp);
+		for (p=0;p<npoints; p++) {
+			if (iarray[p]>9999 || (PETSC_TRUE == plot_sediment && layer_array[p] == n_interfaces - 1)){
+				fwrite(&array[2*p],sizeof(array[0]),2,fp);
+			}
+		}
+		for (p=0;p<npoints; p++) {
+			if (iarray[p]>9999 || (PETSC_TRUE == plot_sediment && layer_array[p] == n_interfaces - 1)){
+				fwrite(&iarray[p],sizeof(iarray[0]),1,fp);
+			}
+		}
+		for (p=0;p<npoints; p++) {
+			if (iarray[p]>9999 || (PETSC_TRUE == plot_sediment && layer_array[p] == n_interfaces - 1)){
+				fwrite(&layer_array[p],sizeof(layer_array[0]),1,fp);
+			}
+		}
+		for (p=0;p<npoints; p++) {
+			if (iarray[p]>9999 || (PETSC_TRUE == plot_sediment && layer_array[p] == n_interfaces - 1)){
+				fwrite(&strain_fac[p],sizeof(strain_fac[0]),1,fp);
+			}
+		}
+		//fwrite(&npoints,sizeof(npoints),1,fp);
+		//fwrite(array,sizeof(array[0]),npoints*2,fp);
+		//fwrite(iarray,sizeof(iarray[0]),npoints,fp);
+		//fwrite(layer_array,sizeof(layer_array[0]),npoints,fp);
+		//fwrite(strain_fac,sizeof(strain_fac[0]),npoints,fp);
 	}
 	ierr = DMSwarmRestoreField(dms,"itag",NULL,NULL,(void**)&iarray);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"layer",NULL,NULL,(void**)&layer_array);CHKERRQ(ierr);
