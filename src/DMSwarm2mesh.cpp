@@ -322,7 +322,7 @@ PetscErrorCode Swarm2Mesh(){
 		ierr = mean_value_periodic_boundary(da_Thermal,geoq_cont,local_geoq_cont,qq_cont,1);
 	}
 	
-	//VecPointwiseMax(geoq_cont,geoq_cont,geoqOnes);
+	
 	VecPointwiseDivide(geoq,geoq,geoq_cont);
 	if (visc_harmonic_mean==1) VecReciprocal(geoq); //<--- harmonic
 		
@@ -330,7 +330,6 @@ PetscErrorCode Swarm2Mesh(){
 	VecPointwiseDivide(geoq_H,geoq_H,geoq_cont);
 	VecPointwiseDivide(geoq_strain,geoq_strain,geoq_cont);
 	VecPointwiseDivide(geoq_strain_rate,geoq_strain_rate,geoq_cont);
-	//VecPointwiseMax(geoq,geoq,geoqOnes);
 
 	if (visc_const_per_element==1){
 		ierr = VecSet(geoq,0.0);CHKERRQ(ierr);
@@ -417,7 +416,7 @@ PetscErrorCode Swarm2Mesh(){
 	
 	for (k=sz; k<sz+mmz; k++) {
 		for (i=sx; i<sx+mmx; i++) {
-			if (qq_rho[k][i]<100.0){ ///air!!! ar!!!
+			if (qq_rho[k][i]<100.0){ //check: force temperature zero for low density material
 				TT[k][i]=0.0;
 			}
 		}
@@ -439,7 +438,7 @@ PetscErrorCode Swarm2Mesh(){
 			ierr = DMGlobalToLocalBegin(da_Thermal,geoq_rho,INSERT_VALUES,local_geoq_rho);
 			ierr = DMGlobalToLocalEnd(  da_Thermal,geoq_rho,INSERT_VALUES,local_geoq_rho);
 			ierr = DMDAVecGetArray(da_Thermal,local_geoq_rho,&qq_rho);CHKERRQ(ierr);
-			PetscReal rho_min=5.0	,rho_max=2700.0*0.8, rho_mean; //!!!  futuramente deixar livre para o usuario escolher
+			PetscReal rho_min=5.0	,rho_max=2700.0*0.8, rho_mean; //check: in the future, make this free to the user modify
 			for (k=sz; k<sz+mmz-1; k++) {
 				for (i=sx; i<sx+mmx-1; i++) {
 					rho_mean = (qq_rho[k][i] + qq_rho[k][i+1] + qq_rho[k+1][i] + qq_rho[k+1][i+1])/4.0;

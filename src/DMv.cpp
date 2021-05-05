@@ -24,7 +24,7 @@ extern PetscInt visc_const_per_element;
 typedef struct {
 	PetscScalar u;
 	PetscScalar w;
-	//PetscScalar p;
+	//PetscScalar p; //check for the future 3d version
 } Stokes;
 
 PetscErrorCode ascii2bin(char *s1, char *s2);
@@ -165,7 +165,7 @@ PetscErrorCode create_veloc_3d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 	PetscFunctionBeginUser;
 	
 	
-	dof           = 2; //modif
+	dof           = 2; //check for the future 3d version
 	if (periodic_boundary==0){
 		stencil_width = 1;
 		ierr          = DMDACreate2d(PETSC_COMM_WORLD,DM_BOUNDARY_NONE,DM_BOUNDARY_NONE,DMDA_STENCIL_BOX,
@@ -181,33 +181,22 @@ PetscErrorCode create_veloc_3d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 	
 	ierr = DMDASetFieldName(da_Veloc,0,"V_x");CHKERRQ(ierr);
 	ierr = DMDASetFieldName(da_Veloc,1,"V_z");CHKERRQ(ierr);
-	//ierr = DMDASetFieldName(da_Veloc,3,"P");CHKERRQ(ierr);
-	
-	//printf("a\n");
-	
-	
 	
 	
 	ierr = PetscCalloc1(V_GT*V_GT,&Ke_veloc); CHKERRQ(ierr);
 	ierr = PetscCalloc1(V_GT*V_GT,&Ke_veloc_final); CHKERRQ(ierr);
 
 	ierr = PetscCalloc1(V_GT*V_GT*GaussQuad,&Ke_veloc_general); CHKERRQ(ierr);
-	//ierr = PetscCalloc1(V_GT,&Indices_Ke_veloc_I); CHKERRQ(ierr);
-	//ierr = PetscCalloc1(V_GT,&Indices_Ke_veloc_J); CHKERRQ(ierr);
 	
 	ierr = PetscCalloc1(V_GT,&Vfe); CHKERRQ(ierr);
-	//ierr = PetscCalloc1(V_GT,&Indices_Vfe); CHKERRQ(ierr);
-	ierr = PetscCalloc1(V_GT*V_NE,&VfMe); CHKERRQ(ierr); // 24 x 8 no elemento hexa
+	
+	ierr = PetscCalloc1(V_GT*V_NE,&VfMe); CHKERRQ(ierr); 
 	ierr = PetscCalloc1(V_GT,&VCe); CHKERRQ(ierr);
 	
 	
-	ierr = DMDASetUniformCoordinates(da_Veloc,0.0,Lx,-depth,0.0,-1,-1);CHKERRQ(ierr); //!!!! 2d : the last two are ignored
+	ierr = DMDASetUniformCoordinates(da_Veloc,0.0,Lx,-depth,0.0,-1,-1);CHKERRQ(ierr); //check: in 2D, the last two are ignored
 	
 
-	
-	//printf("a\n");
-	
-	
 
 	ierr = DMSetMatType(da_Veloc,MATAIJ);CHKERRQ(ierr);
 	ierr = DMCreateMatrix(da_Veloc,&VA);CHKERRQ(ierr);
@@ -292,9 +281,7 @@ PetscErrorCode create_veloc_3d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 		
 		Vec Fprov;
 		
-		//PetscPrintf(PETSC_COMM_WORLD,"size = %d\n",size);
 		
-		//PetscViewerBinaryOpen(PETSC_COMM_WORLD,"Temper_init.bin",FILE_MODE_READ,&viewer);
 		PetscViewerBinaryOpen(PETSC_COMM_WORLD,s2,FILE_MODE_READ,&viewer);
 		VecCreate(PETSC_COMM_WORLD,&Fprov);
 		VecLoad(Fprov,viewer);
@@ -454,7 +441,6 @@ PetscErrorCode build_veloc_3d()
 	
 	if (rank==0) printf("build VA,Vf\n");
 	ierr = AssembleA_Veloc(VA,VG,da_Veloc,da_Thermal);CHKERRQ(ierr);
-	//if (rank==0) printf("t\n");
 	
 	ierr = VecReciprocal(Precon);
 	
@@ -462,7 +448,6 @@ PetscErrorCode build_veloc_3d()
 	
 	
 	ierr = AssembleF_Veloc(Vf,da_Veloc,da_Thermal,Vf_P);CHKERRQ(ierr);
-	//if (rank==0) printf("t\n");
 	
 	
 	PetscTime(&Tempo2p);
@@ -489,8 +474,6 @@ PetscErrorCode solve_veloc_3d()
 	
 	PetscTime(&Tempo1);
 	
-	
-	//VecCopy(Veloc_fut,Veloc);tem que vir antes?? está no veloc_total agora!!!ok
 	
 	/* SOLVE */
 	
@@ -522,8 +505,8 @@ PetscErrorCode solve_veloc_3d()
 	
 	ierr = KSPGetIterationNumber(V_ksp,&its);CHKERRQ(ierr);
 	
-	VecPointwiseMult(Veloc_fut,Veloc_fut,Veloc_Cond); ///!!!ok ... apenas zerando nas b.c.
-	VecAXPY(Veloc_fut,1.0,Veloc_0); ///!!!ok apenas colocando os valores de Veloc_0 em Veloc nas b.c.
+	VecPointwiseMult(Veloc_fut,Veloc_fut,Veloc_Cond); ///check: zero values at the b.c.
+	VecAXPY(Veloc_fut,1.0,Veloc_0); ///check: applying Veloc_0 in Veloc at the b.c.
 	
 	//write_veloc_3d(101);
 	
@@ -539,7 +522,7 @@ PetscErrorCode solve_veloc_3d()
 	
 	
 	
-	for (k=1;k<maxk && denok>denok_min;k++){ /// while denok>denok_min ?
+	for (k=1;k<maxk && denok>denok_min;k++){ /// while denok>denok_min
 		if (k==1) VecCopy(zk_vec2,sk_vec); ///if k=1: s1 = zk <----
 		else {
 			VecCopy(zk_vec2,zk_vec);
@@ -560,7 +543,7 @@ PetscErrorCode solve_veloc_3d()
 		
 		
 		KSPSolve(V_ksp,gs_vec,uk_vec); /// K uk = G sk
-		VecPointwiseMult(uk_vec,uk_vec,Veloc_Cond);//!!!ok adicionado agora para zerar as condicoes de contorno
+		VecPointwiseMult(uk_vec,uk_vec,Veloc_Cond);//zero values at the b.c.
 		
 		ierr = KSPGetIterationNumber(V_ksp,&its);CHKERRQ(ierr);
 		
@@ -703,8 +686,8 @@ PetscErrorCode montaKeVeloc_general(PetscReal *KeG, double dx_const, double dz_c
 			for (ez=-1.;ez<=1.;ez+=2.){
 				for (ex=-1.;ex<=1.;ex+=2.){
 					//N[cont]=(1+ex*kx)*(1+ez*kz)/4.0;
-					N_x[cont]=ex*(1+ez*kz)/2.0/dx_const; //!!! 2d
-					N_z[cont]=(1+ex*kx)*ez/2.0/dz_const; //!!! 2d
+					N_x[cont]=ex*(1+ez*kz)/2.0/dx_const; //check: only valid in 2D
+					N_z[cont]=(1+ex*kx)*ez/2.0/dz_const; //check: only valid in 2D
 					
 					cont++;
 				}
@@ -761,8 +744,6 @@ PetscReal montaKeVeloc_simplif(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_ele
 	double Visc_local,Geoq_local;
 	double visc_meio=-1.0;
 	
-	//PetscErrorCode ierr=0;
-	
 	double kx,kz;
 	
 	double ex,ez;
@@ -770,21 +751,9 @@ PetscReal montaKeVeloc_simplif(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_ele
 	long cont;
 	
 	
+	double Hx,Hz;
 	
-	//PetscReal Visc_ele[V_NE];
-	
-	//for (i=0;i<V_NE;i++) Visc_ele[i]=visco_const;
-	
-	//VecGetValues(visc_vec,V_NE,&Hexa_thermal[t*V_NE],Visc_ele);
-	
-	//for (i=0;i<V_NE;i++) printf("%g ",Visc_ele[i]);
-	//printf("\n");
-	
-	double Hx,Hz;//,prodH;
-	
-	long point=0;//,cont_p=0;
-	
-	//PetscReal strain[6];
+	long point=0;
 	
 	for (i=0;i<V_GT*V_GT;i++) Ke[i]=0.0;
 	
@@ -800,7 +769,6 @@ PetscReal montaKeVeloc_simplif(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_ele
 				
 				Geoq_local = 0.0;
 				
-				//prodH = Hx*Hz;
 				cont=0;
 				for (ez=-1.;ez<=1.;ez+=2.){
 					for (ex=-1.;ex<=1.;ex+=2.){
@@ -871,9 +839,6 @@ PetscReal montaKeVeloc_simplif(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_ele
 	}
 	
 	
-	
-	//printf("Visc_min = %lg; Visc_max = %lg\n",Visc_min,Visc_max);
-	
 	return(visc_meio);
 
 }
@@ -919,7 +884,7 @@ PetscErrorCode montafeVeloc(PetscReal *fMe)
 			
 			for (i=0;i<V_NE;i++){
 				for (j=0;j<V_NE;j++){
-					fMe[(i*V_GN+1)*V_NE+j]+=prodH*N[i]*N[j]; ///!!!! em 2d é +1
+					fMe[(i*V_GN+1)*V_NE+j]+=prodH*N[i]*N[j]; ///check: in 2d it is +1
 				}
 			}
 			
@@ -940,15 +905,6 @@ PetscErrorCode montaCeVeloc(PetscReal *Ce){
 	
 	long i;
 	
-	/*double dx,dy,dz;
-	 
-	 //
-	 
-	 dx = xyz_thermal[Hexa_thermal[t][2]][0]-xyz_thermal[Hexa_thermal[t][0]][0];
-	 dy = xyz_thermal[Hexa_thermal[t][1]][1]-xyz_thermal[Hexa_thermal[t][0]][1];
-	 dz = xyz_thermal[Hexa_thermal[t][4]][2]-xyz_thermal[Hexa_thermal[t][0]][2];
-	 
-	 //*/
 	
 	double kx,kz;
 	
@@ -986,7 +942,7 @@ PetscErrorCode montaCeVeloc(PetscReal *Ce){
 			}
 			
 			for (i=0;i<V_NE;i++){
-				Ce[i*V_GN]+=prodH*N_x[i]; // 1/8 funcao de forma da pressao (constante no elemento) isso no 3D
+				Ce[i*V_GN]+=prodH*N_x[i]; // 1/8 shape function for pressure (constant in the element) in 3D
 				Ce[i*V_GN+1]+=prodH*N_z[i];
 			}
 			
@@ -994,7 +950,6 @@ PetscErrorCode montaCeVeloc(PetscReal *Ce){
 		
 	}
 	
-	///adicionado
 	for (i=0;i<V_GT;i++){
 		Ce[i]*=-dx_const*dz_const;
 	}

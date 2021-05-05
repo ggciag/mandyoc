@@ -109,12 +109,6 @@ PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz
 	
 	PetscTime(&Tempo1p);
 	
-		
-
-	
-	//PetscFunctionBeginUser;
-	
-	
 	dof           = 1;
 	if (periodic_boundary==0)	{
 		stencil_width = 1;
@@ -181,8 +175,6 @@ PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz
 	ierr = DMCreateGlobalVector(da_Thermal,&dRho);CHKERRQ(ierr);
 	
 	ierr = Thermal_init(Temper,da_Thermal);
-
-	//VecView(Temper,PETSC_VIEWER_STDOUT_WORLD);
 	
 	ierr = DMCreateLocalVector(da_Thermal,&local_FT);
 	ierr = DMCreateLocalVector(da_Thermal,&local_Temper);
@@ -200,20 +192,6 @@ PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz
 	ierr = DMCreateLocalVector(da_Thermal,&local_dRho);
 	
 	
-	/*PetscViewer viewer;
-	
-	char nome[100];
-	
-	sprintf(nome,"Temper_0.txt");
-	
-	PetscViewerASCIIOpen(PETSC_COMM_WORLD,nome,&viewer);
-	VecView(Temper,viewer);
-	PetscViewerDestroy(&viewer);*/
-	
-	
-	
-	
-	///////
 	ierr = DMCreateGlobalVector(da_Thermal,&Temper_Cond);CHKERRQ(ierr);
 	
 	
@@ -297,11 +275,8 @@ PetscErrorCode build_thermal_3d()
 	
 	if (rank==0) printf("build TA,Tf\n");
 	ierr = AssembleA_Thermal(TA,da_Thermal,TKe,TMe,TFe,da_Veloc,Veloc_fut);CHKERRQ(ierr);
-	//if (rank==0) printf("t\n");
-	
 	
 	ierr = AssembleF_Thermal(Tf,da_Thermal,TKe,TMe,TFe,da_Veloc,Veloc);CHKERRQ(ierr);
-	//if (rank==0) printf("t\n");
 
 	
 	PetscTime(&Tempo2p);
@@ -324,18 +299,17 @@ PetscErrorCode solve_thermal_3d()
 	
 	/* SOLVE */
 	
-	//if (rank==0) printf("k\n");
 	ierr = KSPSetOperators(T_ksp,TA,TA);CHKERRQ(ierr);
-	//if (rank==0) printf("k\n");
+	
 	ierr = KSPSetFromOptions(T_ksp);CHKERRQ(ierr);
-	//if (rank==0) printf("k\n");
+	
 	
 	ierr = KSPSetTolerances(T_ksp,rtol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
 	
 	ierr = KSPSolve(T_ksp,Tf,Temper);CHKERRQ(ierr);
 
-	VecPointwiseMult(Temper,Temper,Temper_Cond); ///!!!ok ... apenas zerando nas b.c.
-	VecAXPY(Temper,1.0,Temper_0); ///!!!ok apenas colocando os valores de Teloc_0 em Teloc nas b.c.
+	VecPointwiseMult(Temper,Temper,Temper_Cond); ///zero at the b.c.
+	VecAXPY(Temper,1.0,Temper_0); ///applying Teloc_0 in Teloc at the b.c.
 
 	if (basal_heat>0) Heat_flow_at_the_base();
 

@@ -59,7 +59,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 	if (pressure_const>=0.0) P = pressure_const;
 
 	
-	if (e2_inva<1.0E-36) e2_inva=1.0E-36; ///!!!! e2_inva min
+	if (e2_inva<1.0E-36) e2_inva=1.0E-36;
 	
 	
 	if (rheol==0)	visco_real = visco_r;
@@ -142,7 +142,6 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		double R = 8.3144;
 		double TK = T+273.0;
 		
-		//double aux = -(T+273);
 		if (pressure_in_rheol==0) {
 			visco_real = visco_r*A*exp(-(QE+VE*10.0*3300.*(depth))/(R*TK));
 		}
@@ -170,15 +169,9 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 			else {
 				visco_real = pow(A,-1./n_exp)*pow(e2_inva,(1.-n_exp)/(n_exp))*exp((QE+VE*P)/(n_exp*R*TK));
 			}
-			//printf("%e %e %.1f %e %e %f %f %e\n",A,e2_inva,n_exp,QE,VE,TK,z,visco_real);
 		}
 	}
 	
-	
-	/*if (rheol>9){
-		printf("rheol error: larger than maximum available option\n");
-		exit(1);
-	}*/
 
 	if (rheol==10){
 		double beta = 6.907755279;
@@ -191,18 +184,18 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		visco_real *= geoq_ponto;
 	
 	
-	///!!!!
+	
 	if (WITH_NON_LINEAR==1){
-		//double c0 = 1.0;//!!!!
-		//double mu = 0.01;//!!!!
-		//double c0 = 22.0E6;//!!!! Petersen et al. (2010)
-		//double mu = 0.58778;//!!!!
+		//double c0 = 1.0;// Petersen et al. (2010) plastic criterium
+		//double mu = 0.01;//
+		//double c0 = 22.0E6;// 
+		//double mu = 0.58778;//
 		
 		double c0 = strain_softening(strain_cumulate,20.0E6,4.0E6);
 		double mu = strain_softening(strain_cumulate,0.261799,0.034906);
 		double tau_yield;
 		if (pressure_in_rheol==0){
-			tau_yield = c0*cos(mu) + sin(mu)*10.0*3300.*(depth);//!!!!
+			tau_yield = c0*cos(mu) + sin(mu)*10.0*3300.*(depth);
 		}
 		else {
 			tau_yield = c0*cos(mu) + sin(mu)*P;
@@ -221,24 +214,19 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 				visco_real = 1.0/(2*(e2_inva));
 			}
 		}
-		//printf("%f\n",visco_real);
-		/*visco_real = visco_r;
-		if (2*visco_real*e2_inva-1.0>0){
-			visco_real = 1.0/(2*(e2_inva));
-		}*/
-		//if (e2_inva>0)	visco_real = 1.0/(2*(e2_inva));//!!!! rigid plastic
+		
 	}
 	
 	
 	if (visco_real>visc_MAX) visco_real=visc_MAX;
 	if (visco_real<visc_MIN) visco_real=visc_MIN;
 
-	//if (tcont==0){
-		double f1 = PetscLogReal(visc_MAX_comp/visc_MIN_comp);
-		double f2 = PetscLogReal(visc_MAX/visc_MIN);
-		double f3 = PetscLogReal(visco_real/visc_MIN);
-		visco_real = visc_MIN_comp*PetscExpReal(f1*f3/f2);
-	//}
+	
+	double f1 = PetscLogReal(visc_MAX_comp/visc_MIN_comp);
+	double f2 = PetscLogReal(visc_MAX/visc_MIN);
+	double f3 = PetscLogReal(visco_real/visc_MIN);
+	visco_real = visc_MIN_comp*PetscExpReal(f1*f3/f2);
+
 	
 	return(visco_real);
 	

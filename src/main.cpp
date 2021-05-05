@@ -215,7 +215,7 @@ int main(int argc,char **args)
 {
 	PetscErrorCode ierr;
 	char prefix[PETSC_MAX_PATH_LEN];
-	//PetscChar sp_prefix[PETSC_MAX_PATH_LEN];
+	
 	PetscInt       Px,Pz;
 
 	ierr = PetscInitialize(&argc,&args,(char*)0,help);CHKERRQ(ierr);
@@ -401,7 +401,7 @@ int main(int argc,char **args)
 		initial_print_step = 0;
 	}
 
-	initial_print_max_time = 1.0e6; // 1 Ma
+	initial_print_max_time = 1.0e6;
 	ierr = PetscOptionsGetReal(NULL, NULL, "-initial_print_max_time", &initial_print_max_time, NULL); CHKERRQ(ierr);
 
 	sp_surface_tracking = PETSC_FALSE;
@@ -462,7 +462,6 @@ int main(int argc,char **args)
 
 	ierr = create_thermal_2d(Nx-1,Nz-1,Px,Pz);CHKERRQ(ierr);
 
-	//ierr = write_thermal_(-1,binary_output);
 	sprintf(variable_name,"Temper");
 	ierr = write_all_(-1,Temper, variable_name, binary_output);
 
@@ -523,7 +522,7 @@ int main(int argc,char **args)
 
 	ierr = write_veloc_3d(tcont,binary_output);
 	ierr = write_veloc_cond(tcont,binary_output);
-	//ierr = write_thermal_(tcont,binary_output);
+	
 	sprintf(variable_name,"Temper");
 	ierr = write_all_(tcont,Temper,variable_name, binary_output);
 	ierr = write_pressure(tcont,binary_output);
@@ -540,7 +539,6 @@ int main(int argc,char **args)
 
 	ierr = Calc_dt_calor();
 
-	//float aux_le;
 
 	if (initial_print_step > 0) {
 		print_step_aux = print_step;
@@ -605,7 +603,6 @@ int main(int argc,char **args)
 				}
 			}
 			Swarm_add_remove();
-			//exit(1);
 		}
 
 		if (sp_surface_tracking && geoq_on && n_interfaces>0) {
@@ -613,7 +610,6 @@ int main(int argc,char **args)
 		}
 
 		if (tcont%print_step==0){
-			//ierr = write_thermal_(tcont,binary_output);
 			sprintf(variable_name,"Temper");
 			ierr = write_all_(tcont,Temper,variable_name,binary_output);
 			ierr = write_geoq_(tcont,binary_output);
@@ -632,13 +628,6 @@ int main(int argc,char **args)
 			}
 		}
 
-
-
-		//if (rank==0) scanf("%f",&aux_le);
-
-		//MPI_Barrier(PETSC_COMM_WORLD);
-
-
 		ierr = Calc_dt_calor();
 
 	}
@@ -654,7 +643,6 @@ int main(int argc,char **args)
 
 	PetscTime(&Tempo2);
 
-	//if (rank==0) printf("Tempo: %lf\n",Tempo2-Tempo1);
 
 	ierr = PetscFinalize();
 	return 0;
@@ -672,23 +660,20 @@ PetscErrorCode Calc_dt_calor(){
 
 	VecMax(Veloc_fut,&ind_v_min,&max_v);
 	VecMin(Veloc_fut,&ind_v_max,&min_v);
-	//printf("max_v = %g\n",max_v);
-	//printf("max_v = %g\n",min_v);
 	max_mod_v = fabs(max_v);
 	ind_v_mod = ind_v_max;
 	if (max_mod_v<fabs(min_v)){
 		max_mod_v = fabs(min_v);
 		ind_v_mod = ind_v_min;
 	}
-	dh_v_mod = dx_const; //!!! 2d
-	if (ind_v_mod%2==1) dh_v_mod = dz_const; //!!! 2d
+	dh_v_mod = dx_const; //check: only in 2d
+	if (ind_v_mod%2==1) dh_v_mod = dz_const; //check: only in 2d
 	if (rank==0) printf("dt = %g",(dh_v_mod/max_mod_v)/seg_per_ano);
 	dt_calor = 0.1*(dh_v_mod/max_mod_v)/(seg_per_ano*sub_division_time_step);
 	if (dt_calor>dt_MAX) dt_calor=dt_MAX;
 
-	//dt_calor=1000000.0; /// !!!! apenas teste
 	dt_calor_sec = dt_calor*seg_per_ano;
-	////////fim calc dt
+	
 
 	PetscFunctionReturn(0);
 

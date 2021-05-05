@@ -19,8 +19,6 @@ extern double dz_const;
 extern Vec v_vec;
 extern Vec v_vec_fut;
 
-//extern PetscInt *indice_aux_vec_ele;
-
 extern PetscReal *v_vec_aux_ele;
 
 extern double dt_calor_sec;
@@ -44,7 +42,7 @@ PetscErrorCode montaKeThermal_simplif(double *Ke_local,double *Ke,double kappa_e
 	
 
 	
-	//modificar!!!!
+	//check for 3D
 	/*for (c=0;c<V_NE;c++){
 		indice_aux_vec_ele[c*V_GN+0]=Hexa_thermal[t*V_NE+c]*3;
 		indice_aux_vec_ele[c*V_GN+1]=Hexa_thermal[t*V_NE+c]*3+1;
@@ -233,7 +231,7 @@ PetscErrorCode montaKeThermal_general(PetscReal *Ke, PetscReal *Me, PetscReal *F
 				NT_x[i+point*V_NE] = N_x[i];
 				NT_z[i+point*V_NE] = N_z[i];
 				
-				if (c_heat_capacity>0.0) Fe[i] += prodH*volume*N[i]/c_heat_capacity;///H_per_mass removido daqui!!!ok
+				if (c_heat_capacity>0.0) Fe[i] += prodH*volume*N[i]/c_heat_capacity;///H_per_mass removed from here: ok
 				
 				for (j=0;j<V_NE;j++){
 					Me[i*V_NE+j]+=prodH*volume*N[i]*N[j];

@@ -6,7 +6,6 @@
 #include <petscdmswarm.h>
 #include <petsc/private/dmimpl.h>
 #include <petscmath.h>
-//#include <petscsys.h>
 
 extern DM dmcell;
 
@@ -95,8 +94,6 @@ PetscErrorCode _DMLocatePoints_DMDARegular_IS(DM dm,Vec pos,IS *iscell)
 	ierr = VecGetBlockSize(pos,&bs);CHKERRQ(ierr);
 	npoints = n/bs;
 
-	//printf("npoints: %d\n",npoints);
-
 	PetscMalloc1(npoints,&cellidx);
 
 	ierr = DMGetApplicationContext(dm,(void**)&dmregular);CHKERRQ(ierr);
@@ -149,8 +146,6 @@ PetscErrorCode DMLocatePoints_DMDARegular(DM dm,Vec pos,DMPointLocationType ltyp
 
 	ierr = _DMLocatePoints_DMDARegular_IS(dm,pos,&iscell);CHKERRQ(ierr);
 
-	//PetscPrintf(PETSC_COMM_WORLD,"teste swarm\n");
-
 	ierr = VecGetLocalSize(pos,&npoints);CHKERRQ(ierr);
 	ierr = VecGetBlockSize(pos,&bs);CHKERRQ(ierr);
 	npoints = npoints / bs;
@@ -189,7 +184,7 @@ PetscErrorCode SwarmViewGP(DM dms,const char prefix[])
 	PetscInt *layer_array;
 	PetscReal *strain_fac;
 	PetscInt npoints,p,bs;
-	FILE *fp;//,*fp2;
+	FILE *fp;
 	char name[PETSC_MAX_PATH_LEN];
 	PetscMPIInt rank;
 	PetscErrorCode ierr;
@@ -203,8 +198,8 @@ PetscErrorCode SwarmViewGP(DM dms,const char prefix[])
 		PetscSNPrintf(name,PETSC_MAX_PATH_LEN-1,"%s-rank_new%d.bin",prefix,rank);
 		fp = fopen(name,"wb");
 	}
-	//PetscSNPrintf(name,PETSC_MAX_PATH_LEN-1,"surf_%s-rank_new%d.txt",prefix,rank);
-	//fp2 = fopen(name,"w");
+	
+	
 	if (!fp) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Cannot open file %s",name);
 	ierr = DMSwarmGetLocalSize(dms,&npoints);CHKERRQ(ierr);
 	printf("npoints = %d\n",npoints);
@@ -218,10 +213,6 @@ PetscErrorCode SwarmViewGP(DM dms,const char prefix[])
 				fprintf(fp,"%+1.5e %+1.5e %d %d %1.4e\n",
 						array[2*p],array[2*p+1],
 						iarray[p],layer_array[p],(double)strain_fac[p]);
-			//if ((array[2*p+1]>-105.0E3)&&(array[2*p+1]<-95.0E3))
-			//	fprintf(fp2,"%+1.4e %+1.4e %d %d %1.4e\n",
-			//			array[2*p],array[2*p+1],
-			//			iarray[p],layer_array[p],(double)strain_fac[p]);
 		}
 	}
 	else{
@@ -250,18 +241,12 @@ PetscErrorCode SwarmViewGP(DM dms,const char prefix[])
 				fwrite(&strain_fac[p],sizeof(strain_fac[0]),1,fp);
 			}
 		}
-		//fwrite(&npoints,sizeof(npoints),1,fp);
-		//fwrite(array,sizeof(array[0]),npoints*2,fp);
-		//fwrite(iarray,sizeof(iarray[0]),npoints,fp);
-		//fwrite(layer_array,sizeof(layer_array[0]),npoints,fp);
-		//fwrite(strain_fac,sizeof(strain_fac[0]),npoints,fp);
 	}
 	ierr = DMSwarmRestoreField(dms,"itag",NULL,NULL,(void**)&iarray);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"layer",NULL,NULL,(void**)&layer_array);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 	fclose(fp);
-	//fclose(fp2);
 	PetscFunctionReturn(0);
 }
 
@@ -299,9 +284,6 @@ PetscErrorCode createSwarm()
 
 
 	PetscPrintf(PETSC_COMM_WORLD,"%d %d %d\n",nx_part,nz_part,particles_per_ele);
-
-	//PetscRandom rand;
-
 
 	ierr = DMShellCreate(PETSC_COMM_WORLD,&dmcell);CHKERRQ(ierr);
 	ierr = DMSetApplicationContext(dmcell,(void*)da_Veloc);CHKERRQ(ierr);
@@ -351,37 +333,10 @@ PetscErrorCode createSwarm()
 
 		printf("bs = %d\n",bs);
 
-
-		/*if (rank==0){
-			for (int cont=0;cont<10;cont++)
-				printf("array %f\n",array[cont]);
-		}*/
-
 		cnt = 0;
-		//ierr = PetscRandomCreate(PETSC_COMM_SELF,&rand);CHKERRQ(ierr);
-		//ierr = PetscRandomSetType(rand,PETSCRAND48);CHKERRQ(ierr);
-		//ierr = PetscRandomSetInterval(rand,-1.0,1.0);CHKERRQ(ierr);
 
 		for (p=0; p<nlocal/particles_per_ele; p++) {
 			PetscReal px,pz,rx,rz;
-			/*
-			for (cont=0;cont<particles_per_ele;cont++){
-
-				//ierr = PetscRandomGetValueReal(rand,&rx);CHKERRQ(ierr);
-				//ierr = PetscRandomGetValueReal(rand,&ry);CHKERRQ(ierr);
-				//ierr = PetscRandomGetValueReal(rand,&rz);CHKERRQ(ierr);
-				rx = 2.0*(float)rand_r(&seed)/RAND_MAX-1.0;
-				rz = 2.0*(float)rand_r(&seed)/RAND_MAX-1.0;
-
-				px = LA_coors[2*p+0] + (0.5*rx+0.5)*dx_const;
-				pz = LA_coors[2*p+1] + (0.5*rz+0.5)*dz_const;
-
-				if ((px>=0) && (px<=Lx) && (pz>=-depth) && (pz<=0)) {
-					array[bs*cnt+0] = px;
-					array[bs*cnt+1] = pz;
-					cnt++;
-				}
-			}*/
 
 			for (int contx=0;contx<nx_part;contx++){
 				for (int contz=0;contz<nz_part;contz++){
@@ -400,7 +355,6 @@ PetscErrorCode createSwarm()
 
 		}
 
-		//ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
 		ierr = DMSwarmRestoreField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 		ierr = VecRestoreArray(coors,&LA_coors);CHKERRQ(ierr);
 		ierr = DMSwarmSetLocalSizes(dms,cnt,4);CHKERRQ(ierr);
@@ -413,7 +367,6 @@ PetscErrorCode createSwarm()
 		ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 		if (checkered==0){
 			for (p=0; p<nlocal; p++) {
-			//iarray[p] = (PetscInt)rank;
 				iarray[p] = p%particles_per_ele;
 				if (p%particles_per_ele==0){
 					iarray[p] = 10000 + p/particles_per_ele + 1000000*rank;
@@ -443,8 +396,6 @@ PetscErrorCode createSwarm()
 			for (p=0; p<nlocal; p++){
 				rarray[p] = escala_viscosidade;
 				layer_array[p] = 0;
-				/*rarray[p] = 1.0;!!!!*/
-
 			}
 		}
 		else{
@@ -491,7 +442,6 @@ PetscErrorCode createSwarm()
 				if (verif==0){
 					rarray[p] = inter_geoq[n_interfaces];
 					layer_array[p] = n_interfaces;
-					//printf("entrei!\n");
 				}
 
 				rand_r(&seed_strain);
@@ -511,18 +461,6 @@ PetscErrorCode createSwarm()
 				}
 
 
-				/////!!!!
-				/*if (rank==0){
-					printf("\n");
-					for (in=0;in<n_interfaces;in++)
-						printf("Interface %d %f\n",in,interp_interfaces[in]);
-
-					printf("%lf %lf %lf\n",cx,cy,cz);
-
-
-					exit(-1);
-				}*/
-				/////
 			}
 		}
 

@@ -84,7 +84,7 @@ extern PetscInt high_kappa_in_asthenosphere;
 typedef struct {
 	PetscScalar u;
 	PetscScalar w;
-	//PetscScalar p;
+	//PetscScalar p; check for the 3d version
 } Stokes;
 
 
@@ -252,7 +252,7 @@ PetscErrorCode AssembleA_Thermal(Mat A,DM thermal_da,PetscReal *TKe,PetscReal *T
 				if (kappa_eff>kappa*50) kappa_eff = kappa*50;
 			}
 			
-			montaKeThermal_simplif(TCe_fut, TKe, kappa_eff);//modificar
+			montaKeThermal_simplif(TCe_fut, TKe, kappa_eff);//check: modify the simplified version
 			
 			for (c=0;c<T_NE*T_NE;c++) Ttotal[c] = TMe[c] + alpha_thermal*dt_calor_sec*TCe_fut[c];
 			
@@ -400,36 +400,19 @@ PetscErrorCode AssembleF_Thermal(Vec F,DM thermal_da,PetscReal *TKe,PetscReal *T
 				if (kappa_eff>kappa*50) kappa_eff = kappa*50;
 			}
 
-			montaKeThermal_simplif(TCe, TKe, kappa_eff);//modificar
+			montaKeThermal_simplif(TCe, TKe, kappa_eff);//check: modify the simplified version
 			
 			for (c=0;c<T_NE*T_NE;c++) Ttotal_b[c] = TMe[c] - comp_alpha_thermal*dt_calor_sec*TCe[c];
 			
-			/*if (ek==sez && ej==sey && ei==sex){
-				printf("Ttotal_b\n");
-				for (c=0;c<T_NE;c++){
-					for (j=0;j<T_NE;j++){
-						printf("%5.1g ",Ttotal_b[c*T_NE+j]);
-					}
-					printf("\n");
-				}
-				printf("\n");
-			}*/
 			
 			
-			
-			
-			///VecGetValues(T_vec,T_NE,Indices_Ke_Thermal_I,T_vec_aux_ele);
-			
-			//for (c=0;c<T_NE;c++)
-			//	printf("%5.1lg ",tt[ind[c].i][ind[c].j][ind[c].k]);
-			//printf("\n");
 			
 			H_efetivo = 0.0;
 			
 			if (WITH_RADIOGENIC_H==1){
 				double H_mean=0;
 				for (j=0;j<T_NE;j++) H_mean+=HH[ind[j].j][ind[j].i];
-				H_mean/=T_NE;/// Está aqui o calor radiogenico variável
+				H_mean/=T_NE;// Variable radiogenic heat flow here
 			
 				H_efetivo = H_mean;
 			}
@@ -438,7 +421,7 @@ PetscErrorCode AssembleF_Thermal(Vec F,DM thermal_da,PetscReal *TKe,PetscReal *T
 				double T_mean=0;
 				for (j=0;j<T_NE;j++) T_mean+=tt[ind[j].j][ind[j].i];
 				T_mean/=T_NE;
-				T_mean+=273.0; //essa temperatura tem que ser em Kelvin, por isso somamos 273
+				T_mean+=273.0; //Converting to Kelvin
 				
 				double Vz_mean=0;
 				for (j=0;j<T_NE;j++) Vz_mean+=VV[ind[j].j][ind[j].i].w;
@@ -460,7 +443,6 @@ PetscErrorCode AssembleF_Thermal(Vec F,DM thermal_da,PetscReal *TKe,PetscReal *T
 			}
 			
 			for (i=0;i<4;i++){
-				//if (ind[i].k==0 || ind[i].k==P-1){
 				if (TTC[ind[i].j][ind[i].i]==0){
 					T_vec_aux_ele_final[i]=0.0;
 				}
@@ -470,16 +452,6 @@ PetscErrorCode AssembleF_Thermal(Vec F,DM thermal_da,PetscReal *TKe,PetscReal *T
 				ff[ind[c].j][ind[c].i] += T_vec_aux_ele_final[c];
 			}
 			
-			
-			
-			/*for (i=0;i<8;i++){
-				if (ind[i].k==0 || ind[i].k==P-1){
-					for (j=0;j<8;j++) u[i*8+j]=0.0;
-				}
-				else {
-					for (j=0;j<8;j++) u[i*8+j]=TKe[i*8+j];
-				}
-			}*/
 			
 		}
 	}
@@ -556,7 +528,6 @@ PetscErrorCode AssembleF_Thermal(Vec F,DM thermal_da,PetscReal *TKe,PetscReal *T
 
 PetscErrorCode Thermal_init(Vec F,DM thermal_da)
 {
-	//DM                     cda;
 	
 	Vec                    local_F;
 	PetscScalar              **ff;
@@ -601,9 +572,6 @@ PetscErrorCode Thermal_init(Vec F,DM thermal_da)
 		
 		Vec Fprov;
 		
-		//PetscPrintf(PETSC_COMM_WORLD,"size = %d\n",size);
-		
-		//PetscViewerBinaryOpen(PETSC_COMM_WORLD,"Temper_init.bin",FILE_MODE_READ,&viewer);
 		PetscViewerBinaryOpen(PETSC_COMM_WORLD,s2,FILE_MODE_READ,&viewer);
 		VecCreate(PETSC_COMM_WORLD,&Fprov);
 		VecLoad(Fprov,viewer);
@@ -632,8 +600,6 @@ PetscErrorCode Thermal_init(Vec F,DM thermal_da)
 		DMDANaturalToGlobalBegin(thermal_da,FN,INSERT_VALUES,F);
 		DMDANaturalToGlobalEnd(thermal_da,FN,INSERT_VALUES,F);
 		
-		
-		//VecView(F,PETSC_VIEWER_STDOUT_WORLD);
 		
 		PetscBarrier(NULL);
 		
@@ -710,10 +676,6 @@ PetscErrorCode Thermal_init(Vec F,DM thermal_da)
 				if (T_initial_cond==141){
 					double z_aux = -depth*(1.0-k*1.0/(Nz-1));
 					double x_aux = Lx*(i*1.0/(Nx-1));
-					//if (array[p*3+2]>-depth*(1-0.52) && array[p*3+2]<=-depth*(1-0.55)
-					/*if ((i==0 || i==Nx-1) && (z_aux>=-depth*(1.0-0.5+0.1)) && (z_aux<-depth*(1-0.6-0.1))){
-						VV[k][j][i].u=300.0/seg_per_ano;
-					}*/
 					
 					if (z_aux>-depth*0.1) temper_aux=0;
 					else {
@@ -788,14 +750,6 @@ PetscReal Temper4(double xx,double zz){
 	double t_inic = 1001.0E6*seg_per_ano;
 	Temper = Thermal_profile(t_inic, zz);
 	
-	/*if (xx<ramp_begin) Temper*=1.0;
-	else {
-		if (xx<ramp_end){
-			Temper*=(1.0+(beta_max-1.0)*(xx-ramp_begin)/(ramp_end-ramp_begin));
-		}
-		else Temper*=beta_max;
-	}*/
-	
 	Temper*=(1.0+(beta_max-1.0)*(cos(10*xx/Lx)+1.0)/4.0);
 	
 	if (Temper>Delta_T) Temper = Delta_T;
@@ -837,7 +791,6 @@ double Thermal_profile(double t, double zz){
 PetscErrorCode ascii2bin(char *ss1, char *ss2){
 	FILE *entra;
 	
-	//entra = fopen("Temper_0_3D.txt","r");
 	entra = fopen(ss1,"r");
 	char c,s[100],s1[100];
 	fscanf(entra,"%c",&c);
@@ -907,7 +860,6 @@ PetscErrorCode ascii2bin(char *ss1, char *ss2){
 	PetscViewer    viewer;
 	
 	PetscPrintf(PETSC_COMM_SELF,"writing vector in binary to vector.dat ...\n");
-	//PetscViewerBinaryOpen(PETSC_COMM_SELF,"Temper_init.bin",FILE_MODE_WRITE,&viewer);
 	PetscViewerBinaryOpen(PETSC_COMM_SELF,ss2,FILE_MODE_WRITE,&viewer);
 	VecView(u,viewer);
 	PetscViewerDestroy(&viewer);
@@ -949,7 +901,7 @@ PetscErrorCode mean_value_periodic_boundary(DM da,Vec F,Vec local_F, PetscScalar
 	ierr = DMLocalToGlobalEnd(da,local_F,INSERT_VALUES,F);CHKERRQ(ierr);
 	ierr = DMRestoreLocalVector(da,&local_F);CHKERRQ(ierr);
 
-	PetscPrintf(PETSC_COMM_WORLD,"passou periodic boundary\n");
+	PetscPrintf(PETSC_COMM_WORLD,"periodic boundary: done\n");
 
 
 

@@ -1,13 +1,6 @@
-//#include <petscksp.h>
-//#include <petscksp.h>
-//#include <petscmath.h>
-///#include <petscdmda.h>
-///#include <petscdmswarm.h>
 #include <petscsf.h>
-//#include <petscdm.h>
 #include <petscksp.h>
 #include <petscdmda.h>
-//#include <petscdmshell.h>
 #include <petscdmswarm.h>
 #include <petsc/private/dmimpl.h>
 #include <petscmath.h>
@@ -16,10 +9,8 @@
 typedef struct {
 	PetscScalar u;
 	PetscScalar w;
-	//PetscScalar p;
+	//PetscScalar p; //check for 3D future version
 } Stokes;
-
-//PetscErrorCode SwarmViewGP(DM dms,const char prefix[]);
 
 double calc_visco_ponto(double T, double P, double x, double z,double geoq_ponto,double e2_inva,double strain_cumulate,
 						double A, double n_exp, double QE, double VE);
@@ -180,8 +171,6 @@ PetscErrorCode moveSwarm(PetscReal dt)
 
 	e2_aux_MAX = 0.0;
 	e2_aux_MIN = 1.0E50;
-
-	PetscPrintf(PETSC_COMM_WORLD,"DM_Swarm_0\n");
 	
 	for (p=0; p<nlocal; p++) {
 		PetscReal cx,cz,vx,vz,tp,Pp;
@@ -305,17 +294,6 @@ PetscErrorCode moveSwarm(PetscReal dt)
 			if (array[2*p]<0) array[2*p]+=Lx;
 		}
 
-
-		/*i = get_i(cx);
-		k = get_k(cz);
-		rx = get_rx(cx,i);
-		rz = get_rz(cz,k);
-
-		tp = linear_interpolation(rx,rz,tt[k][i],tt[k][i+1],tt[k+1][i],tt[k+1][i+1]);
-
-		//Pp = pp_aux[k][i];
-		Pp = linear_interpolation(rx,rz,pp_aux[k][i],pp_aux[k][i+1],pp_aux[k+1][i],pp_aux[k+1][i+1]);*/
-		///////// strain
 		
 		
 		kx = 2*rx-1;
@@ -326,8 +304,8 @@ PetscErrorCode moveSwarm(PetscReal dt)
 		for (ez=-1.;ez<=1.;ez+=2.){
 			for (ex=-1.;ex<=1.;ex+=2.){
 				//N[cont]=(1+ex*kx)*(1+ey*ky)*(1+ez*kz)/4.0;
-				N_x0[cont]=ex*(1+ez*kz)/2.0/dx_const;//!!!2d checar
-				N_z0[cont]=(1+ex*kx)*ez/2.0/dz_const;//!!!2d checar
+				N_x0[cont]=ex*(1+ez*kz)/2.0/dx_const;//check: only for 2D model
+				N_z0[cont]=(1+ex*kx)*ez/2.0/dz_const;//check: only for 2D model
 				cont++;
 			}
 		}
@@ -343,8 +321,8 @@ PetscErrorCode moveSwarm(PetscReal dt)
 				strain[1] += 0;//N_y0[cont]*VV[kk][jj][ii].v;
 				strain[2] += N_z0[cont]*VV[kk][ii].w;
 				
-				//strain[3] += 0.0;//!!!2d checar
-				//strain[4] += 0.0;//!!!2d checar
+				//strain[3] += 0.0;//check: only for 2D model
+				//strain[4] += 0.0;//check: only for 2D model
 				strain[5] += N_x0[cont]*VV[kk][ii].w + N_z0[cont]*VV[kk][ii].u;
 				
 				
@@ -353,16 +331,6 @@ PetscErrorCode moveSwarm(PetscReal dt)
 		}
 		
 		
-		
-		
-		
-		/*E2_invariant = (strain[0]-strain[1])*(strain[0]-strain[1]);
-		E2_invariant+= (strain[1]-strain[2])*(strain[1]-strain[2]);
-		E2_invariant+= (strain[2]-strain[0])*(strain[2]-strain[0]);
-		E2_invariant/=6.0;
-		E2_invariant+= strain[3]*strain[3];
-		E2_invariant+= strain[4]*strain[4];
-		E2_invariant+= strain[5]*strain[5];*/
 
 		PetscReal strain_mean = (strain[0] + strain[1] + strain[2])/3.0;
 		strain[0]-=strain_mean;
@@ -378,26 +346,18 @@ PetscErrorCode moveSwarm(PetscReal dt)
 		if (E2_invariant>e2_aux_MAX) e2_aux_MAX=E2_invariant;
 		
 		
-		strain_fac[p]+= dt*E2_invariant;//original!!!!
+		strain_fac[p]+= dt*E2_invariant;//cumulative strain
 		strain_rate_fac[p] = E2_invariant;
-		//strain_fac[p]= PetscSqrtReal(E2_invariant);//!!!! não é o cumulativo! apenas o instantaneo.
-
-		//if (p%100==0) printf("%e %e\n",-cz*3300*10,Pp);
+		
 	
-		rarray[p] = calc_visco_ponto(tp,Pp,cx,cz,inter_geoq[layer_array[p]],E2_invariant,strain_fac[p]/*!!!!checar*/,
+		rarray[p] = calc_visco_ponto(tp,Pp,cx,cz,inter_geoq[layer_array[p]],E2_invariant,strain_fac[p],
 									 inter_A[layer_array[p]], inter_n[layer_array[p]], inter_Q[layer_array[p]], inter_V[layer_array[p]]);
 		
 		
-		//dt=0.01;
-		//vx = 0;
-		//vy = -cz;
-		//vz = cy;
 		
 		
 	}
-	PetscPrintf(PETSC_COMM_WORLD,"DM_Swarm_1\n");
 
-	//printf("e2_min = %lg, e2_max = %lg\n",e2_aux_MIN,e2_aux_MAX);
 
 	ierr = DMSwarmRestoreField(dms,"geoq_fac",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"strain_fac",&bs,NULL,(void**)&strain_fac);CHKERRQ(ierr);
@@ -409,19 +369,12 @@ PetscErrorCode moveSwarm(PetscReal dt)
 	
 	ierr = DMSwarmMigrate(dms,PETSC_TRUE);CHKERRQ(ierr);
 	
-	//PetscSNPrintf(prefix,PETSC_MAX_PATH_LEN-1,"step%d",tk);
-	//ierr = SwarmViewGP(dms,prefix);CHKERRQ(ierr);
-	
-	//ierr = SwarmViewGP(dms,"step1");CHKERRQ(ierr);
 	
 	ierr = DMDAVecRestoreArray(da_Veloc,local_V,&VV);CHKERRQ(ierr);
 
 	ierr = DMDAVecRestoreArray(da_Thermal,local_Temper,&tt);CHKERRQ(ierr);
 
 	ierr = DMDAVecRestoreArray(da_Thermal,local_P_aux,&pp_aux);CHKERRQ(ierr);
-	
-	//exit(1);
-	PetscPrintf(PETSC_COMM_WORLD,"DM_Swarm_2\n");
 	
 	PetscFunctionReturn(0);
 	
@@ -540,13 +493,7 @@ PetscErrorCode Swarm_add_remove()
 	PetscReal dist,dist_p;
 	PetscInt chosen=0;
 	
-	//PetscRandom rand;
-	
 	PetscReal rx,rz,xx,zz;
-	
-	//ierr = PetscRandomCreate(PETSC_COMM_SELF,&rand);CHKERRQ(ierr);
-	//ierr = PetscRandomSetType(rand,PETSCRAND48);CHKERRQ(ierr);
-	//ierr = PetscRandomSetInterval(rand,-1.0,1.0);CHKERRQ(ierr);
 	
 	
 	for (k=mz; k<=Mz; k++){
@@ -591,8 +538,6 @@ PetscErrorCode Swarm_add_remove()
 					exit(1);
 				}
 				
-				
-				//printf("REMOVEU %d %d %d: %ld!\n",k,j,i,(long)qq_cont[k][j][i]);
 			}
 			
 			if (qq_cont[k][i]<min_particles_per_ele){
@@ -607,9 +552,6 @@ PetscErrorCode Swarm_add_remove()
 					}
 				}
 				for (pp=0;pp<10;pp++){
-					//ierr = PetscRandomGetValueReal(rand,&rx);CHKERRQ(ierr);
-					//ierr = PetscRandomGetValueReal(rand,&ry);CHKERRQ(ierr);
-					//ierr = PetscRandomGetValueReal(rand,&rz);CHKERRQ(ierr);
 					rx = 2.0*(float)rand_r(&seed)/RAND_MAX-1.0;
 					rz = 2.0*(float)rand_r(&seed)/RAND_MAX-1.0;
 					
@@ -651,9 +593,6 @@ PetscErrorCode Swarm_add_remove()
 				p_add_r_strain[cont_p_add] = strain_fac[p_prox_total];
 				p_add_r_strain_rate[cont_p_add] = strain_rate_fac[p_prox_total];
 				
-				//printf("ADDED %d %d %d: !\n",k,j,i);
-				//printf("ADDED %lf %lf %lf: !\n",cx_v[chosen],cy_v[chosen],cz_v[chosen]);
-				
 				
 				cont_p_add++;
 				if (cont_p_add>particles_add_remove){
@@ -669,14 +608,6 @@ PetscErrorCode Swarm_add_remove()
 	PetscPrintf(PETSC_COMM_WORLD,"Swarm move: 1\n");
 	
 	
-	//ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
-	
-	//printf("%d %d   %d %d   %d %d\n",mx,Mx,my,My,mz,Mz);
-	
-	//printf("b: %d %d   %d %d   %d %d\n",sx,sx+mmx-1,sy,sy+mmy-1,sz,sz+mmz-1);
-	
-	
-	
 	ierr = DMSwarmRestoreField(dms,"cont",&bs,NULL,(void**)&carray);CHKERRQ(ierr);
 	
 	ierr = DMSwarmRestoreField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
@@ -689,7 +620,7 @@ PetscErrorCode Swarm_add_remove()
 	ierr = DMDAVecRestoreArray(da_Thermal,local_geoq_cont,&qq_cont);CHKERRQ(ierr);
 	
 	ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
-	//printf("nlocal_%d_antes\n",nlocal);
+	
 	
 	
 	for (pp=0; pp<cont_p_remove; pp++){
@@ -699,13 +630,11 @@ PetscErrorCode Swarm_add_remove()
 	if (cont_p_remove>0)
 		PetscSortIntWithPermutation(cont_p_remove,p_remove,p_i);
 	
-	//for (pp=0; pp<cont_p_remove; pp++){
 	for (pp=cont_p_remove-1; pp>=0; pp--){
 		DMSwarmRemovePointAtIndex(dms,p_remove[p_i[pp]]);
 	}
 	
 	ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
-	//printf("nlocal_%d %d %d_depois\n",nlocal,cont_p_remove,particles_add_remove);
 	
 	if (cont_p_add>0){
 		ierr = DMSwarmAddNPoints(dms,cont_p_add);
@@ -740,10 +669,8 @@ PetscErrorCode Swarm_add_remove()
 	}
 	
 	ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
-	//printf("nlocal_%d %d %d_depois2\n",nlocal,cont_p_add,particles_add_remove);
 	PetscPrintf(PETSC_COMM_WORLD,"Swarm move: 2\n");
 	
-	//exit(1);
 	PetscFunctionReturn(0);
 }
 

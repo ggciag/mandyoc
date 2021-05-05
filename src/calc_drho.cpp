@@ -17,9 +17,8 @@ PetscErrorCode calc_drho()
 	
 	PetscScalar a;
 	
-	a=alpha_exp_thermo*gravity*RHOM; CHKERRQ(ierr);//!!! checar
+	a=alpha_exp_thermo*gravity*RHOM; CHKERRQ(ierr);//check: replace RHOM by geoq_rho
 	
-	//VecScale(dRho,a); CHKERRQ(ierr);
 	VecAXPBY(dRho,-gravity,a,geoq_rho); CHKERRQ(ierr);
 	
 	return ierr;
@@ -73,18 +72,6 @@ PetscErrorCode calc_pressure()
 	ierr = DMDAVecGetArray(da_Veloc,local_P,&pp);CHKERRQ(ierr);
 	
 	
-	
-	//PetscScalar             **qq_rho;
-	
-	//ierr = DMGlobalToLocalBegin(da_Thermal,geoq_rho,INSERT_VALUES,local_geoq_rho);
-	//ierr = DMGlobalToLocalEnd(  da_Thermal,geoq_rho,INSERT_VALUES,local_geoq_rho);
-	
-	//ierr = DMDAVecGetArray(da_Thermal,local_geoq_rho,&qq_rho);CHKERRQ(ierr);
-	
-	//PetscInt i,j,k,c,n,g;
-	
-	//MatStencil indr[T_NE];
-	
 	int M,P;
 	double zz;
 	
@@ -92,8 +79,6 @@ PetscErrorCode calc_pressure()
 	ierr = DMDAGetInfo(da_Thermal,0,&M,&P,NULL,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
 	
 	printf("%d %d P\n",M,P);
-	
-	//
 	
 	PetscInt               sex1,sez1,mx1,mz1;
 	
@@ -192,14 +177,9 @@ PetscErrorCode calc_pressure()
 			
 			pp[ek][ei].u = pressure_cumulat;
 			
-			//printf("%d ",in);
-			//if (ek==1) printf("pp = %lf\n",pressure_cumulat);
-			
 		}
 	}
 	
-	
-	//ierr = DMDAVecRestoreArray(da_Thermal,local_geoq_rho,&qq_rho);CHKERRQ(ierr);
 	
 	ierr = DMDAVecRestoreArray(da_Veloc,local_P,&pp);CHKERRQ(ierr);
 	
@@ -273,70 +253,20 @@ PetscErrorCode shift_pressure() //necessary if the surface pressure is not close
 	ierr = DMLocalToGlobalBegin(da_Thermal,local_P_aux,INSERT_VALUES,Pressure_aux);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalEnd(da_Thermal,local_P_aux,INSERT_VALUES,Pressure_aux);CHKERRQ(ierr);
 
-	//get Pressure_aux array
-	/*ierr = DMGlobalToLocalBegin(da_Thermal,Pressure_aux,INSERT_VALUES,local_P_aux);
-	ierr = DMGlobalToLocalEnd(  da_Thermal,Pressure_aux,INSERT_VALUES,local_P_aux);
-	ierr = DMDAVecGetArray(da_Thermal,local_P_aux,&pp_aux);CHKERRQ(ierr);
-
-
-	for (k=sz; k<sz+mmz; k++) {
-		for (i=sx; i<sx+mmx; i++) {
-			if (k<Nz-1 && i<Nx-1){
-				pp[k][i].u = (pp_aux[k][i] + pp_aux[k][i+1] + pp_aux[k+1][i] + pp_aux[k+1][i+1])/4.0;
-			}
-		}
-	}
-
-	//teste!
-	for (k=sz; k<sz+mmz; k++) {
-		for (i=sx; i<sx+mmx; i++) {
-			pp_aux[k][i] = pp[k][i].u;
-		}
-	}
-
-	//restore Pressure_aux
-	ierr = DMDAVecRestoreArray(da_Thermal,local_P_aux,&pp_aux);CHKERRQ(ierr);
-	ierr = DMLocalToGlobalBegin(da_Thermal,local_P_aux,INSERT_VALUES,Pressure_aux);CHKERRQ(ierr);
-	ierr = DMLocalToGlobalEnd(da_Thermal,local_P_aux,INSERT_VALUES,Pressure_aux);CHKERRQ(ierr);*/
-
 	MPI_Allreduce(&cont_air,&cont_air_all,1,MPI_INT,MPI_SUM,PETSC_COMM_WORLD);
     MPI_Allreduce(&pressure_air,&pressure_air_all,1,MPI_FLOAT,MPI_SUM,PETSC_COMM_WORLD);
 
-	PetscReal pressure_min;//,pressure_max;
-	//PetscInt i_aux;
-
-	//VecMin(Pressure_aux,&i_aux,&pressure_min);
+	PetscReal pressure_min;
+	
 	pressure_min = pressure_air_all/cont_air_all;
 	pressure_min=-pressure_min;
 	VecShift(Pressure_aux,pressure_min);
-
-	//VecMin(Pressure_aux,&i_aux,&pressure_min);
-	//VecMax(Pressure_aux,&i_aux,&pressure_max);
-	//PetscPrintf(PETSC_COMM_WORLD,"Pressume min and max: %e %e\n",pressure_min,pressure_max);
-
-	/*
-
-	//get Pressure_aux array
-	ierr = DMGlobalToLocalBegin(da_Thermal,Pressure_aux,INSERT_VALUES,local_P_aux);
-	ierr = DMGlobalToLocalEnd(  da_Thermal,Pressure_aux,INSERT_VALUES,local_P_aux);
-	ierr = DMDAVecGetArray(da_Thermal,local_P_aux,&pp_aux);CHKERRQ(ierr);
-
-	for (k=sz; k<sz+mmz; k++) {
-		for (i=sx; i<sx+mmx; i++) {
-			pp[k][i].u  = pp_aux[k][i];
-		}
-	}
-	*/
 
 
 	//restore Pressure
 	ierr = DMDAVecRestoreArray(da_Veloc,local_P,&pp);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalBegin(da_Veloc,local_P,INSERT_VALUES,Pressure);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalEnd(da_Veloc,local_P,INSERT_VALUES,Pressure);CHKERRQ(ierr);
-
-	//ierr = DMDAVecRestoreArray(da_Thermal,local_P_aux,&pp_aux);CHKERRQ(ierr);
-	//ierr = DMLocalToGlobalBegin(da_Thermal,local_P_aux,INSERT_VALUES,Pressure_aux);CHKERRQ(ierr);
-	//ierr = DMLocalToGlobalEnd(da_Thermal,local_P_aux,INSERT_VALUES,Pressure_aux);CHKERRQ(ierr);
 
 	return ierr;
 	

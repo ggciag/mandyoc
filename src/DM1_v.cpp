@@ -129,9 +129,7 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	ierr = VecZeroEntries(local_Precon);CHKERRQ(ierr);
 	ierr = DMDAVecGetArray(veloc_da,local_Precon,&pc);CHKERRQ(ierr);
 	
-	/////
 	Stokes					**VVC;
-	//Vec						local_VC;
 	
 	ierr = VecZeroEntries(local_VC);CHKERRQ(ierr);
 	
@@ -139,7 +137,6 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	ierr = DMGlobalToLocalEnd(  veloc_da,Veloc_Cond,INSERT_VALUES,local_VC);
 	
 	ierr = DMDAVecGetArray(veloc_da,local_VC,&VVC);CHKERRQ(ierr);
-	//////
 	
 	PetscInt       sx,sz,mmx,mmz;
 	
@@ -190,12 +187,6 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	
 	ierr = DMDAGetElementCorners(veloc_da,&sex,&sez,&mx,&mz);CHKERRQ(ierr);
 	
-	//////////
-	
-	
-
-	
-	
 	
 	PetscScalar             **qq;
 	
@@ -234,15 +225,15 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	
 	PetscReal visc_meio;
 
-	PetscReal rho_mean_bottom;//, rho_mean_top;
-	PetscReal traction_bottom;//,traction_top;
+	PetscReal rho_mean_bottom;
+	PetscReal traction_bottom;
 	
 
 	for (ek = sez; ek < sez+mz; ek++) {
 		
 		for (ei = sex; ei < sex+mx; ei++) {
 			
-			/*
+			/* check: future 3d version
 			indr[0].i=ei  ; indr[0].j=ej  ; indr[0].k=ek  ;
 			indr[1].i=ei+1; indr[1].j=ej  ; indr[1].k=ek  ;
 			indr[2].i=ei  ; indr[2].j=ej+1; indr[2].k=ek  ;
@@ -271,22 +262,7 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 
 			if (free_surface_stab==1){
 				for (i=0;i<T_NE;i++) rho_ele[i]=rr[indr[i].j][indr[i].i];
-				/*
-				rho_mean_bottom = (rho_ele[0] + rho_ele[1] + rho_ele[2] + rho_ele[3])/4.0; 
-				rho_mean_top =    (rho_ele[0] + rho_ele[1] + rho_ele[2] + rho_ele[3])/4.0;	
-
-				traction_bottom = theta_FSSA*dt_calor_sec*rho_mean_bottom*gravity*dx_const/2.0;
-				traction_top = -theta_FSSA*dt_calor_sec*rho_mean_top*gravity*dx_const/2.0;
-
-				if (ek>0){
-				Ke_veloc_final[1*9] +=traction_bottom;
-				Ke_veloc_final[3*9] +=traction_bottom;
-				}
-				if (ek+1<Nz-1) {
-				Ke_veloc_final[5*9] +=traction_top;
-				Ke_veloc_final[7*9] +=traction_top;
-				}
-				*/
+				
 				rho_mean_bottom = (-rho_ele[0] - rho_ele[1] + rho_ele[2] + rho_ele[3])/2.0; 
 				traction_bottom = theta_FSSA*dt_calor_sec*rho_mean_bottom*gravity*dx_const/2.0;
 
@@ -297,8 +273,6 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 				Ke_veloc_final[7*9] += traction_bottom;
 
 			}
-
-			/////////////
 
 			n=0;
 			PetscInt nni = ei+1;
@@ -317,9 +291,6 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 			
 			ind[n].i=nni; ind[n].j=ek+1; ind[n].c=0; n++;
 			ind[n].i=nni; ind[n].j=ek+1; ind[n].c=1; n++;
-
-			//printf("%d %d %d %d\n",ei,nni,ek,ek+1);
-			
 			
 			for (n=0;n<4;n++){
 				g = 2*n;
@@ -375,7 +346,6 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 		Verif_VG=1;
 	}
 	
-	//ierr = DMDAVecRestoreArray(da_Veloc,local_V,&VV);CHKERRQ(ierr);
 	
 	ierr = DMDAVecRestoreArray(veloc_da,local_Precon,&pc);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalBegin(veloc_da,local_Precon,ADD_VALUES,Precon);CHKERRQ(ierr);
@@ -384,9 +354,7 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	
 	
 	ierr = DMDAVecRestoreArray(veloc_da,local_VC,&VVC);
-	//ierr = DMDAVecRestoreArray(temper_da,local_Temper,&tt);CHKERRQ(ierr);
 	ierr = DMDAVecRestoreArray(temper_da,local_geoq,&qq);CHKERRQ(ierr);
-	//ierr = DMDAVecRestoreArray(temper_da,local_geoq_strain,&qq_strain);CHKERRQ(ierr);
 	ierr = DMDAVecRestoreArray(temper_da,local_dRho,&rr);CHKERRQ(ierr);
 	
 	printf("Visc_min = %lg, Visc_max = %lg\n",visc_aux_MIN,visc_aux_MAX);
@@ -435,9 +403,6 @@ PetscErrorCode AssembleF_Veloc(Vec F,DM veloc_da,DM drho_da,Vec FP){
 	ierr = VecZeroEntries(local_FP);CHKERRQ(ierr);
 	ierr = DMDAVecGetArray(veloc_da,local_FP,&ffp);CHKERRQ(ierr);
 	
-	/////
-	
-
 	
 	ierr = VecZeroEntries(local_dRho);CHKERRQ(ierr);
 	
@@ -447,8 +412,6 @@ PetscErrorCode AssembleF_Veloc(Vec F,DM veloc_da,DM drho_da,Vec FP){
 	ierr = DMDAVecGetArray(drho_da,local_dRho,&rr);CHKERRQ(ierr);
 	
 	
-	/////
-	
 	ierr = VecZeroEntries(local_P);CHKERRQ(ierr);
 	
 	ierr = DMGlobalToLocalBegin(veloc_da,Pressure,INSERT_VALUES,local_P);
@@ -456,9 +419,8 @@ PetscErrorCode AssembleF_Veloc(Vec F,DM veloc_da,DM drho_da,Vec FP){
 	
 	ierr = DMDAVecGetArray(veloc_da,local_P,&pp);CHKERRQ(ierr);
 	
-	/////
+	
 	Stokes					**VVC;
-	//Vec						local_VC;
 	
 	ierr = VecZeroEntries(local_VC);CHKERRQ(ierr);
 	
@@ -554,24 +516,6 @@ PetscErrorCode AssembleF_Veloc(Vec F,DM veloc_da,DM drho_da,Vec FP){
 			}
 			
 			
-			/*
-			for (c=0;c<T_NE;c++){
-				T_vec_aux_ele_final[c]=dt_calor_sec*TFe[c];
-				for (j=0;j<T_NE;j++){
-					T_vec_aux_ele_final[c]+=tt[ind[j].k][ind[j].j][ind[j].i]*Ttotal_b[c*T_NE+j];
-				}
-			}
-			
-			for (i=0;i<8;i++){
-				if (ind[i].k==0 || ind[i].k==P-1){
-					T_vec_aux_ele_final[i]=0.0;
-				}
-			}
-			
-			for (c=0;c<T_NE;c++){
-				ff[ind[c].k][ind[c].j][ind[c].i] += T_vec_aux_ele_final[c];
-			}
-			 */
 		}
 	}
 	
@@ -668,15 +612,6 @@ PetscErrorCode AssembleF_Veloc(Vec F,DM veloc_da,DM drho_da,Vec FP){
 		ierr = DMLocalToGlobalEnd(veloc_da,local_FP,INSERT_VALUES,FP);CHKERRQ(ierr);
 	}
 	
-	//printf("passou...\n");
-	
-	/*char nome[100];
-	PetscViewer viewer;
-	sprintf(nome,"F_veloc.txt");
-	
-	PetscViewerASCIIOpen(PETSC_COMM_WORLD,nome,&viewer);
-	VecView(F,viewer);
-	PetscViewerDestroy(&viewer);*/
 	
 	PetscFunctionReturn(0);
 }
@@ -721,9 +656,7 @@ PetscErrorCode Init_Veloc(){
 		
 		Vec Fprov;
 		
-		//PetscPrintf(PETSC_COMM_WORLD,"size = %d\n",size);
 		
-		//PetscViewerBinaryOpen(PETSC_COMM_WORLD,"Temper_init.bin",FILE_MODE_READ,&viewer);
 		PetscViewerBinaryOpen(PETSC_COMM_WORLD,s2,FILE_MODE_READ,&viewer);
 		VecCreate(PETSC_COMM_WORLD,&Fprov);
 		VecLoad(Fprov,viewer);
@@ -755,8 +688,7 @@ PetscErrorCode Init_Veloc(){
 		ierr = VecDestroy(&FN);CHKERRQ(ierr);
 		ierr = VecDestroy(&Fprov);CHKERRQ(ierr);
 		
-		
-		//VecView(F,PETSC_VIEWER_STDOUT_WORLD);
+	
 		
 		PetscBarrier(NULL);
 		
