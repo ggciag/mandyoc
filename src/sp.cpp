@@ -195,7 +195,7 @@ PetscErrorCode sp_interpolate_surface_particles_to_vec()
 		py = pcoords[2*p+1];
 
         i = (PetscInt)(px/dx_const);
-        if (i < 0 || i > sex+mx) {ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_interpolate_surface_particles_to_vec] rank=%d estranho i=%d (px=%.6e, p=%d)\n", rank, i, px, p); CHKERRQ(ierr); exit(1);}
+        if (i < 0 || i > sex+mx) {ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_interpolate_surface_particles_to_vec] rank=%d weird i=%d (px=%.6e, p=%d)\n", rank, i, px, p); CHKERRQ(ierr); exit(1);}
 
         if (layer[p] == n_interfaces) {
             if (py < sp_top_surface_global_values[i-sex]) {
@@ -410,7 +410,7 @@ PetscErrorCode update_particles_properties()
 		py = pcoords[2*p+1];
 
         i = (PetscInt)(px/dx_const);
-        if (i < 0 || i > sex+mx) {ierr = PetscPrintf(PETSC_COMM_SELF, "(error) [sp_interpolate_surface_particles_to_vec] rank=%d estranho i=%d (px=%.6e, p=%d)\n", rank, i, px, p); CHKERRQ(ierr); exit(1);}
+        if (i < 0 || i > sex+mx) {ierr = PetscPrintf(PETSC_COMM_SELF, "(error) [sp_interpolate_surface_particles_to_vec] rank=%d weird i=%d (px=%.6e, p=%d)\n", rank, i, px, p); CHKERRQ(ierr); exit(1);}
 
         // rx = (px-i*sp_dx)/sp_dx;
         rx = 0.5;

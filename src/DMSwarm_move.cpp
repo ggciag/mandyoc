@@ -90,7 +90,7 @@ PetscReal linear_interpolation(PetscReal rx, PetscReal rz,PetscScalar V0, PetscS
 
 PetscInt get_i(PetscReal cx){
 	PetscInt i = (int)(cx/dx_const);
-	if (i<0 || i>=Nx-1) {printf("estranho i=%d get_i cx = %lf\n",i,cx); exit(1);}
+	if (i<0 || i>=Nx-1) {printf("weird i=%d get_i cx = %lf\n",i,cx); exit(1);}
 	if (i==Nx-1) i=Nx-2;
 
 	return i;
@@ -98,7 +98,7 @@ PetscInt get_i(PetscReal cx){
 
 PetscInt get_k(PetscReal cz){
 	PetscInt k = (int)((cz+depth)/dz_const);
-	if (k<0 || k>=Nz-1) {printf("estranho k=%d get_k cz=%lf\n",k,cz); exit(1);}
+	if (k<0 || k>=Nz-1) {printf("weird k=%d get_k cz=%lf\n",k,cz); exit(1);}
 	if (k==Nz-1) k=Nz-2;
 
 	return k;
@@ -106,14 +106,14 @@ PetscInt get_k(PetscReal cz){
 
 PetscReal get_rx(PetscReal cx, PetscInt i){
 	PetscReal rx = (cx-i*dx_const)/dx_const;
-	if (rx<0 || rx>1) {printf("estranho rx=%f\n",rx); exit(1);}
+	if (rx<0 || rx>1) {printf("weird rx=%f\n",rx); exit(1);}
 
 	return rx;
 }
 
 PetscReal get_rz(PetscReal cz, PetscInt k){
 	PetscReal rz = (cz-(-depth+k*dz_const))/dz_const;
-	if (rz<0 || rz>1) {printf("estranho rz=%f\n",rz); exit(1);}
+	if (rz<0 || rz>1) {printf("weird rz=%f\n",rz); exit(1);}
 
 	return rz;
 }
@@ -454,8 +454,8 @@ PetscErrorCode Swarm_add_remove()
 		i = (int)(cx/dx_const);
 		k = (int)((cz+depth)/dz_const);
 		
-		if (i<0 || i>=Nx-1) {printf("estranho i=%d  add remove cx = %lf\n",i,cx); exit(1);}
-		if (k<0 || k>=Nz-1) {printf("estranho k=%d  add remove cz = %lf\n",k,cz); exit(1);}
+		if (i<0 || i>=Nx-1) {printf("weird i=%d  add remove cx = %lf\n",i,cx); exit(1);}
+		if (k<0 || k>=Nz-1) {printf("weird k=%d  add remove cz = %lf\n",k,cz); exit(1);}
 		
 		if (i==Nx-1) i=Nx-2;
 		if (k==Nz-1) k=Nz-2;
@@ -472,7 +472,7 @@ PetscErrorCode Swarm_add_remove()
 	
 	}
 
-	printf("Swarm move: %d %d %d %d\n",mx,Mx,mz,Mz);
+	//printf("Swarm move: %d %d %d %d\n",mx,Mx,mz,Mz);
 	
 	PetscInt max_particles_per_ele=particles_per_ele+particles_per_ele/10+2;
 	PetscInt min_particles_per_ele=particles_per_ele-particles_per_ele/10-2;
@@ -605,7 +605,7 @@ PetscErrorCode Swarm_add_remove()
 	
 	}
 
-	PetscPrintf(PETSC_COMM_WORLD,"Swarm move: 1\n");
+	//PetscPrintf(PETSC_COMM_WORLD,"Swarm move: 1\n");
 	
 	
 	ierr = DMSwarmRestoreField(dms,"cont",&bs,NULL,(void**)&carray);CHKERRQ(ierr);
@@ -669,7 +669,7 @@ PetscErrorCode Swarm_add_remove()
 	}
 	
 	ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
-	PetscPrintf(PETSC_COMM_WORLD,"Swarm move: 2\n");
+	PetscPrintf(PETSC_COMM_WORLD,"Swarm advection: done\n\n");
 	
 	PetscFunctionReturn(0);
 }

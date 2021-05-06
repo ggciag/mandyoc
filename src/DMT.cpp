@@ -249,7 +249,7 @@ PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz
 	ierr = KSPSetOptionsPrefix(T_ksp,"thermal_"); /* stokes */ CHKERRQ(ierr);
 	
 	PetscTime(&Tempo2p);
-	if (rank==0) printf("Thermal create : %lf\n",Tempo2p-Tempo1p);
+	if (rank==0) printf("temperature (creation): %lf s\n",Tempo2p-Tempo1p);
 	
 	
 	PetscFunctionReturn(0);
@@ -267,20 +267,20 @@ PetscErrorCode build_thermal_3d()
 	PetscLogDouble Tempo1p,Tempo2p;
 	
 	PetscTime(&Tempo1p);
-	if (rank==0) printf("TA,TB,Tf -> zero entries\n");
+	
 	ierr = MatZeroEntries(TA);CHKERRQ(ierr);
-	if (rank==0) printf("passou TA\n");
+	
 	ierr = MatZeroEntries(TB);CHKERRQ(ierr);
 	ierr = VecZeroEntries(Tf);CHKERRQ(ierr);
 	
-	if (rank==0) printf("build TA,Tf\n");
+	
 	ierr = AssembleA_Thermal(TA,da_Thermal,TKe,TMe,TFe,da_Veloc,Veloc_fut);CHKERRQ(ierr);
 	
 	ierr = AssembleF_Thermal(Tf,da_Thermal,TKe,TMe,TFe,da_Veloc,Veloc);CHKERRQ(ierr);
 
 	
 	PetscTime(&Tempo2p);
-	if (rank==0) printf("Thermal build: %lf\n",Tempo2p-Tempo1p);
+	if (rank==0) printf("Thermal (building): %lf s\n",Tempo2p-Tempo1p);
 	
 	PetscFunctionReturn(0);
 		
@@ -314,7 +314,7 @@ PetscErrorCode solve_thermal_3d()
 	if (basal_heat>0) Heat_flow_at_the_base();
 
 	PetscTime(&Tempo2);
-	if (rank==0) printf("Thermal solve: %lf\n",Tempo2-Tempo1);
+	if (rank==0) printf("Thermal (solution): %lf s\n",Tempo2-Tempo1);
 	
 	PetscFunctionReturn(0);
 	
@@ -403,7 +403,7 @@ PetscErrorCode destroy_thermal_()
 	ierr = DMDestroy(&da_Thermal);CHKERRQ(ierr);
 	
 	PetscTime(&Tempo2);
-	if (rank==0) printf("Thermal destroy: %lf\n",Tempo2-Tempo1);
+	if (rank==0) printf("Thermal (destroying): %lf\n",Tempo2-Tempo1);
 	
 	
 	PetscFunctionReturn(0);	
@@ -434,7 +434,7 @@ PetscErrorCode write_all_(int cont,Vec u, char *variable_name, PetscInt binary_o
 	PetscViewerDestroy(&viewer);
 	
 	PetscTime(&Tempo2);
-	if (rank==0) printf("%s write: %lf\n",variable_name,Tempo2-Tempo1);
+	if (rank==0) printf("%s (writing): %lf s\n",variable_name,Tempo2-Tempo1);
 	
 	PetscFunctionReturn(0);	
 }
@@ -443,7 +443,7 @@ PetscErrorCode write_pressure(int cont, PetscInt binary_out)
 {
 	char variable_name[100];
 
-	sprintf(variable_name,"Pressure");
+	sprintf(variable_name,"pressure");
 	write_all_(cont,Pressure_aux,variable_name,binary_out);
 	
 	PetscFunctionReturn(0);
@@ -454,13 +454,13 @@ PetscErrorCode write_geoq_(int cont, PetscInt binary_out)
 
 	char variable_name[100];
 
-	sprintf(variable_name,"Geoq");
+	sprintf(variable_name,"viscosity");
 	write_all_(cont,geoq,variable_name,binary_out);
 	
-	sprintf(variable_name,"Rho");
+	sprintf(variable_name,"density");
 	write_all_(cont,geoq_rho,variable_name,binary_out);
 
-	sprintf(variable_name,"H");
+	sprintf(variable_name,"heat");
 	write_all_(cont,geoq_H,variable_name,binary_out);
 
 	sprintf(variable_name,"strain");

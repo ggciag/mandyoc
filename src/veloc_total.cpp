@@ -71,7 +71,7 @@ PetscErrorCode veloc_total()
 			
 			Xi = 1.0 - vivi/PetscSqrtReal(sig1*sig2);
 			
-			PetscPrintf(PETSC_COMM_WORLD,"------------------------------------------Xi = %lg %d\n",Xi,step);
+			PetscPrintf(PETSC_COMM_WORLD,"      Xi = %lg %d\n\n",Xi,step);
 			
 			VecCopy(Veloc_fut,Veloc_step1);
 		

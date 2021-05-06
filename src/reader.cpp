@@ -405,10 +405,8 @@ PetscErrorCode reader(int rank){
 	
 	
 	if (rank==0){
-		printf("%ld %ld\n",Nx,Nz);
-		printf("%lf %lf\n",Lx,depth);
-		printf("%lf\n",beta_max);
-		printf("%lf\n%lf\n",ramp_begin,ramp_end);
+		printf("Mesh size:   %ld %ld\n",Nx,Nz);
+		printf("Domain size  %lf %lf\n\n",Lx,depth);
 	}
 	
 	
@@ -483,28 +481,32 @@ PetscErrorCode reader(int rank){
 				fscanf(f_inter,"%lf",&interfaces[j*Nx+i]);
 			}
 		}
-		
+
+		printf("Layers:\n  ");
+		for (PetscInt i=0;i<n_interfaces+1;i++)
+			printf("%9d ",i);
+
 		printf("\nGeoq: ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
-			printf("%e ",inter_geoq[i]);
-		printf("\nRho: ");
+			printf("%.3e ",inter_geoq[i]);
+		printf("\n Rho: ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
-			printf("%e ",inter_rho[i]);
-		printf("\nH: ");
+			printf("%.3e ",inter_rho[i]);
+		printf("\n   H: ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
-			printf("%e ",inter_H[i]);
-		printf("\nA: ");
+			printf("%.3e ",inter_H[i]);
+		printf("\n   A: ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
-			printf("%e ",inter_A[i]);
-		printf("\nn: ");
+			printf("%.3e ",inter_A[i]);
+		printf("\n   n: ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
-			printf("%lf ",inter_n[i]);
-		printf("\nQ: ");
+			printf(" %lf ",inter_n[i]);
+		printf("\n   Q: ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
-			printf("%e ",inter_Q[i]);
-		printf("\nV: ");
+			printf("%.3e ",inter_Q[i]);
+		printf("\n   V: ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
-			printf("%e ",inter_V[i]);
+			printf("%.3e ",inter_V[i]);
 		printf("\n\n");
 	}
 	
@@ -537,7 +539,7 @@ PetscErrorCode reader(int rank){
 			printf("Variable boundary condition for velocity\n");
 			for (int i=0;i<n_var_bcv;i++){
 				fscanf(f_bcv,"%lf%lf",&var_bcv_time[i],&var_bcv_scale[i]);
-				printf("%lf %lf\n",var_bcv_time[i],var_bcv_scale[i]);
+				printf("%lf Myr, scale factor = %lf\n",var_bcv_time[i],var_bcv_scale[i]);
 			}
 			printf("\n\n");
 			fclose(f_bcv);
@@ -562,15 +564,15 @@ PetscErrorCode reader(int rank){
 			printf("Multi velocity files\n");
 			for (int i=0;i<n_mv;i++){
 				fscanf(f_mv,"%lf",&mv_time[i]);
-				printf("%lf\n",mv_time[i]);
+				printf("%lf Myr\n",mv_time[i]);
 			}
-			printf("\n\n");
 			fclose(f_mv);
+			printf("\n");
 		}
 		MPI_Bcast(mv_time,n_mv,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	}
 
-	PetscPrintf(PETSC_COMM_WORLD,"\nclimate_change %d\n",climate_change);
+	PetscPrintf(PETSC_COMM_WORLD,"climate_change %d\n\n",climate_change);
 	if (climate_change==1){
 		FILE *f_climate;
 		f_climate = fopen("climate.txt","r");
@@ -590,13 +592,11 @@ PetscErrorCode reader(int rank){
 				fscanf(f_climate,"%lf%lf",&var_climate_time[i],&var_climate_scale[i]);
 				printf("%lf %lf\n",var_climate_time[i],var_climate_scale[i]);
 			}
-			printf("\n\n");
+			printf("\n");
 			fclose(f_climate);
 		}
 		MPI_Bcast(var_climate_time,n_var_climate,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 		MPI_Bcast(var_climate_scale,n_var_climate,MPIU_SCALAR,0,PETSC_COMM_WORLD);
-
-
 	}
 
 	PetscFunctionReturn(0);

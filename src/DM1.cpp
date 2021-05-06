@@ -580,8 +580,6 @@ PetscErrorCode Thermal_init(Vec F,DM thermal_da)
 		
 		VecGetOwnershipRange(Fprov,&low,&high);
 		
-		printf("%d %d\n",low,high);
-		
 		
 		Vec FN;
 		
@@ -816,7 +814,6 @@ PetscErrorCode ascii2bin(char *ss1, char *ss2){
 	
 	m--;
 	
-	printf("1 %d\n",m);
 	
 	Vec u;
 	PetscScalar    v;
@@ -852,14 +849,12 @@ PetscErrorCode ascii2bin(char *ss1, char *ss2){
 	}
 	fclose(entra);
 	
-	printf("%d\n",m);
-	
 	VecAssemblyBegin(u);
 	VecAssemblyEnd(u);
 	
 	PetscViewer    viewer;
 	
-	PetscPrintf(PETSC_COMM_SELF,"writing vector in binary to vector.dat ...\n");
+	//PetscPrintf(PETSC_COMM_SELF,"writing vector in binary to vector.dat ...\n");
 	PetscViewerBinaryOpen(PETSC_COMM_SELF,ss2,FILE_MODE_WRITE,&viewer);
 	VecView(u,viewer);
 	PetscViewerDestroy(&viewer);

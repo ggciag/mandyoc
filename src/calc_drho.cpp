@@ -78,7 +78,6 @@ PetscErrorCode calc_pressure()
 	PetscFunctionBeginUser;
 	ierr = DMDAGetInfo(da_Thermal,0,&M,&P,NULL,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
 	
-	printf("%d %d P\n",M,P);
 	
 	PetscInt               sex1,sez1,mx1,mz1;
 	
@@ -94,8 +93,6 @@ PetscErrorCode calc_pressure()
 		SETERRQ1(PETSC_COMM_WORLD,1,"Wrong partition (temper,velocity)\n",1);
 	}
 	
-	printf("%d %d %d %d Pressure\n",sez,sez+mz,sex,sex+mx);
-	printf("%d %d %d %d Veloc\n",sez1,sez1+mz1,sex1,sex1+mx1);
 	
 	PetscReal interp_interfaces[n_interfaces];
 	
@@ -221,8 +218,6 @@ PetscErrorCode shift_pressure() //necessary if the surface pressure is not close
 	PetscInt cont_ppp;
 
 
-	printf("                                   %d %d %d %d\n",sz,sz+mmz,sx,sx+mmx);
-	
 	for (k=sz; k<sz+mmz; k++) {
 		for (i=sx; i<sx+mmx; i++) {
 			ppp=0.0;

@@ -202,7 +202,7 @@ PetscErrorCode SwarmViewGP(DM dms,const char prefix[])
 	
 	if (!fp) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Cannot open file %s",name);
 	ierr = DMSwarmGetLocalSize(dms,&npoints);CHKERRQ(ierr);
-	printf("npoints = %d\n",npoints);
+	//printf("npoints = %d\n",npoints);
 	ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"itag",NULL,NULL,(void**)&iarray);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"layer",NULL,NULL,(void**)&layer_array);CHKERRQ(ierr);
@@ -283,13 +283,15 @@ PetscErrorCode createSwarm()
 	particles_per_ele = nx_part*nz_part;
 
 
-	PetscPrintf(PETSC_COMM_WORLD,"%d %d %d\n",nx_part,nz_part,particles_per_ele);
+	PetscPrintf(PETSC_COMM_WORLD,"particles per element in x:  %d\n",nx_part);
+	PetscPrintf(PETSC_COMM_WORLD,"particles per element in z:  %d\n",nz_part);
+	PetscPrintf(PETSC_COMM_WORLD,"total particles per element: %d\n\n",particles_per_ele);
 
 	ierr = DMShellCreate(PETSC_COMM_WORLD,&dmcell);CHKERRQ(ierr);
 	ierr = DMSetApplicationContext(dmcell,(void*)da_Veloc);CHKERRQ(ierr);
 	dmcell->ops->locatepoints = DMLocatePoints_DMDARegular;
 	dmcell->ops->getneighbors = DMGetNeighbors_DMDARegular;
-	PetscPrintf(PETSC_COMM_WORLD,"teste swarm externo\n");
+	//PetscPrintf(PETSC_COMM_WORLD,"teste swarm externo\n");
 
 	/* Create the swarm */
 	ierr = DMCreate(PETSC_COMM_WORLD,&dms);CHKERRQ(ierr);
@@ -316,10 +318,9 @@ PetscErrorCode createSwarm()
 
 		ierr = DMDAGetCorners(da_Veloc,&si,&sk,NULL,&milocal,&mklocal,NULL);CHKERRQ(ierr);
 
-		printf("%d: %d %d %d %d\n",rank,milocal,mklocal,si,sk);
 
 		ierr = DMGetCoordinates(da_Veloc,&coors);CHKERRQ(ierr);
-		/*VecView(coors,PETSC_VIEWER_STDOUT_WORLD);*/
+		
 		ierr = VecGetArray(coors,&LA_coors);CHKERRQ(ierr);
 
 		ierr = DMSwarmSetLocalSizes(dms,milocal*mklocal*(particles_per_ele),4);CHKERRQ(ierr);
@@ -327,11 +328,7 @@ PetscErrorCode createSwarm()
 
 		particles_add_remove = milocal*mklocal;
 
-		printf("%d: %d\nparticles_add_remove = %d",rank,nlocal,particles_add_remove);
-
 		ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
-
-		printf("bs = %d\n",bs);
 
 		cnt = 0;
 
@@ -414,13 +411,13 @@ PetscErrorCode createSwarm()
 				k = (int)((cz+depth)/dz_const);
 				seed_strain=(k*Nx+i)*(k*Nx+i);
 
-				if (i<0 || i>=Nx-1) {printf("estranho i=%d create cx = %lf\n",i,cx); exit(1);}
+				if (i<0 || i>=Nx-1) {printf("weird: i=%d create cx = %lf\n",i,cx); exit(1);}
 
 				if (i==Nx-1) i=Nx-2;
 
 				rx = (cx-i*dx_const)/dx_const;
 
-				if (rx<0 || rx>1) {printf("estranho rx=%f\n",rx); exit(1);}
+				if (rx<0 || rx>1) {printf("weird rx=%f\n",rx); exit(1);}
 
 				for (in=0;in<n_interfaces;in++){
 					rfac = (1.0-rx);

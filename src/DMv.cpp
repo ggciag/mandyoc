@@ -145,7 +145,7 @@ extern int n_interfaces;
 
 extern PetscInt binary_output;
 
-PetscErrorCode create_veloc_3d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
+PetscErrorCode create_veloc_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 {
 
 	PetscInt       dof,stencil_width;
@@ -290,9 +290,6 @@ PetscErrorCode create_veloc_3d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 		
 		VecGetOwnershipRange(Fprov,&low,&high);
 		
-		printf("%d %d\n",low,high);
-		
-		
 		Vec FN;
 		
 		DMDACreateNaturalVector(da_Veloc,&FN);
@@ -364,28 +361,21 @@ PetscErrorCode create_veloc_3d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 	
 	
 	
-	if (rank==0) printf("Init_veloc\n");
+	//if (rank==0) printf("Init_veloc\n");
 	Init_Veloc();
-	if (rank==0) printf("Init_veloc: fim\n");
+	//if (rank==0) printf("Init_veloc: fim\n");
 	
-	char nome[100];
-	PetscViewer viewer;
-	sprintf(nome,"Init_veloc.txt");
-	
-	PetscViewerASCIIOpen(PETSC_COMM_WORLD,nome,&viewer);
-	VecView(Veloc,viewer);
-	PetscViewerDestroy(&viewer);
 	
 	int ind;
 	PetscReal r;
 	
 	VecMax(Veloc_Cond,&ind,&r);
 	
-	if (rank==0) printf("VecMax Veloc_Cond: %f\n",r);
+	//if (rank==0) printf("VecMax Veloc_Cond: %f\n",r);
 	
 	VecSum(Veloc_Cond,&r);
 	
-	if (rank==0) printf("VecSum Veloc_Cond: %f\n",r);
+	//if (rank==0) printf("VecSum Veloc_Cond: %f\n",r);
 	
 	
 	
@@ -395,7 +385,7 @@ PetscErrorCode create_veloc_3d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 	ierr = KSPSetOptionsPrefix(V_ksp,"veloc_"); CHKERRQ(ierr);
 	
 	PetscTime(&Tempo2p);
-	if (rank==0) printf("Velocity create : %lf\n",Tempo2p-Tempo1p);
+	if (rank==0) printf("Velocity field (creation): %lf s\n",Tempo2p-Tempo1p);
 	
 	montaKeVeloc_general(Ke_veloc_general,dx_const,dz_const);
 	
@@ -418,9 +408,9 @@ PetscErrorCode build_veloc_3d()
 	PetscLogDouble Tempo1p,Tempo2p;
 	
 	PetscTime(&Tempo1p);
-	if (rank==0) printf("VA,VB,Vf -> zero entries\n");
+	
 	ierr = MatZeroEntries(VA);CHKERRQ(ierr);
-	if (rank==0) printf("passou VA\n");
+	
 	ierr = MatZeroEntries(VB);CHKERRQ(ierr);
 	ierr = VecZeroEntries(Vf);CHKERRQ(ierr);
 	ierr = VecZeroEntries(Vf_P);CHKERRQ(ierr);
@@ -439,7 +429,7 @@ PetscErrorCode build_veloc_3d()
 	ierr = moveSwarm(0.0);
 	ierr = Swarm2Mesh();
 	
-	if (rank==0) printf("build VA,Vf\n");
+	
 	ierr = AssembleA_Veloc(VA,VG,da_Veloc,da_Thermal);CHKERRQ(ierr);
 	
 	ierr = VecReciprocal(Precon);
@@ -451,7 +441,7 @@ PetscErrorCode build_veloc_3d()
 	
 	
 	PetscTime(&Tempo2p);
-	if (rank==0) printf("Velocity build : %lf\n",Tempo2p-Tempo1p);
+	if (rank==0) printf("  Velocity field (building): %lf s\n",Tempo2p-Tempo1p);
 	
 	PetscFunctionReturn(0);
 	
@@ -518,7 +508,7 @@ PetscErrorCode solve_veloc_3d()
 	
 	ierr = VecDot(rk_vec2,rk_vec2,&denok);CHKERRQ(ierr); //denok = r0^2 ?
 	
-	if (rank==0) printf("denok = %lg, its = %d\n",denok, its);
+	if (rank==0) printf("    Uzawa iteration: 0, denok = %lg, its = %d\n",denok, its);
 	
 	
 	
@@ -564,7 +554,7 @@ PetscErrorCode solve_veloc_3d()
 		
 		VecDot(rk_vec2,rk_vec2,&denok);
 		
-		if (rank==0) printf("denok = %lg, k=%d, its = %d\n",denok,k,its);
+		if (rank==0) printf("    Uzawa iteration: %d, denok = %lg, its = %d\n",k,denok,its);
 		
 	}
 
@@ -574,7 +564,7 @@ PetscErrorCode solve_veloc_3d()
 	
 	
 	PetscTime(&Tempo2);
-	if (rank==0) printf("Velocity solve: %lf\n",Tempo2-Tempo1);
+	if (rank==0) printf("    Velocity field (solution): %lf s\n",Tempo2-Tempo1);
 	
 	PetscFunctionReturn(0);
 	
@@ -602,7 +592,7 @@ PetscErrorCode destroy_veloc_3d()
 	ierr = DMDestroy(&da_Veloc);CHKERRQ(ierr);
 	
 	PetscTime(&Tempo2);
-	if (rank==0) printf("Velocity destroy: %lf\n",Tempo2-Tempo1);
+	if (rank==0) printf("Velocity field (destroying): %lf s\n",Tempo2-Tempo1);
 	
 	
 	PetscFunctionReturn(0);
@@ -612,7 +602,7 @@ PetscErrorCode write_veloc_3d(int cont, PetscInt binary_out)
 {
 	char variable_name[100];
 
-	sprintf(variable_name,"Veloc_fut");
+	sprintf(variable_name,"velocity");
 	write_all_(cont,Veloc_fut,variable_name,binary_out);
 	PetscFunctionReturn(0);
 }
@@ -621,7 +611,7 @@ PetscErrorCode write_veloc_cond(int cont, PetscInt binary_out)
 {
 	char variable_name[100];
 
-	sprintf(variable_name,"Veloc_Cond");
+	sprintf(variable_name,"bc_velocity");
 	write_all_(cont,Veloc_Cond,variable_name,binary_out);
 	
 	PetscFunctionReturn(0);

@@ -131,8 +131,8 @@ PetscErrorCode Swarm2Mesh(){
 		
 		
 		
-		if (i<0 || i>=Nx-1) {printf("estranho i=%d cx=%f , Swarm2Mesh\n",i,cx); exit(1);}
-		if (k<0 || k>=Nz-1) {printf("estranho k=%d cz=%f , Swarm2Mesh\n",k,cz); exit(1);}
+		if (i<0 || i>=Nx-1) {printf("weird i=%d cx=%f , Swarm2Mesh\n",i,cx); exit(1);}
+		if (k<0 || k>=Nz-1) {printf("weird k=%d cz=%f , Swarm2Mesh\n",k,cz); exit(1);}
 		
 		if (i==Nx-1) i=Nx-2;
 		if (k==Nz-1) k=Nz-2;
@@ -140,8 +140,8 @@ PetscErrorCode Swarm2Mesh(){
 		rx = (cx-i*dx_const)/dx_const;
 		rz = (cz-(-depth+k*dz_const))/dz_const;
 		
-		if (rx<0 || rx>1) {printf("estranho rx=%f , Swarm2Mesh\n",rx); exit(1);}
-		if (rz<0 || rz>1) {printf("estranho rz=%f , Swarm2Mesh\n",rz); exit(1);}
+		if (rx<0 || rx>1) {printf("weird rx=%f , Swarm2Mesh\n",rx); exit(1);}
+		if (rz<0 || rz>1) {printf("weird rz=%f , Swarm2Mesh\n",rz); exit(1);}
 		
 		
 		
@@ -207,8 +207,8 @@ PetscErrorCode Swarm2Mesh(){
 				
 				
 				
-				if (i<0 || i>=Nx-1) {printf("estranho i=%d cx=%f\n",i,cx); exit(1);}
-				if (k<0 || k>=Nz-1) {printf("estranho k=%d cz=%f\n",k,cz); exit(1);}
+				if (i<0 || i>=Nx-1) {printf("weird i=%d cx=%f\n",i,cx); exit(1);}
+				if (k<0 || k>=Nz-1) {printf("weird k=%d cz=%f\n",k,cz); exit(1);}
 				
 				if (i==Nx-1) i=Nx-2;
 				if (k==Nz-1) k=Nz-2;
@@ -216,8 +216,8 @@ PetscErrorCode Swarm2Mesh(){
 				rx = (cx-i*dx_const)/dx_const;
 				rz = (cz-(-depth+k*dz_const))/dz_const;
 				
-				if (rx<0 || rx>1) {printf("estranho rx=%f\n",rx); exit(1);}
-				if (rz<0 || rz>1) {printf("estranho rz=%f\n",rz); exit(1);}
+				if (rx<0 || rx>1) {printf("weird rx=%f\n",rx); exit(1);}
+				if (rz<0 || rz>1) {printf("weird rz=%f\n",rz); exit(1);}
 				
 				rfac = (1.0-rx)*(1.0-rz);
 				qq		[k][i] += rfac/geoq_fac[p]; //<--- harmonic
@@ -260,8 +260,8 @@ PetscErrorCode Swarm2Mesh(){
 				i = (int)(cx/dx_const);
 				k = (int)((cz+depth)/dz_const);
 				
-				if (i<0 || i>=Nx-1) {printf("estranho i=%d\n",i); exit(1);}
-				if (k<0 || k>=Nz-1) {printf("estranho k=%d\n",k); exit(1);}
+				if (i<0 || i>=Nx-1) {printf("weird i=%d\n",i); exit(1);}
+				if (k<0 || k>=Nz-1) {printf("weird k=%d\n",k); exit(1);}
 				
 				if (i==Nx-1) i=Nx-2;
 				if (k==Nz-1) k=Nz-2;
@@ -269,8 +269,8 @@ PetscErrorCode Swarm2Mesh(){
 				rx = (cx-i*dx_const)/dx_const;
 				rz = (cz-(-depth+k*dz_const))/dz_const;
 				
-				if (rx<0 || rx>1) {printf("estranho rx=%f\n",rx); exit(1);}
-				if (rz<0 || rz>1) {printf("estranho rz=%f\n",rz); exit(1);}
+				if (rx<0 || rx>1) {printf("weird rx=%f\n",rx); exit(1);}
+				if (rz<0 || rz>1) {printf("weird rz=%f\n",rz); exit(1);}
 				
 				
 				rfac = (1.0-rx)*(1.0-rz);

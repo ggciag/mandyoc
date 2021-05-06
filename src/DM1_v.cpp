@@ -357,7 +357,7 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	ierr = DMDAVecRestoreArray(temper_da,local_geoq,&qq);CHKERRQ(ierr);
 	ierr = DMDAVecRestoreArray(temper_da,local_dRho,&rr);CHKERRQ(ierr);
 	
-	printf("Visc_min = %lg, Visc_max = %lg\n",visc_aux_MIN,visc_aux_MAX);
+	//printf("Visc_min = %lg, Visc_max = %lg\n",visc_aux_MIN,visc_aux_MAX);
 	
 	
 	
@@ -665,7 +665,6 @@ PetscErrorCode Init_Veloc(){
 		
 		VecGetOwnershipRange(Fprov,&low,&high);
 		
-		printf("%d %d\n",low,high);
 		
 		
 		Vec FN;
