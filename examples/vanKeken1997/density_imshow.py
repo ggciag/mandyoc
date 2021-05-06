@@ -11,9 +11,9 @@ with open("param_1.5.3_2D.txt","r") as f:
 
 print(Nx,Nz,Lx,Lz)
 
-xi = np.linspace(0,Lx/1000,Nx);
-zi = np.linspace(-Lz/1000,0,Nz);
-xx,zz = np.meshgrid(xi,zi);
+xi = np.linspace(0,Lx/1000,Nx)
+zi = np.linspace(-Lz/1000,0,Nz)
+xx,zz = np.meshgrid(xi,zi)
 
 n_cores = 4
 
@@ -21,15 +21,15 @@ for cont in range(0,4000,40):
 	print(cont)
 	try:
 		if n_cores>1:
-			tempo = np.loadtxt("Tempo_"+str(cont)+".txt",unpack=True,delimiter=":",usecols=(1))
+			tempo = np.loadtxt("time_"+str(cont)+".txt",unpack=True,delimiter=":",usecols=(1))
 			tempo = tempo[0]
 		else:
-			tempo = np.loadtxt("Tempo_"+str(cont)+".txt",unpack=True,delimiter=":")
+			tempo = np.loadtxt("time_"+str(cont)+".txt",unpack=True,delimiter=":")
 	except:
 		print("Step %d not found"%(cont))
 		break
 	
-	A = np.loadtxt("Rho_"+str(cont)+".txt",unpack=True,comments="P",skiprows=2)
+	A = np.loadtxt("density_"+str(cont)+".txt",unpack=True,comments="P",skiprows=2)
 	TT = A*1.0
 	TT[np.abs(TT)<1.0E-200]=0
 	TT = np.reshape(TT,(Nx,Nz),order='F')
@@ -42,7 +42,7 @@ for cont in range(0,4000,40):
 	# t' = tempo * seconds_per_year * kappa / h^2
 	# t' = tempo * seconds_per_year * (rho g h^3/ Rb visc) / h^2
 	
-	plt.savefig("Rho_{:05}.png".format(cont))
+	plt.savefig("density_{:05}.png".format(cont))
 	
 	
 

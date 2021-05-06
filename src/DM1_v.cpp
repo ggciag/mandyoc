@@ -637,7 +637,7 @@ PetscErrorCode Init_Veloc(){
 	if (veloc_extern==1){
 		char s1[100],s2[100];
 		
-		sprintf(s1,"veloc_%d_3D.txt",i_veloc);
+		sprintf(s1,"input_velocity_%d.txt",i_veloc);
 		sprintf(s2,"veloc_init.bin");
 
 		PetscPrintf(PETSC_COMM_WORLD,"Reading %s\n",s1);

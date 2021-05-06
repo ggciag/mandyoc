@@ -264,7 +264,7 @@ PetscErrorCode create_veloc_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 	if (bcv_extern==1){
 		char s1[100],s2[100];
 		
-		sprintf(s1,"bcv_0_3D.txt");
+		sprintf(s1,"bcv_0.txt");
 		sprintf(s2,"bcv_init.bin");
 		
 		if (rank==0){

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 Nx = 81
 Nz = 81
 
-Lx = 92.42
+Lx = 91.42
 Lz = 100.0
 
 xn = np.linspace(0,Lx,Nx)

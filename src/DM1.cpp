@@ -555,7 +555,7 @@ PetscErrorCode Thermal_init(Vec F,DM thermal_da)
 		
 		char s1[100],s2[100];
 		
-		sprintf(s1,"Temper_0_3D.txt");
+		sprintf(s1,"input_temperature_0.txt");
 		sprintf(s2,"Temper_init.bin");
 		
 		if (rank==0){

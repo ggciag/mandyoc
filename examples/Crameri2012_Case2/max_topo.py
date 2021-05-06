@@ -19,12 +19,12 @@ topo_vec = []
 for cont in range(0,10000,10):
     try:
         if n_cores>1:
-            tempo = np.loadtxt("Tempo_"+str(cont)+".txt",unpack=True,delimiter=":",usecols=(1))
+            tempo = np.loadtxt("time_"+str(cont)+".txt",unpack=True,delimiter=":",usecols=(1))
             tempo = tempo[0]
         else:
-            tempo = np.loadtxt("Tempo_"+str(cont)+".txt",unpack=True,delimiter=":")
+            tempo = np.loadtxt("time_"+str(cont)+".txt",unpack=True,delimiter=":")
     except:
-        print("Nao encontrou passo %d"%(cont))
+        print("Step %d not found"%(cont))
         break
         
 
