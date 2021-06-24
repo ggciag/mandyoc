@@ -191,15 +191,15 @@ PetscErrorCode SwarmViewGP(DM dms,const char prefix[])
 
 	ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
 	if (binary_output==0){
-		PetscSNPrintf(name,PETSC_MAX_PATH_LEN-1,"%s-rank_new%d.txt",prefix,rank);
+		PetscSNPrintf(name,PETSC_MAX_PATH_LEN-1,"%s_%d.txt",prefix,rank);
 		fp = fopen(name,"w");
 	}
 	else{
-		PetscSNPrintf(name,PETSC_MAX_PATH_LEN-1,"%s-rank_new%d.bin",prefix,rank);
+		PetscSNPrintf(name,PETSC_MAX_PATH_LEN-1,"%s_%d.bin",prefix,rank);
 		fp = fopen(name,"wb");
 	}
-	
-	
+
+
 	if (!fp) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Cannot open file %s",name);
 	ierr = DMSwarmGetLocalSize(dms,&npoints);CHKERRQ(ierr);
 	//printf("npoints = %d\n",npoints);
@@ -320,7 +320,7 @@ PetscErrorCode createSwarm()
 
 
 		ierr = DMGetCoordinates(da_Veloc,&coors);CHKERRQ(ierr);
-		
+
 		ierr = VecGetArray(coors,&LA_coors);CHKERRQ(ierr);
 
 		ierr = DMSwarmSetLocalSizes(dms,milocal*mklocal*(particles_per_ele),4);CHKERRQ(ierr);
@@ -443,7 +443,7 @@ PetscErrorCode createSwarm()
 
 				rand_r(&seed_strain);
 				strain_array[p]=random_initial_strain*(float)rand_r(&seed_strain)/RAND_MAX;
-				
+
 				if (seed_layer_set == PETSC_TRUE) {
 					if (seed_layer_size == 1 && layer_array[p] == seed_layer[0]) {
 						strain_array[p] = strain_seed_layer[0];
