@@ -2,8 +2,102 @@
 #define GIT_VERSION "git-version-unavailable"
 #endif
 
-long Nx,Nz;
+// Parameter file numerical variables
+PetscReal rtol = PETSC_DEFAULT;
+PetscReal denok_min = 1.0E-4;
+PetscInt particles_per_ele = 81;
+PetscReal theta_FSSA = 0.5;
+PetscReal sub_division_time_step = 1.0;
+PetscReal particles_perturb_factor = 0.5;
+PetscInt sp_mode = 1;
+PetscReal Xi_min = 1.0E-14;
+PetscReal random_initial_strain = 0;
+PetscReal pressure_const = -1.0;
+PetscInt nx_ppe = 0;
+PetscInt nz_ppe = 0;
+PetscInt initial_print_step = 0;
+PetscReal initial_print_max_time = 1.0E6;
+PetscScalar K_fluvial = 2.0E-7;
+PetscScalar m_fluvial = 1.0;
+PetscScalar sea_level = 0.0;
+PetscScalar basal_heat = -1.0;
+// Parameter file boolean variables
+PetscInt WITH_NON_LINEAR = 0; // 1=True, 0=False
+PetscInt WITH_ADIABATIC_H = 0; // 1=True, 0=False
+PetscInt WITH_RADIOGENIC_H = 0; // 1=True, 0=False
+PetscInt direct_solver = 1; // 1=direct, 0=iterative
+PetscInt visc_const_per_element = 0; // 1=constant, 0=variable
+PetscInt visc_harmonic_mean = 1; // 1=harmoninc, 0=arithmetic
+PetscInt pressure_in_rheol = 0; // 1=pressure, 0=depth
+PetscInt variable_bcv = 0; // 0=False, 1=True
+PetscInt interfaces_from_ascii = 0; // 1=True, 0=False
+PetscInt temper_extern = 0; // 1=True, 0=False
+PetscInt veloc_extern = 0; // 1=True, 0=False
+PetscInt bcv_extern = 0; // 1=True, 0=False
+PetscInt binary_output = 0; // 1=True, 0=False
+PetscInt sticky_blanket_air = 0; // 1=True, 0=False
+PetscInt multi_velocity = 0; // 1=True, 0=False
+PetscInt precipitation_profile = 0; // 1=True, 0=False
+PetscInt climate_change = 0; // 1=True, 0=False
+PetscInt free_surface_stab = 1; // 1=True, 0=False
+PetscInt print_step_files = 1; // 1=True, 0=False
+PetscInt RK4 = 0; // 0=Euler, 1=Runge-Kutta (not working yet!)
+PetscInt checkered = 0; // 1=True, 0=False
+PetscInt initial_dynamic_range = 0; // 1=True, 0=False
+PetscInt periodic_boundary = 0; // 1=True, 0=False
+PetscInt high_kappa_in_asthenosphere = 0; // 1=True, 0=False
+// Will be added to param.txt
+PetscBool sp_surface_tracking = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
+PetscBool sp_surface_processes = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
+PetscBool set_sp_dt = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
+PetscBool set_sp_d_c = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
+PetscBool plot_sediment = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
+PetscBool a2l = PETSC_TRUE; // PETSC_TRUE/PETSC_FALSE
+PetscScalar sp_d_c = 1.0; // Added default here, but not in param.txt
+// Parameter file native C variables
+long Nx = -1;
+long Nz = -1;
 long layers;
+double Lx, depth;
+int n_interfaces = 0;
+int ContMult;
+long stepMAX;
+double timeMAX;
+double dt_MAX;
+long print_step;
+double visco_r;
+double visc_MAX;
+double visc_MIN;
+int geoq_on = 0; // 1=on, 2=off
+double escala_viscosidade;
+double veloc_superf;
+double RHOM;
+double alpha_exp_thermo;
+double kappa;
+double gravity;
+double Delta_T;
+double H_per_mass;
+double c_heat_capacity;
+int T_initial_cond;
+int rheol;
+int bcv_top_normal;
+int bcv_top_slip;
+int bcv_bot_normal;
+int bcv_bot_slip;
+int bcv_left_normal;
+int bcv_left_slip;
+int bcv_right_normal;
+int bcv_right_slip;
+int bcT_top;
+int bcT_bot;
+int bcT_left;
+int bcT_right;
+// End of paramenter file variables
+
+double visc_MAX_comp;
+double visc_MIN_comp;
+double visc_aux_MAX;
+double visc_aux_MIN;
 
 long T_NE = 4;
 long T_GN = 1;
@@ -12,34 +106,21 @@ long DIMEN = 2;
 
 long GaussQuad = 9;
 
-
 long V_NE = 4;
 long V_GN = 2;
 long V_GT = V_NE*V_GN;
 
-double Lx, depth;
-
+// Interfaces file variables
 PetscScalar *interfaces;
-int n_interfaces;
-
 PetscScalar *inter_rho;
 PetscScalar *inter_geoq;
 PetscScalar *inter_H;
-
 PetscScalar *inter_A;
 PetscScalar *inter_n;
 PetscScalar *inter_Q;
 PetscScalar *inter_V;
 
-PetscInt visc_harmonic_mean;
-
-
-/////////
-
 int tcont=0;
-
-
-/////////
 
 double seg_per_ano = 365.0*24.0*3600.0;
 
@@ -52,97 +133,22 @@ double tempo=0;
 double alpha_thermal=0.5;
 double comp_alpha_thermal = 1.0 - alpha_thermal;
 
-
-
-PetscReal rtol;
-
-PetscInt temper_extern;
-PetscInt veloc_extern;
-PetscInt bcv_extern;
-
 PetscInt i_veloc=0;
-
-PetscInt visc_const_per_element;
-
-/////////
 
 double dx_const;
 double dz_const;
 
-int ContMult;
-
-long stepMAX;
-double timeMAX;
-double dt_MAX;
-
-long print_step;
-
-double visco_r;
-
-double visc_MAX;
-double visc_MIN;
-
-double visc_MAX_comp;
-double visc_MIN_comp;
-
-
-double visc_aux_MAX;
-double visc_aux_MIN;
 
 double e2_aux_MAX;
 double e2_aux_MIN;
-
-double escala_viscosidade;
-
-double veloc_superf;
-
-double RHOM;
-double alpha_exp_thermo;
-double kappa;
-
-
-double gravity;
-
-double Delta_T;
 
 double H_lito;
 
 double h_air;
 
-double H_per_mass;
-double c_heat_capacity;
-
-int T_initial_cond;
-int rheol;
-
 double beta_max;
 double ramp_begin;
 double ramp_end;
-
-int bcv_top_normal;
-int bcv_top_slip;
-
-int bcv_bot_normal;
-int bcv_bot_slip;
-
-int bcv_left_normal;
-int bcv_left_slip;
-
-int bcv_right_normal;
-int bcv_right_slip;
-
-int bcT_top;
-
-int bcT_bot;
-
-int bcT_left;
-
-int bcT_right;
-
-///////
-
-PetscInt binary_output;
-///////
 
 PetscReal *TKe, *TCe, *TFe, *TCe_fut, *TMe, *Ttotal, *Ttotal_b;
 
@@ -188,8 +194,6 @@ Vec local_FT;
 Vec local_Temper;
 Vec local_TC;
 
-int geoq_on;
-
 Vec geoq;
 Vec local_geoq;
 
@@ -208,9 +212,6 @@ Vec local_geoq_strain;
 
 Vec geoq_strain_rate;
 Vec local_geoq_strain_rate;
-
-
-PetscReal denok_min;
 
 Mat VA, VB, VG;
 Vec Vf, Veloc, Veloc_fut,Veloc_weight,Veloc_0;
@@ -277,11 +278,6 @@ DM dmcell;
 
 DM dms;
 
-PetscInt particles_per_ele;
-
-PetscInt nx_ppe;
-PetscInt nz_ppe;
-
 PetscInt particles_add_remove;
 
 PetscInt *ppp;
@@ -295,36 +291,9 @@ PetscInt *p_add_layer;
 PetscReal *p_add_r_strain;
 PetscReal *p_add_r_strain_rate;
 
-
-
 PetscInt cont_particles=0;
 
-PetscInt free_surface_stab;
-
-PetscReal theta_FSSA;
-
-PetscReal sub_division_time_step;
-
-PetscInt print_step_files;
-
-PetscInt direct_solver;
-
-PetscReal particles_perturb_factor;
-
-PetscInt RK4;
-
-PetscInt pressure_in_rheol;
-
-PetscReal pressure_const;
-
-PetscInt periodic_boundary;
-
 unsigned int seed;
-
-PetscReal random_initial_strain;
-
-
-PetscReal Xi_min;
 
 PetscInt *seed_layer;
 PetscInt seed_layer_size;
@@ -333,14 +302,6 @@ PetscBool seed_layer_set = PETSC_FALSE;
 PetscReal *strain_seed_layer;
 PetscInt strain_seed_layer_size;
 PetscBool strain_seed_layer_set = PETSC_FALSE;
-
-
-PetscInt checkered;
-
-PetscInt initial_dynamic_range;
-
-PetscInt variable_bcv;
-PetscInt multi_velocity;
 
 PetscScalar *var_bcv_time;
 PetscScalar *var_bcv_scale;
@@ -351,20 +312,10 @@ PetscScalar *mv_time;
 PetscInt n_mv=0;
 PetscInt cont_mv=0;
 
-PetscInt sticky_blanket_air;
-
-
-
 ////// Flags
-PetscInt WITH_NON_LINEAR = 0;
-PetscInt WITH_ADIABATIC_H = 0;
-PetscInt WITH_RADIOGENIC_H = 0;
 
-PetscInt initial_print_step;
-PetscReal initial_print_max_time;
 PetscInt print_step_aux;
 
-PetscBool sp_surface_tracking;
 Vec sp_surface_global;
 Vec sp_surface_global_n;
 Vec sp_surface_coords_global;
@@ -377,7 +328,6 @@ PetscReal sp_dt;
 PetscReal sp_eval_time;
 PetscReal sp_last_eval_time;
 
-PetscBool sp_surface_processes;
 long sp_n_profiles;
 PetscScalar *topo_var_time;
 PetscScalar *topo_var_rate;
@@ -387,27 +337,9 @@ Vec sp_surface_global_aux;
 PetscScalar *global_surface_array_helper;
 PetscScalar *global_surface_array_helper_aux;
 
-PetscInt sp_mode;
-PetscScalar sp_d_c;
-
-PetscBool plot_sediment;
-
-PetscBool a2l;
-
-PetscScalar K_fluvial;
-PetscScalar m_fluvial;
-PetscScalar sea_level;
-
-PetscInt precipitation_profile;
-PetscInt climate_change;
-
 PetscScalar prec_factor=1.0;
 
 PetscScalar *var_climate_time;
 PetscScalar *var_climate_scale;
 PetscInt n_var_climate;
 PetscInt cont_var_climate=0;
-
-PetscScalar basal_heat;
-
-PetscInt high_kappa_in_asthenosphere;

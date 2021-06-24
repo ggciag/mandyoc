@@ -146,186 +146,94 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 "                         default value: -1.0 (i.e. not activated)\n\n"\
 "";
 
-
-
-
 /* Contributed by Dave May */
 
 #include <petscksp.h>
 #include <petscdmda.h>
-
 #include <petsctime.h>
-
 #include "petscsys.h"
-
 #include "header.h"
 
-
+// Petsc prototypes
 PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz);
-
 PetscErrorCode build_thermal_3d();
-
 PetscErrorCode solve_thermal_3d();
-
 PetscErrorCode destroy_thermal_();
-
 PetscErrorCode write_all_(int cont,Vec u, char *variable_name, PetscInt binary_out);
-
 PetscErrorCode write_pressure(int cont, PetscInt binary_out);
-
 PetscErrorCode write_geoq_(int cont, PetscInt binary_out);
-
 PetscErrorCode create_veloc_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz);
-
 PetscErrorCode createSwarm();
 PetscErrorCode moveSwarm(PetscReal dt);
 PetscErrorCode Swarm_add_remove();
 PetscErrorCode SwarmViewGP(DM dms,const char prefix[]);
-
 PetscErrorCode Init_Veloc();
-
-
-PetscErrorCode reader(int rank);
-
+PetscErrorCode reader(int rank, const char fName[]);
 PetscErrorCode write_veloc_3d(int cont, PetscInt binary_out);
 PetscErrorCode write_veloc_cond(int cont, PetscInt binary_out);
-
 PetscErrorCode destroy_veloc_3d();
-
 PetscErrorCode Calc_dt_calor();
-
 PetscErrorCode write_tempo(int cont);
-
 PetscErrorCode veloc_total();
-
 PetscErrorCode rescaleVeloc(Vec Veloc_fut, double tempo);
 PetscErrorCode multi_veloc_change(Vec Veloc_fut,double tempo);
-
 PetscErrorCode sp_create_surface_vec();
 PetscErrorCode sp_interpolate_surface_particles_to_vec();
 PetscErrorCode evaluate_surface_processes();
 PetscErrorCode sp_write_surface_vec(PetscInt i);
 PetscErrorCode sp_destroy();
 PetscErrorCode load_topo_var(int rank);
-
 PetscErrorCode rescalePrecipitation(double tempo);
-
 
 int main(int argc,char **args)
 {
 	PetscErrorCode ierr;
 	char prefix[PETSC_MAX_PATH_LEN];
-	
-	PetscInt       Px,Pz;
+	PetscInt Px,Pz;
 
 	ierr = PetscInitialize(&argc,&args,(char*)0,help);CHKERRQ(ierr);
-
-
-	PetscPrintf(PETSC_COMM_WORLD,"\n\n    MANDYOC   \n\n");
+	
+	PetscPrintf(PETSC_COMM_WORLD,"           __  __              _   _   _____   __     __   ____     _____ \n");
+	PetscPrintf(PETSC_COMM_WORLD,"          |  \\/  |     /\\     | \\ | | |  __ \\  \\ \\   / /  / __ \\   / ____|\n");
+	PetscPrintf(PETSC_COMM_WORLD,"          | \\  / |    /  \\    |  \\| | | |  | |  \\ \\_/ /  | |  | | | |     \n");
+	PetscPrintf(PETSC_COMM_WORLD,"          | |\\/| |   / /\\ \\   | . ` | | |  | |   \\   /   | |  | | | |     \n");
+	PetscPrintf(PETSC_COMM_WORLD,"          | |  | |  / ____ \\  | |\\  | | |__| |    | |    | |__| | | |____ \n");
+	PetscPrintf(PETSC_COMM_WORLD,"          |_|  |_| /_/    \\_\\ |_| \\_| |_____/     |_|     \\____/   \\_____|\n");
+	PetscPrintf(PETSC_COMM_WORLD,"                                                                          \n");
+																	
+	PetscPrintf(PETSC_COMM_WORLD,"===================================================================================\n");
+	PetscPrintf(PETSC_COMM_WORLD,"=   MANDYOC: MANtle DYnamics simulatOr Code.\n");
+	PetscPrintf(PETSC_COMM_WORLD,"===================================================================================\n");
 
 	#ifndef GIT_VERSION
 	ierr = PetscPrintf(PETSC_COMM_WORLD, "*** Git version: %s ***\n\n", GIT_VERSION);CHKERRQ(ierr);
 	#endif
 
-	PetscBool      flags;
+	PetscBool flags;
 	ierr = PetscOptionsHasName(NULL,NULL,"-flags",&flags);
 	if (flags){
 		PetscPrintf(PETSC_COMM_WORLD,"%s",help);
 		exit(1);
 	}
 
-	variable_bcv=0;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-variable_bcv",&variable_bcv,NULL);CHKERRQ(ierr);
-
-	multi_velocity=0;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-multi_velocity",&multi_velocity,NULL);CHKERRQ(ierr);
-
-	sp_mode=1;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-sp_mode",&sp_mode,NULL);CHKERRQ(ierr);
-
-
-	precipitation_profile=0;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-precipitation_profile",&precipitation_profile,NULL);CHKERRQ(ierr);
-
-	climate_change=0;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-climate_change",&climate_change,NULL);CHKERRQ(ierr);
-
 	int rank;
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
 
 	seed = rank;
-
-	reader(rank);
+	
+	// Read ASCII files
+	reader(rank, "param.txt");
 
 	PetscLogDouble Tempo1,Tempo2;
-
 	PetscTime(&Tempo1);
-
 	char variable_name[100];
 
-	Px   = Pz = PETSC_DECIDE;
+	Px = Pz = PETSC_DECIDE;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-Px",&Px,NULL);CHKERRQ(ierr);
 	Pz = Px;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-Pz",&Pz,NULL);CHKERRQ(ierr);
 
-	rtol = PETSC_DEFAULT;
-	ierr = PetscOptionsGetReal(NULL,NULL,"-rtol",&rtol,NULL);CHKERRQ(ierr);
-
-	temper_extern = 0;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-te",&temper_extern,NULL);CHKERRQ(ierr);
-
-	veloc_extern = 0;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-ve",&veloc_extern,NULL);CHKERRQ(ierr);
-
-	bcv_extern = 0;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-bcve",&bcv_extern,NULL);CHKERRQ(ierr);
-
-
-	denok_min = 1.0E-4;
-	ierr = PetscOptionsGetReal(NULL,NULL,"-denok",&denok_min,NULL);CHKERRQ(ierr);
-
-	binary_output = 0;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-binary_output",&binary_output,NULL);CHKERRQ(ierr);
-
-	visc_const_per_element=0;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-visc_const_per_element",&visc_const_per_element,NULL);CHKERRQ(ierr);
-
-	sticky_blanket_air=0;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-sticky_blanket_air",&sticky_blanket_air,NULL);CHKERRQ(ierr);
-
-	visc_harmonic_mean=1;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-visc_harmonic_mean",&visc_harmonic_mean,NULL);CHKERRQ(ierr);
-
-	particles_per_ele=81;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-particles_per_ele",&particles_per_ele,NULL);CHKERRQ(ierr);
-
-	particles_perturb_factor=0.5;
-	ierr = PetscOptionsGetReal(NULL,NULL,"-particles_perturb_factor",&particles_perturb_factor,NULL);CHKERRQ(ierr);
-	if (particles_perturb_factor>1.0) particles_perturb_factor = 1.0;
-	if (particles_perturb_factor<0.0) particles_perturb_factor = 0.0;
-
-	free_surface_stab=1;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-free_surface_stab",&free_surface_stab,NULL);CHKERRQ(ierr);
-
-	sub_division_time_step=1.0;
-	ierr = PetscOptionsGetReal(NULL,NULL,"-sub_division_time_step",&sub_division_time_step,NULL);CHKERRQ(ierr);
-
-	print_step_files=1;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-print_step_files",&print_step_files,NULL);CHKERRQ(ierr);
-
-	theta_FSSA=0.5;
-	ierr = PetscOptionsGetReal(NULL,NULL,"-theta_FSSA",&theta_FSSA,NULL);CHKERRQ(ierr);
-
-	direct_solver=1;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-direct_solver",&direct_solver,NULL);CHKERRQ(ierr);
-
-	RK4=0;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-RK4",&RK4,NULL);CHKERRQ(ierr);
-
-	Xi_min=1.0E-14;
-	ierr = PetscOptionsGetReal(NULL,NULL,"-xi_min",&Xi_min,NULL);CHKERRQ(ierr);
-
-	if (n_interfaces>0){
+	if (n_interfaces>0 && interfaces_from_ascii==1){
 		ierr = PetscCalloc1(n_interfaces, &seed_layer); CHKERRQ(ierr);
 		seed_layer_size = n_interfaces;
 		ierr = PetscOptionsGetIntArray(NULL,NULL,"-seed",seed_layer,&seed_layer_size,&seed_layer_set); CHKERRQ(ierr);
@@ -354,22 +262,6 @@ int main(int argc,char **args)
 		PetscPrintf(PETSC_COMM_WORLD,"\n");
 	}
 
-	random_initial_strain=0.0;
-	ierr = PetscOptionsGetReal(NULL,NULL,"-random_initial_strain",&random_initial_strain,NULL);CHKERRQ(ierr);
-
-	checkered=0;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-checkered",&checkered,NULL);CHKERRQ(ierr);
-
-	pressure_in_rheol=2;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-pressure_in_rheol",&pressure_in_rheol,NULL);CHKERRQ(ierr);
-	if (pressure_in_rheol==2) {
-		PetscPrintf(PETSC_COMM_WORLD,"Specify pressure_in_rheol!\n\n");
-		exit(1);
-	}
-
-	pressure_const = -1.0;
-	ierr = PetscOptionsGetReal(NULL,NULL,"-pressure_const",&pressure_const,NULL);CHKERRQ(ierr);
-
 	h_air=-1.0;
 	ierr = PetscOptionsGetReal(NULL,NULL,"-h_air",&h_air,NULL);CHKERRQ(ierr);
 	if (pressure_in_rheol==0 && h_air<0.0){
@@ -379,68 +271,10 @@ int main(int argc,char **args)
 	}
 	else h_air=0.0;
 
-	initial_dynamic_range=0;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-initial_dynamic_range",&initial_dynamic_range,NULL);CHKERRQ(ierr);
 
+	if (sp_surface_processes && sp_surface_tracking && sp_mode == 1) load_topo_var(rank);
 
-	periodic_boundary=0;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-periodic_boundary",&periodic_boundary,NULL);CHKERRQ(ierr);
-
-
-	nx_ppe = 0;
-	ierr = PetscOptionsGetInt(NULL, NULL, "-nx_ppe", &nx_ppe, NULL); CHKERRQ(ierr);
-	if (nx_ppe < 0) {
-		nx_ppe = 0;
-	}
-
-	nz_ppe = 0;
-	ierr = PetscOptionsGetInt(NULL, NULL, "-nz_ppe", &nz_ppe, NULL); CHKERRQ(ierr);
-	if (nz_ppe < 0) {
-		nz_ppe = 0;
-	}
-
-	initial_print_step = 0;
-	ierr = PetscOptionsGetInt(NULL, NULL, "-initial_print_step", &initial_print_step, NULL); CHKERRQ(ierr);
-	if (initial_print_step < 0) {
-		initial_print_step = 0;
-	}
-
-	initial_print_max_time = 1.0e6;
-	ierr = PetscOptionsGetReal(NULL, NULL, "-initial_print_max_time", &initial_print_max_time, NULL); CHKERRQ(ierr);
-
-	sp_surface_tracking = PETSC_FALSE;
-	ierr = PetscOptionsGetBool(NULL, NULL, "-sp_surface_tracking", &sp_surface_tracking, NULL); CHKERRQ(ierr);
-
-	sp_surface_processes = PETSC_FALSE;
-	ierr = PetscOptionsGetBool(NULL, NULL, "-sp_surface_processes", &sp_surface_processes, NULL); CHKERRQ(ierr);
-
-	PetscBool set_sp_dt = PETSC_FALSE;
-	ierr = PetscOptionsGetReal(NULL, NULL, "-sp_dt", &sp_dt, &set_sp_dt); CHKERRQ(ierr);
-
-	if (sp_surface_processes && sp_surface_tracking && sp_mode == 1) {
-		load_topo_var(rank);
-	}
-
-	PetscBool set_sp_d_c = PETSC_FALSE;
-	sp_d_c = 1.0;
-	ierr = PetscOptionsGetReal(NULL, NULL, "-sp_d_c", &sp_d_c, &set_sp_d_c); CHKERRQ(ierr);
-
-	K_fluvial = 2.0E-7;
-	ierr = PetscOptionsGetReal(NULL,NULL,"-K_fluvial",&K_fluvial,NULL);CHKERRQ(ierr);
-
-	m_fluvial = 1.0;
-	ierr = PetscOptionsGetReal(NULL,NULL,"-m_fluvial",&m_fluvial,NULL);CHKERRQ(ierr);
-
-	sea_level = 0.0;
-	ierr = PetscOptionsGetReal(NULL,NULL,"-sea_level",&sea_level,NULL);CHKERRQ(ierr);
-
-	basal_heat = -1.0;
-	ierr = PetscOptionsGetReal(NULL,NULL,"-basal_heat",&basal_heat,NULL);CHKERRQ(ierr);
-
-	high_kappa_in_asthenosphere=0;
-	ierr = PetscOptionsGetInt(NULL, NULL, "-high_kappa_in_asthenosphere", &high_kappa_in_asthenosphere, NULL); CHKERRQ(ierr);
-
-
+	
 	if (sp_mode == 2 && PETSC_FALSE == set_sp_d_c) {
 		ierr = PetscPrintf(PETSC_COMM_WORLD,"-sp_mode 2 (diffusion) using default value: sp_d_c %e\n", sp_d_c); CHKERRQ(ierr);
 	} else if (sp_mode == 2) {
@@ -450,19 +284,11 @@ int main(int argc,char **args)
 	}else if (sp_mode == 4) {
 		ierr = PetscPrintf(PETSC_COMM_WORLD,"-sp_mode 4 (fluvial erosion mode 2) using K_fluvial: %e and sea_level %e\n", K_fluvial,sea_level); CHKERRQ(ierr);
 	}
-
-	plot_sediment = PETSC_FALSE;
-	ierr = PetscOptionsGetBool(NULL, NULL, "-plot_sediment", &plot_sediment, NULL); CHKERRQ(ierr);
-
-	a2l = PETSC_TRUE;
-	ierr = PetscOptionsGetBool(NULL, NULL, "-a2l", &a2l, NULL); CHKERRQ(ierr);
-
-
+	
 	dx_const = Lx/(Nx-1);
 	dz_const = depth/(Nz-1);
 
 	//if (rank==0) printf("dx=%lf dz=%lf\n",dx_const,dz_const);
-
 
 	ierr = create_thermal_2d(Nx-1,Nz-1,Px,Pz);CHKERRQ(ierr);
 
@@ -476,15 +302,18 @@ int main(int argc,char **args)
 		ierr = createSwarm();CHKERRQ(ierr);
 		PetscPrintf(PETSC_COMM_WORLD,"Swarm: done\n");
 	}
-
-	// surface processes swarm
-	if (geoq_on && sp_surface_tracking && n_interfaces>0) {
+	
+//	PetscPrintf(PETSC_COMM_SELF,"********** <rank:%d> <particles_per_ele:%d>\n", rank, particles_per_ele); -> conversar com Victor sobre
+//	PetscPrintf(PETSC_COMM_SELF,"********** <rank:%d> <layers:%d>\n", rank, layers); -> conversar com Victor sobre
+	
+	// Surface Processes Swarm
+	if (geoq_on && sp_surface_tracking && n_interfaces>0 && interfaces_from_ascii==1) {
 		PetscPrintf(PETSC_COMM_WORLD, "\nSP Swarm (creating)\n");
 		ierr = sp_create_surface_vec(); CHKERRQ(ierr);
 		PetscPrintf(PETSC_COMM_WORLD, "SP Swarm: done\n");
 		ierr = sp_interpolate_surface_particles_to_vec(); CHKERRQ(ierr);
 	}
-
+	
 	// Gerya p. 215
 	if (visc_MAX>visc_MIN && initial_dynamic_range>0){
 		double visc_contrast = PetscLog10Real(visc_MAX/visc_MIN);
@@ -533,7 +362,7 @@ int main(int argc,char **args)
 	ierr = write_geoq_(tcont,binary_output);
 	ierr = write_tempo(tcont);
 
-	if (sp_surface_tracking && geoq_on && n_interfaces>0) {
+	if (sp_surface_tracking && geoq_on && n_interfaces>0 && interfaces_from_ascii==1) {
 		sp_write_surface_vec(tcont);
 	}
 
@@ -578,7 +407,7 @@ int main(int argc,char **args)
 
 		ierr = veloc_total(); CHKERRQ(ierr);
 
-		if (sp_surface_processes && geoq_on && n_interfaces>0 && (tempo > sp_eval_time || fabs(tempo-sp_eval_time) < 0.0001)) {
+		if (sp_surface_processes && geoq_on && n_interfaces>0 && interfaces_from_ascii==1 && (tempo > sp_eval_time || fabs(tempo-sp_eval_time) < 0.0001)) {
 			PetscPrintf(PETSC_COMM_WORLD,"\nEvaluating sp...\n");
 
 			ierr = rescalePrecipitation(tempo);
@@ -608,7 +437,7 @@ int main(int argc,char **args)
 			Swarm_add_remove();
 		}
 
-		if (sp_surface_tracking && geoq_on && n_interfaces>0) {
+		if (sp_surface_tracking && geoq_on && n_interfaces>0 && interfaces_from_ascii==1) {
 			ierr = sp_interpolate_surface_particles_to_vec(); CHKERRQ(ierr);
 		}
 
@@ -625,7 +454,7 @@ int main(int argc,char **args)
 					ierr = SwarmViewGP(dms,prefix);CHKERRQ(ierr);
 				}
 
-				if (sp_surface_tracking && n_interfaces>0) {
+				if (sp_surface_tracking && n_interfaces>0 && interfaces_from_ascii==1) {
 					ierr = sp_write_surface_vec(tcont); CHKERRQ(ierr);
 				}
 			}
@@ -642,7 +471,7 @@ int main(int argc,char **args)
 
 	destroy_veloc_3d();
 
-	if (geoq_on && n_interfaces>0)	sp_destroy();
+	if (geoq_on && n_interfaces>0 && interfaces_from_ascii==1)	sp_destroy();
 
 	PetscTime(&Tempo2);
 

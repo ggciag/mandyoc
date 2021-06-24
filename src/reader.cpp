@@ -1,94 +1,113 @@
-
 #include <petscksp.h>
 
+// Prototypes
+int check_a_b(char tkn_w[], char tkn_v[], const char str_a[], const char str_b[]);
+PetscBool check_a_b_bool(char tkn_w[], char tkn_v[], const char str_a[], const char str_b[]);
+//void ErrorInterfaces(int rank, const char fname[], int flag);
 void ErrorInterfaces();
 
-
-extern long Nx,Nz;
+// Parameter file variables
+extern long Nx, Nz;
 extern long layers;
-
 extern double Lx, depth;
-
 extern int ContMult;
-
 extern long stepMAX;
 extern double timeMAX;
 extern double dt_MAX;
-
 extern long print_step;
-
 extern double visco_r;
-
 extern double visc_MAX;
 extern double visc_MIN;
-
 extern int geoq_on;
-
 extern double escala_viscosidade;
-
 extern double veloc_superf;
-
 extern double RHOM;
 extern double alpha_exp_thermo;
 extern double kappa;
-
-
 extern double gravity;
-
 extern double Delta_T;
-
-extern double H_lito;
-
 extern int n_interfaces;
-extern PetscScalar *interfaces;
+extern double H_per_mass;
+extern double c_heat_capacity;
+extern int T_initial_cond;
+extern int rheol;
+extern int bcv_top_normal;
+extern int bcv_top_slip;
+extern int bcv_bot_normal;
+extern int bcv_bot_slip;
+extern int bcv_left_normal;
+extern int bcv_left_slip;
+extern int bcv_right_normal;
+extern int bcv_right_slip;
+extern int bcT_top;
+extern int bcT_bot;
+extern int bcT_left;
+extern int bcT_right;
+extern PetscInt WITH_NON_LINEAR;
+extern PetscInt WITH_ADIABATIC_H;
+extern PetscInt WITH_RADIOGENIC_H;
+extern PetscReal denok_min;
+extern PetscInt particles_per_ele;
+extern PetscReal theta_FSSA;
+extern PetscInt direct_solver;
+extern PetscInt visc_const_per_element;
+extern PetscReal sub_division_time_step;
+extern PetscInt visc_harmonic_mean;
+extern PetscInt pressure_in_rheol;
+extern PetscReal particles_perturb_factor;
+extern PetscInt variable_bcv;
+extern PetscInt interfaces_from_ascii;
+extern PetscReal rtol;
+extern PetscInt temper_extern;
+extern PetscInt veloc_extern;
+extern PetscInt bcv_extern;
+extern PetscInt binary_output;
+extern PetscInt sticky_blanket_air;
+extern PetscInt multi_velocity;
+extern PetscInt sp_mode;
+extern PetscInt precipitation_profile;
+extern PetscInt climate_change;
+extern PetscInt free_surface_stab;
+extern PetscInt print_step_files;
+extern PetscInt RK4;
+extern PetscReal Xi_min;
+extern PetscReal random_initial_strain;
+extern PetscInt checkered;
+extern PetscReal pressure_const;
+extern PetscInt initial_dynamic_range;
+extern PetscInt periodic_boundary;
+extern PetscInt nx_ppe;
+extern PetscInt nz_ppe;
+extern PetscInt initial_print_step;
+extern PetscReal initial_print_max_time;
+extern PetscScalar K_fluvial;
+extern PetscScalar m_fluvial;
+extern PetscScalar sea_level;
+extern PetscScalar basal_heat;
+extern PetscBool sp_surface_tracking;
+extern PetscBool sp_surface_processes;
+extern PetscBool set_sp_dt;
+extern PetscBool set_sp_d_c;
+extern PetscInt high_kappa_in_asthenosphere;
+extern PetscBool plot_sediment;
+extern PetscBool a2l;
 
+// Removed from parameter file
+extern double H_lito;
+extern double beta_max;
+extern double ramp_begin;
+extern double ramp_end;
+extern double h_air;
+
+// Parameters from the interfaces.txt
+extern PetscScalar *interfaces;
 extern PetscScalar *inter_rho;
 extern PetscScalar *inter_geoq;
 extern PetscScalar *inter_H;
-
 extern PetscScalar *inter_A;
 extern PetscScalar *inter_n;
 extern PetscScalar *inter_Q;
 extern PetscScalar *inter_V;
-
-extern double H_per_mass;
-extern double c_heat_capacity;
-
-extern int T_initial_cond;
-extern int rheol;
-
-extern double beta_max;
-extern double ramp_begin;
-extern double ramp_end;
-
-extern int bcv_top_normal;
-extern int bcv_top_slip;
-
-extern int bcv_bot_normal;
-extern int bcv_bot_slip;
-
-extern int bcv_left_normal;
-extern int bcv_left_slip;
-
-extern int bcv_right_normal;
-extern int bcv_right_slip;
-
-extern int bcT_top;
-
-extern int bcT_bot;
-
-extern int bcT_left;
-
-extern int bcT_right;
-
-extern double h_air;
-
-extern PetscInt WITH_NON_LINEAR;
-extern PetscInt WITH_ADIABATIC_H;
-extern PetscInt WITH_RADIOGENIC_H;
-
-extern PetscInt variable_bcv;
-extern PetscInt multi_velocity;
 
 extern PetscScalar *mv_time;
 extern PetscInt n_mv;
@@ -107,7 +126,6 @@ extern PetscInt climate_change;
 
 char str[100];
 
-extern PetscBool sp_surface_processes;
 extern long sp_n_profiles;
 extern PetscScalar *topo_var_time;
 extern PetscScalar *topo_var_rate;
@@ -116,369 +134,382 @@ extern PetscScalar *global_surface_array_helper_aux;
 
 PetscErrorCode load_topo_var(int rank);
 
-
-PetscErrorCode reader(int rank){
+// Reads input ASCII files
+PetscErrorCode reader(int rank, const char fName[]){
+	int nline;
+	int size = 1024;
+	void *nread;
+	char *tkn_w, *tkn_v;
+	char line[size];
+	// char *mandatoryParam = ["nx", "nz"];
+	
 	if (rank==0){
-		FILE *f_parametros;
-		
-		f_parametros = fopen("param_1.5.3_2D.txt","r");
-		
-		fscanf(f_parametros,"%ld %ld",&Nx,&Nz);
-		fscanf(f_parametros,"%lg %lg",&Lx,&depth);
-		
-		layers=Nz;
-		
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"mg") == 0) fscanf(f_parametros,"%d",&ContMult);
-		else {printf("mg error\n"); exit(1);}
-		
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"stepMAX") == 0) fscanf(f_parametros,"%ld",&stepMAX);
-		else {printf("stepMAX error\n"); exit(1);}
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"timeMAX") == 0) fscanf(f_parametros,"%lf",&timeMAX);
-		else {printf("timeMAX error\n"); exit(1);}
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"dt_MAX") == 0) fscanf(f_parametros,"%lf",&dt_MAX);
-		else {printf("dt_MAX error\n"); exit(1);}
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"print_step") == 0) fscanf(f_parametros,"%ld",&print_step);
-		else {printf("print_step error\n"); exit(1);}
-		
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"visc") == 0) fscanf(f_parametros,"%lg",&visco_r);
-		else {printf("visc error\n"); exit(1);}
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"visc_MAX") == 0) fscanf(f_parametros,"%lg",&visc_MAX);
-		else {printf("visc_MAX error\n"); exit(1);}
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"visc_MIN") == 0) fscanf(f_parametros,"%lg",&visc_MIN);
-		else {printf("visc_MIN error\n"); exit(1);}
-		
-		
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"n_interfaces") == 0) fscanf(f_parametros,"%d",&n_interfaces);
-		else {printf("n_interfaces error\n"); exit(1);}
-		
-		
-		
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"geoq_on") == 0) fscanf(f_parametros,"%d",&geoq_on);
-		else {printf("geoq_on error\n"); exit(1);}
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"geoq_fac") == 0) fscanf(f_parametros,"%lg",&escala_viscosidade);
-		else {printf("geoq_fac error\n"); exit(1);}
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"veloc") == 0) fscanf(f_parametros,"%lg",&veloc_superf);
-		else {printf("veloc error\n"); exit(1);}
-		
-		
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"deltaT") == 0) fscanf(f_parametros,"%lg",&Delta_T);
-		else {printf("deltaT error\n"); exit(1);}
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"alpha_exp_thermo") == 0) fscanf(f_parametros,"%lg",&alpha_exp_thermo);
-		else {printf("alpha_exp_thermo error\n"); exit(1);}
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"kappa") == 0) fscanf(f_parametros,"%lg",&kappa);
-		else {printf("kappa error\n"); exit(1);}
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"gravity") == 0) fscanf(f_parametros,"%lg",&gravity);
-		else {printf("gravity error\n"); exit(1);}
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"rhom") == 0) fscanf(f_parametros,"%lg",&RHOM);
-		else {printf("rhom error\n"); exit(1);}
-		
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"H_per_mass") == 0) fscanf(f_parametros,"%lg",&H_per_mass);
-		else {printf("H_per_mass error\n"); exit(1);}
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"c_heat_capacity") == 0) fscanf(f_parametros,"%lg",&c_heat_capacity);
-		else {printf("c_heat_capacity error\n"); exit(1);}
-		
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"non_linear") == 0) fscanf(f_parametros,"%d",&WITH_NON_LINEAR);
-		else {printf("non_linear error\n"); exit(1);}
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"adiabatic_H") == 0) fscanf(f_parametros,"%d",&WITH_ADIABATIC_H);
-		else {printf("adiabatic_H error\n"); exit(1);}
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"radiogenic_H") == 0) fscanf(f_parametros,"%d",&WITH_RADIOGENIC_H);
-		else {printf("radiogenic_H error\n"); exit(1);}
-		
-		
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"bcv_top_normal") == 0) fscanf(f_parametros,"%d",&bcv_top_normal);
-		else {printf("bcv_top_normal error\n"); exit(1);}
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"bcv_top_slip") == 0) fscanf(f_parametros,"%d",&bcv_top_slip);
-		else {printf("bcv_top_slip error\n"); exit(1);}
-		
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"bcv_bot_normal") == 0) fscanf(f_parametros,"%d",&bcv_bot_normal);
-		else {printf("bcv_bot_normal error\n"); exit(1);}
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"bcv_bot_slip") == 0) fscanf(f_parametros,"%d",&bcv_bot_slip);
-		else {printf("bcv_bot_slip error\n"); exit(1);}
-		
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"bcv_left_normal") == 0) fscanf(f_parametros,"%d",&bcv_left_normal);
-		else {printf("bcv_left_normal error\n"); exit(1);}
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"bcv_left_slip") == 0) fscanf(f_parametros,"%d",&bcv_left_slip);
-		else {printf("bcv_left_slip error\n"); exit(1);}
-		
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"bcv_right_normal") == 0) fscanf(f_parametros,"%d",&bcv_right_normal);
-		else {printf("bcv_right_normal error\n"); exit(1);}
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"bcv_right_slip") == 0) fscanf(f_parametros,"%d",&bcv_right_slip);
-		else {printf("bcv_right_slip error\n"); exit(1);}
-		
-		
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"bcT_top") == 0) fscanf(f_parametros,"%d",&bcT_top);
-		else {printf("bcT_top error\n"); exit(1);}
-		
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"bcT_bot") == 0) fscanf(f_parametros,"%d",&bcT_bot);
-		else {printf("bcT_bot error\n"); exit(1);}
-		
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"bcT_left") == 0) fscanf(f_parametros,"%d",&bcT_left);
-		else {printf("bcT_left error\n"); exit(1);}
-		
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"bcT_right") == 0) fscanf(f_parametros,"%d",&bcT_right);
-		else {printf("bcT_right error\n"); exit(1);}
-		
-		
-		
-		
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"rheol") == 0) fscanf(f_parametros,"%d",&rheol);
-		else {printf("rheol error\n"); exit(1);}
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"T_initial") == 0) fscanf(f_parametros,"%d",&T_initial_cond);
-		else {printf("T_initial error\n"); exit(1);}
-		
+		nline = 0;
+		FILE *f_parameters;
+		
+		f_parameters = fopen(fName,"r");
+		if (f_parameters == NULL) {PetscPrintf(PETSC_COMM_WORLD, "ERROR. The <%s> file was NOT FOUND.\n", fName); exit(1);}
+		while (!feof(f_parameters))
+		{
+			// Increment line number nline
+			nline += 1;
+			
+			// Read each line from the parameters f_parameters, trim undesireble characters
+			// and split line in thk_w[] and thk_v[].
+			nread = fgets(line, size, f_parameters);
+			if ((nread == NULL) || (line[0] == '\n') || (line[0] == '#')) continue;
+			tkn_w 	= strtok(line, " \t=\n");
+			if (tkn_w[0] == '#') continue;
+			tkn_v 	= strtok(NULL, " \t=#\n");
+			// PetscPrintf(PETSC_COMM_WORLD, "(%s)(%s)\n", tkn_w, tkn_v);
+			
+			// Store and check every parameter.
+			// Parameters with values
+			if (strcmp(tkn_w, "nx") == 0) {Nx = atol(tkn_v);}
+			else if (strcmp(tkn_w, "nz") == 0) {Nz = atol(tkn_v);}
+			else if (strcmp(tkn_w, "lx") == 0) {Lx = atof(tkn_v);}
+			else if (strcmp(tkn_w, "lz") == 0) {depth = atof(tkn_v);}
+			else if (strcmp(tkn_w, "multigrid") == 0) {ContMult = atoi(tkn_v);}
+			else if (strcmp(tkn_w, "step_max") == 0) {stepMAX = atol(tkn_v);}
+			else if (strcmp(tkn_w, "step_print") == 0) {print_step = atol(tkn_v);}
+			else if (strcmp(tkn_w, "time_max") == 0) {timeMAX = atof(tkn_v);}
+			else if (strcmp(tkn_w, "dt_max") == 0) {dt_MAX = atof(tkn_v);}
+			else if (strcmp(tkn_w, "viscosity_reference") == 0) {visco_r = atof(tkn_v);}
+			else if (strcmp(tkn_w, "viscosity_max") == 0) {visc_MAX = atof(tkn_v);}
+			else if (strcmp(tkn_w, "viscosity_min") == 0) {visc_MIN = atof(tkn_v);}
+			else if (strcmp(tkn_w, "n_interfaces") == 0) {n_interfaces = atoi(tkn_v);}
+			else if (strcmp(tkn_w, "geoq_fac") == 0) {escala_viscosidade = atof(tkn_v);}
+			else if (strcmp(tkn_w, "surface_velocity") == 0) {veloc_superf = atof(tkn_v);}
+			else if (strcmp(tkn_w, "temperature_difference") == 0) {Delta_T = atof(tkn_v);}
+			else if (strcmp(tkn_w, "thermal_expansion_coefficient") == 0) {alpha_exp_thermo = atof(tkn_v);}
+			else if (strcmp(tkn_w, "thermal_diffusivity_coefficient") == 0) {kappa = atof(tkn_v);}
+			else if (strcmp(tkn_w, "gravity_acceleration") == 0) {gravity = atof(tkn_v);}
+			else if (strcmp(tkn_w, "density_mantle") == 0) {RHOM = atof(tkn_v);}
+			else if (strcmp(tkn_w, "external_heat") == 0) {H_per_mass = atof(tkn_v);}
+			else if (strcmp(tkn_w, "heat_capacity") == 0) {c_heat_capacity = atof(tkn_v);}
+			else if (strcmp(tkn_w, "rheology_model") == 0) {rheol = atoi(tkn_v);}
+			else if (strcmp(tkn_w, "T_initial") == 0) {T_initial_cond = atoi(tkn_v);}
+			else if (strcmp(tkn_w, "denok") == 0) {denok_min = atof(tkn_v);}
+			else if (strcmp(tkn_w, "particles_per_element") == 0) {particles_per_ele = atol(tkn_v);}
+			else if (strcmp(tkn_w, "theta_FSSA") == 0) {theta_FSSA = atof(tkn_v);}
+			else if (strcmp(tkn_w, "sub_division_time_step") == 0) {sub_division_time_step = atof(tkn_v);}
+			else if (strcmp(tkn_w, "particles_perturb_factor") == 0) {particles_perturb_factor = atof(tkn_v);}
+			else if (strcmp(tkn_w, "rtol") == 0) {rtol = atof(tkn_v);}
+			else if (strcmp(tkn_w, "sp_mode") == 0) {sp_mode = atoi(tkn_v);}
+			else if (strcmp(tkn_w, "Xi_min") == 0) {Xi_min = atof(tkn_v);}
+			else if (strcmp(tkn_w, "random_initial_strain") == 0) {random_initial_strain = atof(tkn_v);}
+			else if (strcmp(tkn_w, "pressure_const") == 0) {pressure_const = atof(tkn_v);}
+			else if (strcmp(tkn_w, "particles_per_element_x") == 0) {nx_ppe = atoi(tkn_v);}
+			else if (strcmp(tkn_w, "particles_per_element_z") == 0) {nz_ppe = atoi(tkn_v);}
+			else if (strcmp(tkn_w, "initial_print_step") == 0) {initial_print_step = atoi(tkn_v);}
+			else if (strcmp(tkn_w, "initial_print_max_time") == 0) {initial_print_max_time = atof(tkn_v);}
+			else if (strcmp(tkn_w, "K_fluvial") == 0) {K_fluvial = atof(tkn_v);}
+			else if (strcmp(tkn_w, "m_fluvial") == 0) {m_fluvial = atof(tkn_v);}
+			else if (strcmp(tkn_w, "sea_level") == 0) {sea_level = atof(tkn_v);}
+			else if (strcmp(tkn_w, "basal_heat") == 0) {basal_heat = atof(tkn_v);}
+			
+			// Boolean parameters
+			else if (strcmp(tkn_w, "geoq") == 0) {geoq_on = check_a_b(tkn_w, tkn_v, "on", "off");}
+			else if (strcmp(tkn_w, "non_linear_method") == 0) {WITH_NON_LINEAR = check_a_b(tkn_w, tkn_v, "on", "off");}
+			else if (strcmp(tkn_w, "adiabatic_component") == 0) {WITH_ADIABATIC_H = check_a_b(tkn_w, tkn_v, "on", "off");}
+			else if (strcmp(tkn_w, "radiogenic_component") == 0) {WITH_RADIOGENIC_H = check_a_b(tkn_w, tkn_v, "on", "off");}
+			else if (strcmp(tkn_w, "top_normal_velocity") == 0) {bcv_top_normal = check_a_b(tkn_w, tkn_v, "fixed", "free");}
+			else if (strcmp(tkn_w, "bot_normal_velocity") == 0) {bcv_bot_normal = check_a_b(tkn_w, tkn_v, "fixed", "free");}
+			else if (strcmp(tkn_w, "left_normal_velocity") == 0) {bcv_left_normal = check_a_b(tkn_w, tkn_v, "fixed", "free");}
+			else if (strcmp(tkn_w, "right_normal_velocity") == 0) {bcv_right_normal = check_a_b(tkn_w, tkn_v, "fixed", "free");}
+			else if (strcmp(tkn_w, "top_tangential_velocity") == 0) {bcv_top_slip = check_a_b(tkn_w, tkn_v, "fixed", "free");}
+			else if (strcmp(tkn_w, "bot_tangential_velocity") == 0) {bcv_bot_slip = check_a_b(tkn_w, tkn_v, "fixed", "free");}
+			else if (strcmp(tkn_w, "left_tangential_velocity") == 0) {bcv_left_slip = check_a_b(tkn_w, tkn_v, "fixed", "free");}
+			else if (strcmp(tkn_w, "right_tangential_velocity") == 0) {bcv_right_slip = check_a_b(tkn_w, tkn_v, "fixed", "free");}
+			else if (strcmp(tkn_w, "top_temperature") == 0) {bcT_top = check_a_b(tkn_w, tkn_v, "fixed", "free");}
+			else if (strcmp(tkn_w, "bot_temperature") == 0) {bcT_bot = check_a_b(tkn_w, tkn_v, "fixed", "free");}
+			else if (strcmp(tkn_w, "left_temperature") == 0) {bcT_left = check_a_b(tkn_w, tkn_v, "fixed", "free");}
+			else if (strcmp(tkn_w, "right_temperature") == 0) {bcT_right = check_a_b(tkn_w, tkn_v, "fixed", "free");}
+			else if (strcmp(tkn_w, "interfaces_from_ascii") == 0) {interfaces_from_ascii = check_a_b(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "temperature_from_ascii") == 0) {temper_extern = check_a_b(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "velocity_from_ascii") == 0) {veloc_extern = check_a_b(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "solver") == 0) {direct_solver = check_a_b(tkn_w, tkn_v, "direct", "iterative");}
+			else if (strcmp(tkn_w, "viscosity_per_element") == 0) {visc_const_per_element = check_a_b(tkn_w, tkn_v, "constant", "variable");}
+			else if (strcmp(tkn_w, "viscosity_mean_method") == 0) {visc_harmonic_mean = check_a_b(tkn_w, tkn_v, "harmonic", "arithmetic");}
+			else if (strcmp(tkn_w, "viscosity_dependence") == 0) {pressure_in_rheol = check_a_b(tkn_w, tkn_v, "pressure", "depth");}
+			else if (strcmp(tkn_w, "variable_bcv") == 0) {variable_bcv = check_a_b(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "bcv_extern") == 0) {bcv_extern = check_a_b(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "binary_output") == 0) {binary_output = check_a_b(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "sticky_blanket_air") == 0) {sticky_blanket_air = check_a_b(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "multi_velocity") == 0) {multi_velocity = check_a_b(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "precipitation_profile_from_ascii") == 0) {precipitation_profile = check_a_b(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "climate_change_from_ascii") == 0) {climate_change = check_a_b(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "free_surface_stab") == 0) {free_surface_stab = check_a_b(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "print_step_files") == 0) {print_step_files = check_a_b(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "RK4") == 0) {RK4 = check_a_b(tkn_w, tkn_v, "Runge-Kutta", "Euler");}
+			else if (strcmp(tkn_w, "checkered") == 0) {checkered = check_a_b(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "initial_dynamic_range") == 0) {initial_dynamic_range = check_a_b(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "periodic_boundary") == 0) {periodic_boundary = check_a_b(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "sp_surface_tracking") == 0) {sp_surface_tracking = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "sp_surface_processes") == 0) {sp_surface_processes = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "set_sp_dt") == 0) {set_sp_dt = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "set_sp_d_c") == 0) {set_sp_d_c = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "plot_sediment") == 0) {plot_sediment = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "a2l") == 0) {a2l = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
+			
+			
+			else if (strcmp(tkn_w, "high_kappa_in_asthenosphere") == 0) {high_kappa_in_asthenosphere = check_a_b(tkn_w, tkn_v, "True", "False");}
+			
+			// Else
+			else
+			{
+				fprintf(stderr, "Error. Unrecognized keyword <%s> on line <%d> in the parameter file.\n", tkn_w, nline);
+				exit(1);
+			}
+		}
+		fclose(f_parameters);
+		
+		// Parameters values exepctions and pre-processing
+		if (particles_perturb_factor>1.0) particles_perturb_factor = 1.0;
+		if (particles_perturb_factor<0.0) particles_perturb_factor = 0.0;
+		layers = Nz;
+		if (nx_ppe < 0) nx_ppe = 0;
+		if (nz_ppe < 0) nz_ppe = 0;
+		if (initial_print_step < 0) initial_print_step = 0;
+
 		/*
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"H_lito") == 0) fscanf(f_parametros,"%lf",&H_lito);
+		fscanf(f_parameters,"%s",str);
+		if (strcmp (str,"H_lito") == 0) fscanf(f_parameters,"%lf",&H_lito);
 		else {printf("H_lito error\n"); exit(1);}
 		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"h_air") == 0) fscanf(f_parametros,"%lf",&h_air);
+		fscanf(f_parameters,"%s",str);
+		if (strcmp (str,"h_air") == 0) fscanf(f_parameters,"%lf",&h_air);
 		else {printf("h_air error\n"); exit(1);}
 		
-		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"beta_max") == 0) fscanf(f_parametros,"%lf",&beta_max);
+		fscanf(f_parameters,"%s",str);
+		if (strcmp (str,"beta_max") == 0) fscanf(f_parameters,"%lf",&beta_max);
 		else {printf("beta_max error\n"); exit(1);}
 		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"ramp_begin") == 0) fscanf(f_parametros,"%lf",&ramp_begin);
+		fscanf(f_parameters,"%s",str);
+		if (strcmp (str,"ramp_begin") == 0) fscanf(f_parameters,"%lf",&ramp_begin);
 		else {printf("ramp_begin error\n"); exit(1);}
 		
-		fscanf(f_parametros,"%s",str);
-		if (strcmp (str,"ramp_end") == 0) fscanf(f_parametros,"%lf",&ramp_end);
+		fscanf(f_parameters,"%s",str);
+		if (strcmp (str,"ramp_end") == 0) fscanf(f_parameters,"%lf",&ramp_end);
 		else {printf("ramp_end error\n"); exit(1);}
 		*/
 		
-		fclose(f_parametros);
-		
 	}
+
+	// PetscPrintf(PETSC_COMM_WORLD,"=========================================\n");
+	// PetscPrintf(PETSC_COMM_WORLD,"%d\n", Nx);
+	// PetscPrintf(PETSC_COMM_WORLD,"=========================================\n");
 	
+	// Broadcast every parameter from the parameter file.
 	MPI_Bcast(&Nx,1,MPI_LONG,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&Nz,1,MPI_LONG,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&Lx,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&depth,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&ContMult,1,MPI_INT,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&stepMAX,1,MPI_LONG,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&timeMAX,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&dt_MAX,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&print_step,1,MPI_LONG,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&visco_r,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&visc_MAX,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&visc_MIN,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
-	
-	MPI_Bcast(&n_interfaces,1,MPI_INT,0,PETSC_COMM_WORLD);
-
 	MPI_Bcast(&geoq_on,1,MPI_INT,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&escala_viscosidade,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&veloc_superf,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&Delta_T,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&alpha_exp_thermo,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&kappa,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&gravity,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&RHOM,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&H_per_mass,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&c_heat_capacity,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
-
 	MPI_Bcast(&WITH_NON_LINEAR,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&WITH_ADIABATIC_H,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&WITH_RADIOGENIC_H,1,MPI_INT,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&bcv_top_normal,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&bcv_top_slip,1,MPI_INT,0,PETSC_COMM_WORLD);
-	
-	
 	MPI_Bcast(&bcv_bot_normal,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&bcv_bot_slip,1,MPI_INT,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&bcv_left_normal,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&bcv_left_slip,1,MPI_INT,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&bcv_right_normal,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&bcv_right_slip,1,MPI_INT,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&bcT_top,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&bcT_bot,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&bcT_left,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&bcT_right,1,MPI_INT,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&rheol,1,MPI_INT,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&T_initial_cond,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&denok_min,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&particles_per_ele,1,MPI_LONG,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&theta_FSSA,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&sub_division_time_step,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&particles_perturb_factor,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&direct_solver,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&visc_const_per_element,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&visc_harmonic_mean,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&pressure_in_rheol,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&variable_bcv,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&interfaces_from_ascii,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&rtol,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&temper_extern,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&veloc_extern,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&bcv_extern,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&binary_output,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&sticky_blanket_air,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&multi_velocity,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&sp_mode,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&precipitation_profile,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&climate_change,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&free_surface_stab,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&print_step_files,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&RK4,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&Xi_min,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&random_initial_strain,1,MPI_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&checkered,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&pressure_const,1,MPI_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&initial_dynamic_range,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&periodic_boundary,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&nx_ppe,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&nz_ppe,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&initial_print_step,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&initial_print_max_time,1,MPI_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&high_kappa_in_asthenosphere,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&n_interfaces,1,MPI_INT,0,PETSC_COMM_WORLD); // Broadcast after interfaces.txt
+	MPI_Bcast(&K_fluvial,1,MPI_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&m_fluvial,1,MPI_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&sea_level,1,MPI_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&basal_heat,1,MPI_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&sp_surface_tracking,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&sp_surface_processes,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&set_sp_dt,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&set_sp_d_c,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&plot_sediment,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&a2l,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
+	
+	//MPI_Bcast(&,1,,0,PETSC_COMM_WORLD);
 	
 	/*MPI_Bcast(&H_lito,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&h_air,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&beta_max,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(&ramp_begin,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&ramp_end,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);*/
-	
-	
 	
 	if (rank==0){
 		printf("Mesh size:   %ld %ld\n",Nx,Nz);
 		printf("Domain size  %lf %lf\n\n",Lx,depth);
 	}
 	
-	
-	
-	if (n_interfaces>0) PetscCalloc1(Nx*n_interfaces,&interfaces);
+	// Interfaces
+	if (n_interfaces>0 && interfaces_from_ascii==1) PetscCalloc1(Nx*n_interfaces,&interfaces);
 	PetscCalloc1(n_interfaces+1,&inter_geoq);
 	PetscCalloc1(n_interfaces+1,&inter_rho);
 	PetscCalloc1(n_interfaces+1,&inter_H);
-	
 	PetscCalloc1(n_interfaces+1,&inter_A);
 	PetscCalloc1(n_interfaces+1,&inter_n);
 	PetscCalloc1(n_interfaces+1,&inter_Q);
 	PetscCalloc1(n_interfaces+1,&inter_V);
 	
-	FILE *f_inter;
-	f_inter = fopen("interfaces_creep.txt","r");
-	if (f_inter==NULL) {
-		printf("\n\n\n\ninterfaces_creep.txt not found\n\n\n\n");
-		PetscFunctionReturn(-1);
-	}
-	if (rank==0){
+	// Read interfaces.txt
+	if ((interfaces_from_ascii==1) && (rank==0)){
+		nline = 0;
+//		int nunits;
+//		int nheader = 7;
+//		char cp_line_1[size], cp_line_2[size];
+		FILE *f_interfaces;
 		
+		f_interfaces = fopen("interfaces.txt","r");
+		if (f_interfaces==NULL) {PetscPrintf(PETSC_COMM_WORLD, "ERROR. The <interfaces.txt> file was NOT FOUND.\n"); exit(1);}
+		
+//		while(!feof(f_interfaces))
+//		{
+//			nunits = 0;
+//			// Read each line of the interfaces.txt file, trim undesireble
+//			// characters.
+//			nread = fgets(line, size, f_interfaces);
+//			if (nline<=nheader) strcpy(cp_line_1, line);
+//			else strcpy(cp_line_2, line);
+//			if ((nread == NULL) || (line[0] == '\n') || (line[0] == '#')) continue;
+//			tkn_w 	= strtok(line, " \t\n");
+//			while ((tkn_w != NULL) && (strcmp(tkn_w, "#") != 0) && (tkn_w[0] != '#'))
+//			{
+//				PetscPrintf(PETSC_COMM_WORLD, "(%s)\n", tkn_w);
+//				tkn_w = strtok(NULL, " \t\n");
+//				nunits += 1;
+//			}
+//			PetscPrintf(PETSC_COMM_WORLD, "nunits: (%d)\n", nunits);
+//			if (nline == 0)
+//			{
+//				if (n_interfaces < 0) {n_interfaces = nunits - 1;} // Allocate variables based on interfaces.txt file
+//				PetscCalloc1(Nx * n_interfaces, &interfaces);
+//				PetscCalloc1(n_interfaces + 1, &inter_geoq);
+//				PetscCalloc1(n_interfaces + 1, &inter_rho);
+//				PetscCalloc1(n_interfaces + 1, &inter_H);
+//				PetscCalloc1(n_interfaces + 1, &inter_A);
+//				PetscCalloc1(n_interfaces + 1, &inter_n);
+//				PetscCalloc1(n_interfaces + 1, &inter_Q);
+//				PetscCalloc1(n_interfaces + 1, &inter_V);
+//			}
+//			else if ((nline > 0) && (nline < nheader))
+//			{
+//				if (nunits - 1 <= n_interfaces) {ErrorInterfaces(rank, f_interfaces, 0); exit(1);}
+//			}
+//			else if (nunits != n_interfaces - 1) {ErrorInterfaces(rank, f_interfaces, 1); exit(1);}
+//			nline += 1;
+//		}
+// 		End
+		
+		f_interfaces = fopen("interfaces.txt","r");
 		int check_fscanf;
 		
-		fscanf(f_inter,"%s",str);
+		fscanf(f_interfaces,"%s",str);
 		if (strcmp (str,"C") == 0){
 			for (PetscInt i=0;i<n_interfaces+1;i++){
-				check_fscanf = fscanf(f_inter,"%lf",&inter_geoq[i]);
+				check_fscanf = fscanf(f_interfaces,"%lf",&inter_geoq[i]);
 				if (check_fscanf==0) {ErrorInterfaces(); exit(1);}
 			}
 		}
 		else { ErrorInterfaces(); exit(1);}
 		
-		fscanf(f_inter,"%s",str);
+		fscanf(f_interfaces,"%s",str);
 		if (strcmp (str,"rho") == 0)
 			for (PetscInt i=0;i<n_interfaces+1;i++)
-				fscanf(f_inter,"%lf",&inter_rho[i]);
+				fscanf(f_interfaces,"%lf",&inter_rho[i]);
 		else { ErrorInterfaces(); exit(1);}
 		
-		fscanf(f_inter,"%s",str);
+		fscanf(f_interfaces,"%s",str);
 		if (strcmp (str,"H") == 0)
 			for (PetscInt i=0;i<n_interfaces+1;i++)
-				fscanf(f_inter,"%lf",&inter_H[i]);
+				fscanf(f_interfaces,"%lf",&inter_H[i]);
 		else { ErrorInterfaces(); exit(1);}
 		
-		fscanf(f_inter,"%s",str);
+		fscanf(f_interfaces,"%s",str);
 		if (strcmp (str,"A") == 0)
 			for (PetscInt i=0;i<n_interfaces+1;i++)
-				fscanf(f_inter,"%lf",&inter_A[i]);
+				fscanf(f_interfaces,"%lf",&inter_A[i]);
 		else { ErrorInterfaces(); exit(1);}
 		
-		fscanf(f_inter,"%s",str);
+		fscanf(f_interfaces,"%s",str);
 		if (strcmp (str,"n") == 0)
 			for (PetscInt i=0;i<n_interfaces+1;i++)
-				fscanf(f_inter,"%lf",&inter_n[i]);
+				fscanf(f_interfaces,"%lf",&inter_n[i]);
 		else { ErrorInterfaces(); exit(1);}
 		
-		fscanf(f_inter,"%s",str);
+		fscanf(f_interfaces,"%s",str);
 		if (strcmp (str,"Q") == 0)
 			for (PetscInt i=0;i<n_interfaces+1;i++)
-				fscanf(f_inter,"%lf",&inter_Q[i]);
+				fscanf(f_interfaces,"%lf",&inter_Q[i]);
 		else { ErrorInterfaces(); exit(1);}
 		
-		fscanf(f_inter,"%s",str);
+		fscanf(f_interfaces,"%s",str);
 		if (strcmp (str,"V") == 0)
 			for (PetscInt i=0;i<n_interfaces+1;i++)
-				fscanf(f_inter,"%lf",&inter_V[i]);
+				fscanf(f_interfaces,"%lf",&inter_V[i]);
 		else { ErrorInterfaces(); exit(1);}
 		
 		for (PetscInt i=0; i<Nx; i++){
 			for (PetscInt j=0; j<n_interfaces; j++){
-				fscanf(f_inter,"%lf",&interfaces[j*Nx+i]);
+				fscanf(f_interfaces,"%lf",&interfaces[j*Nx+i]);
 			}
 		}
 
@@ -508,20 +539,23 @@ PetscErrorCode reader(int rank){
 		for (PetscInt i=0;i<n_interfaces+1;i++)
 			printf("%.3e ",inter_V[i]);
 		printf("\n\n");
+		
+		fclose(f_interfaces); // Close file
 	}
 	
-	if (n_interfaces>0) MPI_Bcast(interfaces,Nx*n_interfaces,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+	if (n_interfaces>0 && interfaces_from_ascii==1) MPI_Bcast(interfaces,Nx*n_interfaces,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_geoq,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_rho,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_H,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
-	
 	MPI_Bcast(inter_A,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_n,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_Q,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_V,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	
-
-
+	// Broadcast, special cases
+//	MPI_Bcast(&n_interfaces,1,MPI_INT,0,PETSC_COMM_WORLD); // Broadcast after interfaces.txt
+	
+	// Variable [B]oundary [C]onditions for the [V]elocity
 	if (variable_bcv==1){
 		FILE *f_bcv;
 		f_bcv = fopen("scale_bcv.txt","r");
@@ -670,3 +704,61 @@ void ErrorInterfaces(){
 	printf("compatible to the one indicated in the\n");
 	printf("parameters file.\n\n\n\n");
 }
+
+// Interface file error
+//void ErrorInterfaces(int rank, const char fname[], int flag)
+//{
+//	if (rank == 0)
+//	{
+//		if (flag == 0)
+//		{
+////			print_stars();
+//			fprintf(stderr, "ERROR. The number of values in the header of the <%s> file \n", fname);
+//			fprintf(stderr, "is INCONSISTENT to define a number of interfaces.\n");
+////			print_stars();
+//		}
+//		else if (flag == 1)
+//		{
+////			print_stars();
+//			fprintf(stderr, "ERROR. The number of columns for the data in <%s> file \n", fname);
+//			fprintf(stderr, "DOES NOT match the requisites for the number of interfaces.\n");
+////			print_stars();
+//		}
+//		else if (flag == 2)
+//		{
+////			print_stars();
+//			fprintf(stderr, "ERROR. The number of lines for the data in <%s> file \n", fname);
+//			fprintf(stderr, "DOES NOT match the requisites for the number of interfaces.\n");
+////			print_stars();
+//		}
+//	}
+//}
+
+// Function that returns 1 if tkn_v equals str_a; 0 tkn_v equals str_b; and
+// exit with code (1) if none.
+int check_a_b(char tkn_w[], char tkn_v[], const char str_a[], const char str_b[])
+{
+	int value;
+	if (strcmp(tkn_v, str_a) == 0) value = 1;
+	else if (strcmp(tkn_v, str_b) == 0) value = 0;
+	else
+	{
+		fprintf(stderr, "ERROR. Unrecognized value <%s> for <%s> in the parameter file.\n", tkn_v, tkn_w);
+		exit(1);
+	}
+	return value;
+}
+PetscBool check_a_b_bool(char tkn_w[], char tkn_v[], const char str_a[], const char str_b[])
+{
+	PetscBool value;
+	if (strcmp(tkn_v, str_a) == 0) value = PETSC_TRUE;
+	else if (strcmp(tkn_v, str_b) == 0) value = PETSC_FALSE;
+	else
+	{
+		fprintf(stderr, "ERROR. Unrecognized value <%s> for <%s> in the parameter file.\n", tkn_v, tkn_w);
+		exit(1);
+	}
+	return value;
+}
+
+

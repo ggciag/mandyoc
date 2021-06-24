@@ -3,47 +3,38 @@
 #include <petscmath.h>
 
 extern int rheol;
-
 extern double visc_MAX;
 extern double visc_MIN;
-
 extern double visc_MAX_comp;
 extern double visc_MIN_comp;
-
 extern int geoq_on;
-
 extern double visco_r;
-
 extern double Delta_T;
-
 extern PetscInt WITH_NON_LINEAR;
-
 extern PetscInt pressure_in_rheol;
-
 extern PetscReal pressure_const;
-
 extern double h_air;
-
 extern int tcont;
 
 
-double strain_softening(double strain, double f1, double f2){
+double strain_softening(double strain, double f1, double f2)
+{
 	double fac;
-	
-	double st1=0.05,st2=1.05;
+	double st1 = 0.05;
+	double st2 = 1.05;
 
-	if (strain<st1) fac=f1;
-	else{
-		if (strain>st2) fac=f2;
-		else{
-			fac = f1 - (f1-f2)*(strain-st1)/(st2-st1);
+	if (strain<st1) {fac = f1;}
+	else
+	{
+		if (strain>st2) {fac = f2;}
+		else
+		{
+			fac = f1 - (f1-f2) * (strain-st1) / (st2-st1);
 		}
 	}
 	
 	return(fac);
 }
-
-
 
 double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,double e2_inva,double strain_cumulate,
 						double A, double n_exp, double QE, double VE){
@@ -54,7 +45,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		depth = -(z + h_air);
 		if (depth<0.0) depth=0.0;
 	}
-	if (P<0.0) P=0.0;
+	if (P<0.0) {P = 0.0;}
 
 	if (pressure_const>=0.0) P = pressure_const;
 
@@ -65,7 +56,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 	if (rheol==0)	visco_real = visco_r;
 	
 	if (rheol==1){
-		double r=20.0;
+		double r = 20.0;
 		double Q = 225.0/log(r)-0.25*log(r);
 		double G = 15./log(r)-0.5;
 		
@@ -231,7 +222,4 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 	return(visco_real);
 	
 	return(0);
-	
-	
-	
 }
