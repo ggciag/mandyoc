@@ -367,10 +367,7 @@ int main(int argc,char **args)
 	}
 
 	VecCopy(Veloc_fut,Veloc);
-
-	
 	ierr = Calc_dt_calor();
-
 
 	if (initial_print_step > 0) {
 		print_step_aux = print_step;
@@ -381,9 +378,9 @@ int main(int argc,char **args)
 
 	if (sp_surface_processes && PETSC_FALSE == set_sp_dt) {
 		sp_dt = 10.0 * dt_calor;
-
 		PetscPrintf(PETSC_COMM_WORLD, "\n\n*** Using default sp_dt\n\n");
 	}
+
 	sp_eval_time = sp_dt;
 	sp_last_eval_time = 0.0;
 

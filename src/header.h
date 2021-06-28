@@ -21,6 +21,8 @@ PetscScalar K_fluvial = 2.0E-7;
 PetscScalar m_fluvial = 1.0;
 PetscScalar sea_level = 0.0;
 PetscScalar basal_heat = -1.0;
+PetscReal sp_dt = 0.0;
+PetscScalar sp_d_c = 0.0; 
 // Parameter file boolean variables
 PetscInt WITH_NON_LINEAR = 0; // 1=True, 0=False
 PetscInt WITH_ADIABATIC_H = 0; // 1=True, 0=False
@@ -53,7 +55,6 @@ PetscBool set_sp_dt = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
 PetscBool set_sp_d_c = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
 PetscBool plot_sediment = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
 PetscBool a2l = PETSC_TRUE; // PETSC_TRUE/PETSC_FALSE
-PetscScalar sp_d_c = 1.0; // Added default here, but not in param.txt
 // Parameter file native C variables
 long Nx = -1;
 long Nz = -1;
@@ -92,7 +93,7 @@ int bcT_top;
 int bcT_bot;
 int bcT_left;
 int bcT_right;
-// End of paramenter file variables
+// End of parameter file variables
 
 double visc_MAX_comp;
 double visc_MIN_comp;
@@ -324,7 +325,6 @@ Vec sp_bot_surface_global;
 Vec sp_mean_surface_global;
 Vec sp_top_surface_global_n;
 Vec sp_bot_surface_global_n;
-PetscReal sp_dt;
 PetscReal sp_eval_time;
 PetscReal sp_last_eval_time;
 

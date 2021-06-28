@@ -86,6 +86,8 @@ extern PetscScalar sea_level;
 extern PetscScalar basal_heat;
 extern PetscBool sp_surface_tracking;
 extern PetscBool sp_surface_processes;
+extern PetscReal sp_dt;
+extern PetscReal sp_d_c;
 extern PetscBool set_sp_dt;
 extern PetscBool set_sp_d_c;
 extern PetscInt high_kappa_in_asthenosphere;
@@ -207,6 +209,8 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "m_fluvial") == 0) {m_fluvial = atof(tkn_v);}
 			else if (strcmp(tkn_w, "sea_level") == 0) {sea_level = atof(tkn_v);}
 			else if (strcmp(tkn_w, "basal_heat") == 0) {basal_heat = atof(tkn_v);}
+			else if (strcmp(tkn_w, "sp_dt") == 0) {sp_dt = atof(tkn_v);}
+			else if (strcmp(tkn_w, "sp_d_c") == 0) {sp_d_c = atof(tkn_v);}
 			
 			// Boolean parameters
 			else if (strcmp(tkn_w, "geoq") == 0) {geoq_on = check_a_b(tkn_w, tkn_v, "on", "off");}
@@ -247,11 +251,8 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "periodic_boundary") == 0) {periodic_boundary = check_a_b(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "sp_surface_tracking") == 0) {sp_surface_tracking = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "sp_surface_processes") == 0) {sp_surface_processes = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
-			else if (strcmp(tkn_w, "set_sp_dt") == 0) {set_sp_dt = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
-			else if (strcmp(tkn_w, "set_sp_d_c") == 0) {set_sp_d_c = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "plot_sediment") == 0) {plot_sediment = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "a2l") == 0) {a2l = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
-			
 			
 			else if (strcmp(tkn_w, "high_kappa_in_asthenosphere") == 0) {high_kappa_in_asthenosphere = check_a_b(tkn_w, tkn_v, "True", "False");}
 			
@@ -264,13 +265,15 @@ PetscErrorCode reader(int rank, const char fName[]){
 		}
 		fclose(f_parameters);
 		
-		// Parameters values exepctions and pre-processing
-		if (particles_perturb_factor>1.0) particles_perturb_factor = 1.0;
-		if (particles_perturb_factor<0.0) particles_perturb_factor = 0.0;
+		// Parameters values exceptions and pre-processing
+		if (particles_perturb_factor > 1.0) particles_perturb_factor = 1.0;
+		if (particles_perturb_factor < 0.0) particles_perturb_factor = 0.0;
 		layers = Nz;
 		if (nx_ppe < 0) nx_ppe = 0;
 		if (nz_ppe < 0) nz_ppe = 0;
 		if (initial_print_step < 0) initial_print_step = 0;
+		if (sp_dt > 0) set_sp_dt = PETSC_TRUE;
+		if (sp_d_c > 0) set_sp_d_c = PETSC_TRUE;
 
 		/*
 		fscanf(f_parameters,"%s",str);
@@ -295,10 +298,6 @@ PetscErrorCode reader(int rank, const char fName[]){
 		*/
 		
 	}
-
-	// PetscPrintf(PETSC_COMM_WORLD,"=========================================\n");
-	// PetscPrintf(PETSC_COMM_WORLD,"%d\n", Nx);
-	// PetscPrintf(PETSC_COMM_WORLD,"=========================================\n");
 	
 	// Broadcast every parameter from the parameter file.
 	MPI_Bcast(&Nx,1,MPI_LONG,0,PETSC_COMM_WORLD);
@@ -382,6 +381,8 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&basal_heat,1,MPI_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&sp_surface_tracking,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&sp_surface_processes,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&sp_dt,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&sp_d_c,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&set_sp_dt,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&set_sp_d_c,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&plot_sediment,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
@@ -636,7 +637,6 @@ PetscErrorCode reader(int rank, const char fName[]){
 	PetscFunctionReturn(0);
 
 }
-
 
 /* Filename: topo_var.txt */
 /* File format: */
