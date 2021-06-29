@@ -339,7 +339,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&bcT_right,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&rheol,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&T_initial_cond,1,MPI_INT,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&denok_min,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&denok_min,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&particles_per_ele,1,MPI_LONG,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&theta_FSSA,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&sub_division_time_step,1,MPIU_REAL,0,PETSC_COMM_WORLD);
@@ -364,15 +364,15 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&print_step_files,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&RK4,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&Xi_min,1,MPIU_REAL,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&random_initial_strain,1,MPI_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&random_initial_strain,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&checkered,1,MPI_INT,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&pressure_const,1,MPI_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&pressure_const,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&initial_dynamic_range,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&periodic_boundary,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&nx_ppe,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&nz_ppe,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&initial_print_step,1,MPI_INT,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&initial_print_max_time,1,MPI_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&initial_print_max_time,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&high_kappa_in_asthenosphere,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&n_interfaces,1,MPI_INT,0,PETSC_COMM_WORLD); // Broadcast after interfaces.txt
 	MPI_Bcast(&K_fluvial,1,MPI_REAL,0,PETSC_COMM_WORLD);
