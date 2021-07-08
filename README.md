@@ -52,13 +52,13 @@ cd $HOME/petsc
 ```
 
 > Note: If using `gfortran` optional dependency add the options
-`--with-fc=gfortran` and `FOPTFLAGS='-O3 -march=native -mtune=native'`
-to the PETSc build configuration above.
+> `--with-fc=gfortran` and `FOPTFLAGS='-O3 -march=native -mtune=native'`
+> to the PETSc build configuration above.
 
 > Note: If you are build a development version of MANDYOC you can build
-a debug version of PETSc by setting `--with-debugging=1` and removing the
-COPTFLAGS, CXXOPTFLAGS (and FOPTFLAGS) flags.
-In this case, you may set `PETSC_ARCH=arch-label-debug`.
+> a debug version of PETSc by setting `--with-debugging=1` and removing the
+> COPTFLAGS, CXXOPTFLAGS (and FOPTFLAGS) flags.
+> In this case, you may set `PETSC_ARCH=arch-label-debug`.
 
 _Check_ the installation with:
 
@@ -110,7 +110,7 @@ make all
 ### Code of conduct
 
 Please note that this project is released with a
-[Contributor Code of Conduct](https://bitbucket.org/victorsacek/mandyoc/src/master/CODE_OF_CONDUCT.md).
+[Contributor Code of Conduct](https://github.com/ggciag/mandyoc/blob/main/CODE_OF_CONDUCT.md).
 By participating in this project you agree to abide by its terms.
 
 ### Contributing Guidelines
@@ -119,7 +119,7 @@ By participating in this project you agree to abide by its terms.
 If you have an issue, a bug, a code contribution or a documentation
 contribution, _thanks for helping to improve MANDYOC!_
 Check out our
-[Contributing guide](https://bitbucket.org/victorsacek/mandyoc/src/master/CONTRIBUTING.md).
+[Contributing guide](https://github.com/ggciag/mandyoc/blob/main/CONTRIBUTING.md).
 
 ## How to visualize the results using Xarray
 
@@ -137,4 +137,4 @@ You can find installation instructions and examples at the
 This is free software, you can redistribute it and/or modify it under the terms
 of the **BSD 3-clause License**.
 A copy of this license is provided in
-[LICENSE](/https://bitbucket.org/victorsacek/mandyoc/src/master/LICENSE).
+[LICENSE](https://github.com/ggciag/mandyoc/blob/main/LICENSE).
