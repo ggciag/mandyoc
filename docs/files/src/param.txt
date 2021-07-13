@@ -1,0 +1,82 @@
+# Geometry
+nx                        = 281        # N. of elements in the longitudinal direction
+nz                        = 85         # N. of elements in the vertical direction
+lx                        = 2800000.0  # Extent in the longitudinal direction
+lz                        = 850000.0   # Extent in the vertical direction
+
+# Simulation options
+# solver                  = direct     # [direct/iterative]
+use_multigrid             = 1          # Enable multigrid
+# residual_norm_iter      = 1.0e-5
+# residual_norm_uzawa     = 1.0e-4
+
+# Time constrains for the simulation
+step_maxkjdfd             = 7000       # Maximum time-step of the simulation
+step_print                = 10         # Make file every <step_print>
+time_max                  = 14e9       # Maximum time of the simulation [s]
+dt_max                    = 10.0e3     # Maximum time between steps of the simulation [s]
+
+# Values for the viscosity
+visc_ref                  = 1.0e+21    # Reference viscosity [Pa.s]
+visc_max                  = 1.0e+23    # Maximum viscosity [Pa.s]
+visc_min                  = 1.0e+19    # Minimum viscosity [Pa.s]
+
+# External ASCII inputs 
+interfaces_from_ascii     = True       # Use 'initial-interfaces.txt' ASCII file
+# temperature_from_ascii  = True       # Use 'initial-temperature.txt' ASCII file
+velocity_from_ascii       = False      # Use 'initial-velocity.txt' ASCII file
+
+geo=on#kdjfkdjf
+geoq_fac                  = 100.0      
+surf_veloc                = 0.0e-2.    
+
+temp_diff                 = 0
+
+
+# Physical parameters
+heat_capacity             = 1250.0     # Heat capacity [J/K]
+gravity                   = 10.0       # Gravity acceleration [m/s^2]
+kappa                     = 1.0E-6     # Coefficient of thermal conductivity [W/(m.K)]
+alpha                     = 3.28E-5    # Coefficient of thermal expansion [1/K]
+rho_mantle                = 3300.      # Mantle's reference density [kg/m^3]
+
+# External heat per mass unit
+external_heat             = 0.0
+
+non_linear_method         = off
+adiabatic_component       = off
+radiogenic_component      = off
+
+# Velocity boundary conditions
+# Normal velocity
+top_normal_velocity       = fixed
+bot_normal_velocity       = fixed
+left_normal_velocity      = fixed
+right_normal_velocity     = fixed
+# Tangential velocity
+top_tangential_velocity   = free
+bot_tangential_velocity   = fixed
+left_tangential_velocity  = free
+right_tangential_velocity = free
+
+# Temperature boundary conditions
+top_temperature           = fixed
+bot_temperature           = fixed
+left_temperature          = fixed
+right_temperature         = fixed
+
+# Rheology model
+rheology_model            = 0          # Number of the rheology model for the simulation
+initial_temperature       = 9          # Number of the temperature model for the simulation
+
+
+# Initial model
+# lithosphere_thickness   = 80.0e4
+# air_layer_thickness     = 0.0
+# beta_max                = 3.0
+# ramp_begin              = 2000.0e3
+# ramp_end                = 2200.0e3
+
+
+
+

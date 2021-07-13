@@ -1,1 +1,5 @@
 mandyoc
+
+# Ignore _build folder
+_build
+
