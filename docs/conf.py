@@ -13,16 +13,17 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
-
+import datetime
+import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 
+year = datetime.date.today().year
 project = "MANDYOC"
-copyright = "2020, Jamison Assunção"
-author = "Jamison Assunção"
+copyright = "2020-{}, The {} Developers".format(year, project)
 
 # The full version, including alpha/beta/rc tags
-release = "0.1"
+release = "0.1.0"
 
 
 # -- General configuration ---------------------------------------------------
@@ -65,7 +66,6 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-import sphinx_rtd_theme
 
 html_theme = "sphinx_rtd_theme"
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
