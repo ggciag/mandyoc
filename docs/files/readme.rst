@@ -1,7 +1,3 @@
-MANDYOC
-=========
-**MANtle DYnamics simulatOr Code**
-
 About
 -----------
 MANDYOC is a finite element code written written on top of the `PETSc`_ library  to simulate thermo-chemical convection of the Earth's mantle.

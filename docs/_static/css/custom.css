@@ -1,6 +1,10 @@
 .math {
-    text-align: left;
+  text-align: left;
 }
 .eqno {
-    float: right;
+  float: right;
+}
+
+.banner {
+  text-align: center;
 }
