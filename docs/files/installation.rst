@@ -2,7 +2,7 @@ How to install
 ==============
 
 MANDYOC installation is very simple and it consists of installing both `PETSc`_
-and MANDYOC from each one's Bitbucket repository.
+and MANDYOC.
 
 .. warning::
 	The following installation steps work for both Linux and macOS machines
@@ -24,14 +24,14 @@ PETSc Installation
 ------------------
 
 MANDYOC requires the `PETSc`_ library to run.
-The first step is to *download* the latest release of PETSc from `PETSc website`_
-or *clone* the repository into your machine::
+The first step is to **download** the latest release of PETSc from `PETSc website`_
+or **clone** the repository into your machine::
 
 	git clone -b release https://gitlab.com/petsc/petsc.git $HOME/petsc
 
 By default, we will download/clone in ``~/petsc``.
 
-Second, *configure the PETSc build* and set up the installation directory.
+Second, **configure the PETSc build** and set up the installation directory.
 By default, we will install PETSc in ``~/petsc``.
 
 .. code-block:: bash
@@ -69,7 +69,7 @@ By default, we will install PETSc in ``~/petsc``.
 	the ``COPTFLAGS``, ``CXXOPTFLAGS`` (and ``FOPTFLAGS``) flags.
 	In this case, you may set ``PETSC_ARCH=arch-label-debug``.
 
-*Check* the installation with:
+**Check** the installation with:
 
 .. code-block::
 
@@ -82,16 +82,16 @@ For further information about the PETSc library, check the `PETSc website`_.
 MANDYOC Installation
 --------------------
 
-To install the MANDYOC you need to clone it to a local repository in your
-machine.
-Navigate to the directory you wish to install MANDYOC and type the
-command below or download the code from the `MANDYOC repository page`_.
+To install the MANDYOC in your machine,  you need to **clone or download  the latest release** of the
+code from the `MANDYOC repository page`_.
+
+To clone the repository, navigate to the directory you wish to install MANDYOC and type:
 
 .. code-block:: bash
 
-   git clone https://bitbucket.org/victorsacek/mandyoc/src/master/
+   git clone https://github.com/ggciag/mandyoc
 
-Next, Build and install MANDYOC by running::
+Next, **build and install** MANDYOC by running::
 
 	make all
 
@@ -105,4 +105,4 @@ Next, Build and install MANDYOC by running::
 .. _PETSc: https://www.mcs.anl.gov/petsc/
 .. _PETSc website: https://www.mcs.anl.gov/petsc/download/index.html
 .. _PETSc repository: https://bitbucket.org/petsc/petsc/src/maint/
-.. _MANDYOC repository page: https://bitbucket.org/victorsacek/mandyoc/src/master/
+.. _MANDYOC repository page: https://github.com/ggciag/mandyoc
