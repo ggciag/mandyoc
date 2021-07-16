@@ -3,12 +3,6 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. raw:: html
-
-    <div class="banner">
-        <h1>MANDYOC</h1>
-        <p> <strong>MANtle DYnamics simulatOr Code</strong></p>
-    </div>
 
 .. include:: files/readme.rst
 
