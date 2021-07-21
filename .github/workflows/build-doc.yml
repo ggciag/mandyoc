@@ -48,7 +48,8 @@ jobs:
         run: pip install -r docs/requirements-docs.txt
 
       - name: make html
-        run: make html
+        run: cd docs ; make clean ; make html;
+
       # Deploy website only if scheduled on main or when pushed to main
       - name: Deploy website to GitHub Actions
         if: success() && (github.ref == 'refs/heads/main' || github.event_name == 'push')
@@ -57,7 +58,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: docs-pages
-          publish_dir: ./_build/html
+          publish_dir: docs/_build/html
           # Only keep the latest commit to avoid bloating the repository
           force_orphan: true
           user_name: "github-actions[bot]"
