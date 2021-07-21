@@ -2,4 +2,5 @@ mandyoc
 
 # Ignore _build folder
 _build
-
+# Ignore the documentation building folder
+docs/_build
