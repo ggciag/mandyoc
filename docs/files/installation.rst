@@ -12,11 +12,14 @@ Dependencies
 ------------
 
 * PETSc_
+
 * gcc
+
 * make
+
 * git
 
-*Optional* dependencies:
+**Optional** dependencies:
 
 * `gfortran`
 
