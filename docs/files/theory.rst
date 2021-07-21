@@ -18,7 +18,7 @@ To simulate mantle thermo-mechanical convection, we adopted the formulation for 
 .. math:: 
 	:label: momentum-conservation
 
-	\sigma_{ij,j}+g\rho_0(1-\alpha(T-T_0))=0
+	\sigma_{ij,j}+g_{i}\rho_{0}(1-\alpha(T-T_{0}))=0
 
 .. math::
 	:label: energy-conservation
