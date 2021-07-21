@@ -35,9 +35,9 @@ where :math:`\Gamma_{h_i}` is the boundary where the :math:`ith` components of t
     \int_{\Omega}{w_{i,j}c_{ijkl}v_{k,l}d\Omega} -
     \int_{\Omega}{qv_{i,i}d\Omega} -
     \int_{\Omega}{w_{i,i}Pd\Omega} = \\
-    \int_{\Omega}{w_{i}f{i}d\Omega} +
+    int_{\Omega}{w_{i}f_{i}d\Omega} +
     \sum_{i=1}^{n_{sd}}{\int_{\Gamma_{h_i}{w_{i}h_{i}d\Gamma}}} - 
-    \int_{\Omega}{w_{i,j}c_{ijkl}g_{k,l}d\Gamma}
+    \int_{\Omega}{w_{i,j}c_{ijkl}g_{k,l}d\Omega}
     
 where :math:`c_{ijkl}=\eta(\delta_{ik}\delta_{jl}+\delta_{il}\delta_{jk})` is obtained from the stress tensor equation (see :eq:`stress-tensor` in the :doc:`basic theory section<theory>`).
 
