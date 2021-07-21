@@ -1,0 +1,65 @@
+# NOTE: Pin actions to a specific commit to avoid having the authentication
+# token stolen if the Action is compromised. See the comments and links here:
+# https://github.com/pypa/gh-action-pypi-publish/issues/27
+#
+
+name: build-docs-web
+
+# Only build PRs, the master branch, and releases. Pushes to branches will only
+# be built when a PR is opened. This avoids duplicated builds in PRs coming
+# from branches in the origin repository (1 for PR and 1 for push).
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  # Build the docs
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Cancel any previous run of the test job
+      # We pin the commit hash corresponding to v0.5.0, and not pinning the tag
+      # because we are giving full access through the github.token.
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@148d9a848c6acaf90a3ec30bc5062f646f8a4163
+        with:
+          access_token: ${{ github.token }}
+
+      # Checks-out your repository under $GITHUB_WORKSPACE
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          # Need to fetch more than the last commit so that setuptools-scm can
+          # create the correct version string. If the number of commits since
+          # the last release is greater than this, the version still be wrong.
+          # Increase if necessary.
+          fetch-depth: 100
+          # The GitHub token is preserved by default but this job doesn't need
+          # to be able to push to GitHub.
+          persist-credentials: false
+
+      - name: Update
+        run: sudo apt-get update --fix-missing
+
+      - name: Install dependencies
+        run: pip install -r docs/requirements-docs.txt
+
+      - name: make html
+        run: cd docs ; make clean ; make html;
+
+      # Deploy website only if scheduled on main or when pushed to main
+      - name: Deploy website to GitHub Actions
+        if: success() && (github.ref == 'refs/heads/main' || github.event_name == 'push')
+        # Don't use tags: https://julienrenaux.fr/2019/12/20/github-actions-security-risk/
+        uses: peaceiris/actions-gh-pages@bbdfb200618d235585ad98e965f4aafc39b4c501
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: docs-pages
+          publish_dir: docs/_build/html
+          # Only keep the latest commit to avoid bloating the repository
+          force_orphan: true
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"

@@ -1,0 +1,35 @@
+# Header line 0
+# Header line 1
+# Header line 2
+# Header line 3
+T(x_0, y_0)
+T(x_1, y_0)
+T(x_2, y_0)
+T(x_3, y_0)
+[...]
+T(x_{nx-1}, y_0)
+T(x_0, y_1)
+T(x_1, y_1)
+T(x_2, y_1)
+T(x_3, y_1)
+[...]
+T(x_{nx-1}, y_1)
+T(x_0, y_2)
+T(x_1, y_2)
+T(x_2, y_2)
+T(x_3, y_2)
+[...]
+T(x_{nx-1}, y_2)
+T(x_0, y_3)
+T(x_1, y_3)
+T(x_2, y_3)
+T(x_3, y_3)
+[...]
+T(x_{nx-1}, y_3)
+[...]
+T(x_0, y_{ny-1})
+T(x_1, y_{ny-1})
+T(x_2, y_{ny-1})
+T(x_3, y_{ny-1})
+[...]
+T(x_{nx-1}, y_{ny-1})
