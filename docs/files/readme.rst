@@ -14,7 +14,7 @@ Different linear and non-linear rheologies can be adopted, appropriately simulat
 Documentation
 ----------------------------
 
-On the `Documentation page <https://github.com/ggciag/mandyoc>`__, you will be able to find relevant information on how the code  works, how it was implemented, how to install it, the description of the parameters and input files, some applications and some useful examples.
+On the `Documentation page <https://ggciag.github.io/mandyoc/>`__, you will be able to find relevant information on how the code  works, how it was implemented, how to install it, the description of the parameters and input files, some applications and some useful examples.
 
 Need any help?
 ------------------------
