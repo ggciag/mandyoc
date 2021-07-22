@@ -8,7 +8,7 @@ The MANDYOC code simulates thermochemical convection of the Earth's mantle. The 
 Basic equations
 ---------------
 
-To simulate mantle thermo-mechanical convection, we adopted the formulation for non-Newtonian fluids together with the Boussinesq approximation to solve the following equations of conservation of mass (:eq:`mass-conservation`), momentum (:eq:`momentum-conservation`) and energy (:eq:`energy-conservation`) :cite:`zhong2007`.
+To simulate mantle thermochemical convection, we adopted the formulation for non-Newtonian fluids together with the Boussinesq approximation to solve the following equations of conservation of mass (:eq:`mass-conservation`), momentum (:eq:`momentum-conservation`) and energy (:eq:`energy-conservation`) :cite:`zhong2007`.
 
 .. math:: 
 	:label: mass-conservation

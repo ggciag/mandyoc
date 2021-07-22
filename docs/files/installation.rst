@@ -11,17 +11,17 @@ and MANDYOC.
 Dependencies
 ------------
 
-* PETSc_
+#. PETSc_
 
-* gcc
+#. gcc
 
-* make
+#. make
 
-* git
+#. git
 
 **Optional** dependencies:
 
-* `gfortran`
+#. `gfortran`
 
 PETSc Installation
 ------------------
