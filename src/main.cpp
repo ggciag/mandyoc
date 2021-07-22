@@ -1,3 +1,10 @@
+static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
+"Flags:\n\n"\
+"   -seed [int]:          specify one (or more, comma separated) layer for weak plastic criterium (seed layer)\n"\
+"                         default value: no layer specified\n\n"\
+"   -strain_seed [float]: specify one (or more, comma separated) value for the seed layer strain\n"\
+"                         default value: 2.0\n\n"\
+"";
 
 /* MANDYOC: MANtle DYnamics simulatOr Code*/
 /* Geophysics Department IAG/USP          */
