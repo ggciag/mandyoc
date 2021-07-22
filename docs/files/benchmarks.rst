@@ -1,6 +1,6 @@
 .. _benchmarks:
 
-Benchmarks
+Benchmarks 
 ==========
 
 In order to test the accuracy of the *Mandyoc* code, its results can be compared to benchmark studies. The following subsections will present the procedures and results for some well established modeling problems. Such cases should provide information about the applicability and performance of the code as well as some of its limitations.
@@ -127,3 +127,40 @@ For the *case 1c* where :math:`\eta_0/\eta_r=0.01`, :numref:`vankekenCase1cEvolu
   :alt: Results
 
   Evolution of the :math:`v_{rms}` for :math:`\eta_0/\eta_r=0.01`. The van Keken et al. (1997) :cite:`vankeken1997` result is shown in black and the *Mandyoc* code result is shown in gray.
+
+Crameri et al. (2012) :cite:`crameri2012`
+-----------------------------------------
+
+The *Case 2* experiment presented by Crameri et al. (2012) :cite:`crameri2012` evaluates the *sticky air* method to obtain a numerical surface topography in geodynamic modelling.
+
+The experiment analyses the change in topography due to the rising of a mantle plume.
+The model setup (:numref:`crameri_setup`) consists of a :math:`2800 \, \mathrm{km}` by :math:`850 \, \mathrm{km}` box with a :math:`150 \, \mathrm{km}` sticky air layer on the top of the model.
+The mantle thickness is :math:`600 \, \mathrm{km}` with a :math:`100 \, \mathrm{km}` thick lithosphere.
+The lithosphere density is :math:`3300 \, \mathrm{kg/m}^3` with viscosity :math:`10^{23} \, \mathrm{Pa\,s}`,
+the mantle density is :math:`3300 \, \mathrm{kg/m}^3` with viscosity :math:`10^{21} \, \mathrm{Pa\,s}`
+and the mantle plume density is :math:`3200 \, \mathrm{kg/m}^3` with viscosity :math:`10^{20} \, \mathrm{Pa\,s}`.
+Initially, the center of the plume is horizontally centered and :math:`300 \, \mathrm{km}` above the base of the model.
+At the top, the sticky air layer has density :math:`0 \, \mathrm{kg/m}^3` with viscosity :math:`10^{19} \, \mathrm{Pa\,s}`.
+A free slip boundary condition is applied to the upper boundary of the sticky air layer and the vertical sides of the model and the base is kept fixed.
+There is no temperature difference, and the geodynamic evolution is guided solely by compositional density differences.
+
+.. _crameri_setup:
+
+.. figure:: figs/crameri-et-al-2012-case-2-setup.png
+	:width: 90%
+	:align: center
+	:alt: Crameri case 2 model setup
+
+	*Case 2* model setup to evaluate the sticky air method. Extracted from Crameri et al. (2012) :cite:`crameri2012`.
+
+From the results of this experiment reproduced in MANDYOC we obtain the maximum topography with time, similar to Fig. 6a of Crameri et al. (2012) :cite:`crameri2012`, presented in :numref:`maximum_topography`.
+The models used for comparison are: UNDERWORLD :cite:`moresi2003`, STAGYY :cite:`tackley1993` and I2VIS :cite:`gerya2003`.
+
+.. _maximum_topography:
+
+.. figure:: figs/crameri-et-al-2012-case-2-comparison.png
+   :width: 100%
+   :align: center
+   :alt: Comparison of MANDYOC results
+
+   Comparison of the maximum topography with time for the *Case 2* (:numref:`crameri_setup`) model setup from Crameri et al. (2012) :cite:`crameri2012`.
