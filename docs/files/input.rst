@@ -3,7 +3,7 @@
 Input files
 ===========
 
-MANDYOC accepts ASCII files to use as initial conditions for the simulation, such as an initial temperature file ``input_temperature.txt``, a file containing the initial interfaces geometry ``input_interfaces.txt`` and a file containing the initial velocity field at the faces of the model ``input_velocity.txt``. The next subsections will help you creating each one of these files.
+*Mandyoc* accepts ASCII files to use as initial conditions for the simulation, such as an initial temperature file ``input_temperature.txt``, a file containing the initial interfaces geometry ``input_interfaces.txt`` and a file containing the initial velocity field at the faces of the model ``input_velocity.txt``. The next subsections will help you creating each one of these files.
 
 
 ASCII temperature file
@@ -32,10 +32,10 @@ Consider a 2-D grid where the number of nodes in the :math:`x` and :math:`y` dir
 
 ..
    .. note::
-      Because of the way MANDYOC deals with the coordinates in 2-D, the node at :math:`(x_0,y_0)` is always at the origin :math:`(0,0)`. This is also true for the 3-D grid, where the :math:`(x_0,y_0,z_0)` is at :math:`(0,0,0)`.
+      Because of the way *Mandyoc* deals with the coordinates in 2-D, the node at :math:`(x_0,y_0)` is always at the origin :math:`(0,0)`. This is also true for the 3-D grid, where the :math:`(x_0,y_0,z_0)` is at :math:`(0,0,0)`.
 
 .. note::
-   Because of the way MANDYOC deals with the coordinates in 2-D, the node at :math:`(x_0,y_0)` is always at the origin :math:`(0,0)`. 
+   Because of the way *Mandyoc* deals with the coordinates in 2-D, the node at :math:`(x_0,y_0)` is always at the origin :math:`(0,0)`. 
 
 The example below shows how the ``input_temperature.txt`` file must be written for the 2-D grid in :numref:`coordinates2d`: after writing four lines of comments, the file must include the temperature :math:`T(x_n, y_m)` at each node starting at the bottom left of the model and going up in the :math:`y` direction. Intuitively, the temperature is given in horizontal layers for every :math:`x_n`. 
 

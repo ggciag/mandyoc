@@ -18,7 +18,7 @@ import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 year = datetime.date.today().year
-project = "MANDYOC"
+project = "Mandyoc"
 copyright = "2020-{}, The {} Developers".format(year, project)
 
 # The full version, including alpha/beta/rc tags

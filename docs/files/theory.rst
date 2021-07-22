@@ -3,7 +3,7 @@
 Basic theory
 ============
 
-The MANDYOC code simulates thermochemical convection of the Earth's mantle. The following sections explain which equations are being solved by the code and the numerical approach that was used.
+The *Mandyoc* code simulates thermochemical convection of the Earth's mantle. The following sections explain which equations are being solved by the code and the numerical approach that was used.
 
 Basic equations
 ---------------
@@ -40,9 +40,9 @@ where :math:`P` is the dynamic pressure and :math:`\eta` is the effective viscos
 Numerical approach
 ------------------
 
-The equations of conservation of mass, momentum and energy are solved using the finite element method :cite:`zhong2007`. MANDYOC uses hexahedral elements for three dimensional grids and quadrilateral elements for two dimensional grids :cite:`hughes2012`. The :ref:`massmomentumimplementation` subsection presents the numerical methods used to solve the mass and momentum equations and the :ref:`energyimplementation` subsection shows how an implicit formulation was used to solve the energy equation :cite:`braun2003`.
+The equations of conservation of mass, momentum and energy are solved using the finite element method :cite:`zhong2007`. *Mandyoc* uses hexahedral elements for three dimensional grids and quadrilateral elements for two dimensional grids :cite:`hughes2012`. The :ref:`massmomentumimplementation` subsection presents the numerical methods used to solve the mass and momentum equations and the :ref:`energyimplementation` subsection shows how an implicit formulation was used to solve the energy equation :cite:`braun2003`.
 
-To simulate any scenario, the user **must** provide the parameter file ``param.txt`` and, if necessary, the ASCII files with the initial temperature field, velocity field and/or the initial interfaces of the model. To see how these files can be created/modified, see the section :ref:`parameterfile` and :ref:`inputfiles`. The flowchart in :numref:`mandyocscheme` summarizes the steps MANDYOC takes to solve the conservation equations and perform a simulation.
+To simulate any scenario, the user **must** provide the parameter file ``param.txt`` and, if necessary, the ASCII files with the initial temperature field, velocity field and/or the initial interfaces of the model. To see how these files can be created/modified, see the section :ref:`parameterfile` and :ref:`inputfiles`. The flowchart in :numref:`mandyocscheme` summarizes the steps *Mandyoc* takes to solve the conservation equations and perform a simulation.
 
 .. _mandyocscheme:
 
@@ -51,9 +51,9 @@ To simulate any scenario, the user **must** provide the parameter file ``param.t
 	:align: center
 	:alt: Flowchart
 
-	Flowchart showing the steps MANDYOC takes to solve the equations of conservation of mass, momentum and energy.
+	Flowchart showing the steps *Mandyoc* takes to solve the equations of conservation of mass, momentum and energy.
 	
-:numref:`mandyocscheme` shows that once the code starts running and the input files are read (``param.txt`` and the ASCII input files), MANDYOC uses the effective viscosity field :math:`\eta` (:eq:`effective-eta`) to calculate the velocity field :math:`u` and checks if the convergence condition satisfies the tolerance :math:`tol` as shown in :eq:`tol` :cite:`thieulot2014`.
+:numref:`mandyocscheme` shows that once the code starts running and the input files are read (``param.txt`` and the ASCII input files), *Mandyoc* uses the effective viscosity field :math:`\eta` (:eq:`effective-eta`) to calculate the velocity field :math:`u` and checks if the convergence condition satisfies the tolerance :math:`tol` as shown in :eq:`tol` :cite:`thieulot2014`.
 
 .. math::
 	:label: tol
@@ -62,7 +62,7 @@ To simulate any scenario, the user **must** provide the parameter file ``param.t
 
 where :math:`f` is a vector with the components of the velocity :math:`u` at all mesh nodes, :math:`i` is the iteration number, the :math:`\langle f \rangle` represents the mean value of :math:`f`, and :math:`tol` is the tolerance parameter.
 
-While the minimum tolerance is not reached, MANDYOC utilizes the Uzawa's method to iteratively calculate new :math:`u` and :math:`P` fields. The updated fields modify the viscosity field :math:`\eta`, which in turn disturbs the velocity field again. These fields are updated until tolerance is reached. By default, the tolerance value for MANDYOC is :math:`10^{-6}`.
+While the minimum tolerance is not reached, *Mandyoc* utilizes the Uzawa's method to iteratively calculate new :math:`u` and :math:`P` fields. The updated fields modify the viscosity field :math:`\eta`, which in turn disturbs the velocity field again. These fields are updated until tolerance is reached. By default, the tolerance value for *Mandyoc* is :math:`10^{-6}`.
 
 Additionally, the compositional factor :math:`C` is evaluated for an advection as in the equation below. Its solution is calculated placing randomly a number of particles within each finite element of the mesh, which are displaced based on the adjacent node velocity values :cite:`tackley2003`. The individual value for each particle is obtained by linear interpolation of the node values.
 
@@ -71,4 +71,4 @@ Additionally, the compositional factor :math:`C` is evaluated for an advection a
 
 	\frac{\partial C}{\partial t} + u_{i}C_{,i} = 0 
 
-Once the velocity field is solved, MANDYOC computes the temperature field as a function of the :math:`u`, :math:`\kappa` and :math:`H`. In the next steps, the surface processes are computed and if the maximum time step or the maximum simulation time was not reached, the code updates the time and goes back to compute a new velocity field.
+Once the velocity field is solved, *Mandyoc* computes the temperature field as a function of the :math:`u`, :math:`\kappa` and :math:`H`. In the next steps, the surface processes are computed and if the maximum time step or the maximum simulation time was not reached, the code updates the time and goes back to compute a new velocity field.

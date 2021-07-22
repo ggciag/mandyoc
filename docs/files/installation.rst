@@ -1,32 +1,32 @@
 How to install
 ==============
 
-MANDYOC installation is very simple and it consists of installing both `PETSc`_
-and MANDYOC.
+*Mandyoc* installation is very simple and it consists of installing both `PETSc`_
+and *Mandyoc*.
 
 .. warning::
 	The following installation steps work for both Linux and macOS machines
-	**only** and no tests were made to install MANDYOC on Windows machines yet.
+	**only** and no tests were made to install *Mandyoc* on Windows machines yet.
 
 Dependencies
 ------------
 
-#. PETSc_
+* PETSc_
 
-#. gcc
+* gcc
 
-#. make
+* make
 
-#. git
+* git
 
 **Optional** dependencies:
 
-#. `gfortran`
+* `gfortran`
 
 PETSc Installation
 ------------------
 
-MANDYOC requires the `PETSc`_ library to run.
+*Mandyoc* requires the `PETSc`_ library to run.
 The first step is to **download** the latest release of PETSc from `PETSc website`_
 or **clone** the repository into your machine::
 
@@ -67,7 +67,7 @@ By default, we will install PETSc in ``~/petsc``.
 
 .. note::
 
-	If you are build a development version of MANDYOC you can build
+	If you are build a development version of *Mandyoc* you can build
 	a **debug version** of PETSc by setting ``--with-debugging=1`` and removing
 	the ``COPTFLAGS``, ``CXXOPTFLAGS`` (and ``FOPTFLAGS``) flags.
 	In this case, you may set ``PETSC_ARCH=arch-label-debug``.
@@ -82,32 +82,32 @@ Or follow the instructions that pop up on the terminal.
 
 For further information about the PETSc library, check the `PETSc website`_.
 
-MANDYOC Installation
---------------------
+*Mandyoc* Installation
+----------------------
 
-To install the MANDYOC in your machine,  you need to **clone or download  the latest release** of the
-code from the `MANDYOC repository page`_.
+To install the *Mandyoc* in your machine,  you need to **clone or download  the latest release** of the
+code from the `Mandyoc repository page`_.
 
-To clone the repository, navigate to the directory you wish to install MANDYOC and type:
+To clone the repository, navigate to the directory you wish to install *Mandyoc* and type:
 
 .. code-block:: bash
 
    git clone https://github.com/ggciag/mandyoc
 
-Next, **build and install** MANDYOC by running::
+Next, **build and install** *Mandyoc* by running::
 
 	make all
 
 .. note::
 
-	To print MANDYOC runtime options, run mandyoc with `-flags` command line
+	To print *Mandyoc* runtime options, run mandyoc with `-flags` command line
 	argument.
 
 Examples
 ---------------
 
 Steps to run the van Keken et al. (1997)
-++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++
 
 #. From the `src/` folder, copy the executable to the `examples/vanKeken1997/` folder:
 
@@ -139,4 +139,4 @@ Steps to run the van Keken et al. (1997)
 .. _PETSc: https://www.mcs.anl.gov/petsc/
 .. _PETSc website: https://www.mcs.anl.gov/petsc/download/index.html
 .. _PETSc repository: https://bitbucket.org/petsc/petsc/src/maint/
-.. _MANDYOC repository page: https://github.com/ggciag/mandyoc
+.. _Mandyoc repository page: https://github.com/ggciag/mandyoc
