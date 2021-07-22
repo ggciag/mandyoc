@@ -8,7 +8,7 @@ In order to test the accuracy of the MANDYOC code, its results can be compared t
 van Keken et al. (1997) :cite:`vankeken1997`
 --------------------------------------------
 
-The set of simulations proposed by van Keken et al. (1997) :cite:`vankeken1997` compares several methods of studying two dimensional thermochemical convection, where the Boussinesq approximation and infinite Prandtl number are used. 
+The set of simulations proposed by van Keken et al. (1997) :cite:`vankeken1997` compares several methods of studying two dimensional thermochemical convection, where the Boussinesq approximation and infinite Prandtl number are used.
 
 The first simulation consists of two layers, where a buoyant thin layer is under a denser thicker package. The problem can be interpreted as a salt layer under a sediment package, and the interface between the layers is defined by the :eq:`interfacerayleigh` below.
 
@@ -17,7 +17,7 @@ The first simulation consists of two layers, where a buoyant thin layer is under
 
     y=-0.8 \lambda_y + 0.02 \cos{\frac{\pi x }{\lambda_x}}
 
-where :math:`\lambda_x` and :math:`\lambda_y` are the horizontal and vertical lengths of the simulated 2-D box, respectively. 
+where :math:`\lambda_x` and :math:`\lambda_y` are the horizontal and vertical lengths of the simulated 2-D box, respectively.
 
 The simulation is carried out in a Cartesian box where the fluid is isothermal and Rayleigh-Taylor instability is expected for the proposed setup. The table below lists the parameters used to run this scenario.
 
@@ -28,7 +28,7 @@ The simulation is carried out in a Cartesian box where the fluid is isothermal a
 
     * - Parameter
       - .. centered:: Symbol
-      - Value 
+      - Value
     * - Horizontal length
       - .. centered:: :math:`\lambda_x`
       - 1.0000
@@ -57,7 +57,7 @@ Lorem ipsum dolor sit amet.
    :align: center
    :alt: Results
 
-   Evolution of the isoviscous Rayleigh-Taylor instability for :math:`\eta_0/\eta_r=1.00`. The best result presented by van Keken et al. (1997) :cite:`vankeken1997` are on the left and the MANDYOC results are on the right. 
+   Evolution of the isoviscous Rayleigh-Taylor instability for :math:`\eta_0/\eta_r=1.00`. The best result presented by van Keken et al. (1997) :cite:`vankeken1997` are on the left and the MANDYOC results are on the right.
 
 .. figure:: figs/vrms-1a.pdf
    :width: 100%
@@ -71,7 +71,7 @@ Lorem ipsum dolor sit amet.
    :align: center
    :alt: Results
 
-   Evolution of the isoviscous Rayleigh-Taylor instability for :math:`\eta_0/\eta_r=0.10`. The best result presented by van Keken et al. (1997) :cite:`vankeken1997` are on the left and the MANDYOC results are on the right. 
+   Evolution of the isoviscous Rayleigh-Taylor instability for :math:`\eta_0/\eta_r=0.10`. The best result presented by van Keken et al. (1997) :cite:`vankeken1997` are on the left and the MANDYOC results are on the right.
 
 .. figure:: figs/vrms-1b.pdf
    :width: 100%
@@ -85,7 +85,7 @@ Lorem ipsum dolor sit amet.
    :align: center
    :alt: Results
 
-   Evolution of the isoviscous Rayleigh-Taylor instability for :math:`\eta_0/\eta_r=0.01`. The best result presented by van Keken et al. (1997) :cite:`vankeken1997` are on the left and the MANDYOC results are on the right. 
+   Evolution of the isoviscous Rayleigh-Taylor instability for :math:`\eta_0/\eta_r=0.01`. The best result presented by van Keken et al. (1997) :cite:`vankeken1997` are on the left and the MANDYOC results are on the right.
 
 .. figure:: figs/vrms-1c.pdf
    :width: 100%
@@ -93,3 +93,40 @@ Lorem ipsum dolor sit amet.
    :alt: Results
 
    Evolution of the :math:`v_{rms}` for :math:`\eta_0/\eta_r=0.01`. The van Keken et al. (1997) :cite:`vankeken1997` result is shown in black and the MANDYOC code result is shown in gray.
+
+Crameri et al. (2012)
+---------------------
+
+The *Case 2* experiment presented by Crameri et al. (2012) :cite:`crameri2012` evaluates the *sticky air* method to obtain a numerical surface topography in geodynamic modelling.
+
+The experiment analyses the change in topography due to the rising of a mantle plume.
+The model setup (:numref:`crameri_setup`) consists of a :math:`2800 \, \mathrm{km}` by :math:`850 \, \mathrm{km}` box with a :math:`150 \, \mathrm{km}` sticky air layer on the top of the model.
+The mantle thickness is :math:`600 \, \mathrm{km}` with a :math:`100 \, \mathrm{km}` thick lithosphere.
+The lithosphere density is :math:`3300 \, \mathrm{kg/m}^3` with viscosity :math:`10^{23} \, \mathrm{Pa\,s}`,
+the mantle density is :math:`3300 \, \mathrm{kg/m}^3` with viscosity :math:`10^{21} \, \mathrm{Pa\,s}`
+and the mantle plume density is :math:`3200 \, \mathrm{kg/m}^3` with viscosity :math:`10^{20} \, \mathrm{Pa\,s}`.
+Initially, the center of the plume is horizontally centered and :math:`300 \, \mathrm{km}` above the base of the model.
+At the top, the sticky air layer has density :math:`0 \, \mathrm{kg/m}^3` with viscosity :math:`10^{19} \, \mathrm{Pa\,s}`.
+A free slip boundary condition is applied to the upper boundary of the sticky air layer and the vertical sides of the model and the base is kept fixed.
+There is no temperature difference, and the geodynamic evolution is guided solely by compositional density differences.
+
+.. _crameri_setup:
+
+.. figure:: figs/crameri-et-al-2012-case-2-setup.png
+	:width: 90%
+	:align: center
+	:alt: Crameri case 2 model setup
+
+	*Case 2* model setup to evaluate the sticky air method. Extracted from Crameri et al. (2012) :cite:`crameri2012`.
+
+From the results of this experiment reproduced in MANDYOC we obtain the maximum topography with time, similar to Fig. 6a of Crameri et al. (2012) :cite:`crameri2012`, presented in :numref:`maximum_topography`.
+The models used for comparison are: UNDERWORLD :cite:`moresi2003`, STAGYY :cite:`tackley1993` and I2VIS :cite:`gerya2003`.
+
+.. _maximum_topography:
+
+.. figure:: figs/crameri-et-al-2012-case-2-comparison.png
+   :width: 100%
+   :align: center
+   :alt: Comparison of MANDYOC results
+
+   Comparison of the maximum topography with time for the *Case 2* (:numref:`crameri_setup`) model setup from Crameri et al. (2012) :cite:`crameri2012`.
