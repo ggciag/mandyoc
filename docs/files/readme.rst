@@ -8,7 +8,7 @@
 
 About
 -----------
-MANDYOC is a finite element code written written on top of the `PETSc`_ library  to simulate thermo-chemical convection of the Earth's mantle.
+MANDYOC is a finite element code written on top of the `PETSc`_ library  to simulate thermo-chemical convection of the Earth's mantle.
 Different linear and non-linear rheologies can be adopted, appropriately simulating the strain and stress pattern in the Earth's crust and mantle, both in extensional or collisional tectonics.
 
 Documentation
