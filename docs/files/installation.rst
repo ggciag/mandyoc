@@ -12,11 +12,14 @@ Dependencies
 ------------
 
 * PETSc_
+
 * gcc
+
 * make
+
 * git
 
-*Optional* dependencies:
+**Optional** dependencies:
 
 * `gfortran`
 
@@ -100,6 +103,37 @@ Next, **build and install** MANDYOC by running::
 	To print MANDYOC runtime options, run mandyoc with `-flags` command line
 	argument.
 
+Examples
+---------------
+
+Steps to run the van Keken et al. (1997)
+++++++++++++++++++++++++++++++++++
+
+#. From the `src/` folder, copy the executable to the `examples/vanKeken1997/` folder:
+
+	.. code-block:: bash
+
+		cp mandyoc ../examples/vanKeken1997/
+
+#. Go to the example folder:
+
+	.. code-block:: bash
+
+		cd ../examples/vanKeken1997/
+
+#. Modify the path of the `mpirun` in `run.sh`.
+
+#. Run the `run.sh` script:
+
+	.. code-block:: bash
+
+		sh run.sh
+
+#. To visualize the evolution of the density structure, run:
+
+	.. code-block:: bash
+
+		ipython rho_imshow.py
 
 
 .. _PETSc: https://www.mcs.anl.gov/petsc/

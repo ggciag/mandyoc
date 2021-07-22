@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 
-.. include:: files/readme.rst
+.. include:: ../README.rst
 
 .. toctree::
     :hidden:
