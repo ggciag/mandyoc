@@ -54,7 +54,7 @@ The parameter file ``param.txt`` contains the information that is necessary for 
     * denok
     * rtol
 
-Below there is an example of a parameter file ``param.txt`` used to make a simulation with MANDYOC.
+Below there is an example of a parameter file ``param.txt`` used to make a simulation with *Mandyoc*.
 
 .. literalinclude:: src/param.txt
    :language: text

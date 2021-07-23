@@ -73,7 +73,7 @@ The velocity field, the pressure field and the weighting functions shape functio
 
     q = \sum_{B\in \Omega^{p}}{M_B q_B}
 
-where :math:`N_A` is the shape function for the velocity at node A, :math:`M_B` is the shape function for the pressure at node B, :math:`\Omega^{v}` is the velocity nodes set, :math:`\Omega^{p}` is the pressure nodes set and :math:`\Gamma^{g}_{g_i}` is the velocity nodes set along the boundary :math:`\Gamma_{g_i}`. MANDYOC defines :math:`\Omega^{p}` at the center of each element, while :math:`\Omega^{v}` is defined at every element vertex. This avoids spurious flow solutions and numerical instabilities :cite:`zhong2007` and it keeps the velocity shape functions one order higher than the pressure shape functions, a common strategy used in finite element modeling of incompressible media :cite:`hughes2000`.
+where :math:`N_A` is the shape function for the velocity at node A, :math:`M_B` is the shape function for the pressure at node B, :math:`\Omega^{v}` is the velocity nodes set, :math:`\Omega^{p}` is the pressure nodes set and :math:`\Gamma^{g}_{g_i}` is the velocity nodes set along the boundary :math:`\Gamma_{g_i}`. *Mandyoc* defines :math:`\Omega^{p}` at the center of each element, while :math:`\Omega^{v}` is defined at every element vertex. This avoids spurious flow solutions and numerical instabilities :cite:`zhong2007` and it keeps the velocity shape functions one order higher than the pressure shape functions, a common strategy used in finite element modeling of incompressible media :cite:`hughes2000`.
 
 From the shape functions above and the Galerkin weak formulation (:eq:`weak-formulation-2`), the following expression can be obtained:
 
@@ -194,7 +194,7 @@ where :math:`\mathbf{N}_V` is a row vector of shape functions, :math:`\mathbf{a}
 .. note::
     The superscript :math:`T` represents the transpose of the matrix, while the non-superscript :math:`T` represents the temperature.
 
-:math:`\mathbf{M}` and :math:`\mathbf{K}_c` are symmetric, but :math:`\mathbf{K}_a` is not. This asymmetry decreases the accuracy of the solution when advection is more dominant than conduction (:cite:`zienkiewicz2000`, chapter 2). To increase numerical accuracy and stability, MANDYOC uses the streamline upwind Petrov-Galerkin process to modify :math:`\mathbf{K}_a` to :math:`\mathbf{K}_a^*` :cite:`zienkiewicz2000,hughes1979,hughes1982`:
+:math:`\mathbf{M}` and :math:`\mathbf{K}_c` are symmetric, but :math:`\mathbf{K}_a` is not. This asymmetry decreases the accuracy of the solution when advection is more dominant than conduction (:cite:`zienkiewicz2000`, chapter 2). To increase numerical accuracy and stability, *Mandyoc* uses the streamline upwind Petrov-Galerkin process to modify :math:`\mathbf{K}_a` to :math:`\mathbf{K}_a^*` :cite:`zienkiewicz2000,hughes1979,hughes1982`:
 
 .. math::
     :label: Ka-star
@@ -246,7 +246,7 @@ Rearranging :eq:`time-discretization-2` allows to rewrite it in a numerical form
 Free surface
 ------------
 
-MANDYOC uses the *Free Surface Stabilization Algorithm* :cite:`kaus2010` to modify the Stokes equation and avoid numerical instabilities that can occur on the surface of the model. The up-and-down oscillations around the steady state ("sloshing instability" or "drunken sailer effect") would require small time steps, which would increase running time by unfeasible amounts.
+*Mandyoc* uses the *Free Surface Stabilization Algorithm* :cite:`kaus2010` to modify the Stokes equation and avoid numerical instabilities that can occur on the surface of the model. The up-and-down oscillations around the steady state ("sloshing instability" or "drunken sailer effect") would require small time steps, which would increase running time by unfeasible amounts.
 
 The modification is done on the stiffness matrix :math:`K_e`, such that :math:`\tilde{K}_e=K_e+L_e`, where the correction :math:`L_e` is evaluated at the boundary :math:`\Gamma_e` of each finite element. The correction is given by the :eq:`Le` below:
 
@@ -276,7 +276,7 @@ where :math:`\tau_{yield}` is the rupture tension and :math:`\dot{\varepsilon}_{
 Plastic deformation
 *******************
 
-The plastic deformation can be calculated using the Byerlee Law :cite:`byerlee1968` to compute :math:`\tau_{yield}` and :math:`\eta_{plas}`. :eq:`byerlee-law` shows the relationship implemented in MANDYOC.
+The plastic deformation can be calculated using the Byerlee Law :cite:`byerlee1968` to compute :math:`\tau_{yield}` and :math:`\eta_{plas}`. :eq:`byerlee-law` shows the relationship implemented in *Mandyoc*.
 
 .. math::
     :label: byerlee-law
@@ -297,9 +297,9 @@ where :math:`\varphi` is the internal angle of friction.
 Viscous deformation
 *******************
 
-MANDYOC contains several rheology models that the user can choose for viscous deformation. Among them, two will be discussed here. 
+*Mandyoc* contains several rheology models that the user can choose for viscous deformation. Among them, two will be discussed here. 
 
-The ductile rheology can be simulated using the Frank-Kamenetskii approximation, following the formulation described by Solomatov and Moresi (2000) :cite:`solomatov2000`, where the viscosity is a function of the temperature :math:`T` as in the equation below. Such formulation was also used by Sacek (2017) :cite:`sacek2017` in an earlier MANDYOC version.
+The ductile rheology can be simulated using the Frank-Kamenetskii approximation, following the formulation described by Solomatov and Moresi (2000) :cite:`solomatov2000`, where the viscosity is a function of the temperature :math:`T` as in the equation below. Such formulation was also used by Sacek (2017) :cite:`sacek2017` in an earlier *Mandyoc* version.
 
 .. math::
     :label: frank-kamenetskii
