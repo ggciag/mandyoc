@@ -44,7 +44,7 @@ Additionally, the code allows variations of boundary condition for the velocity 
 
 Although `Mandyoc` is the acronym for `MANtle DYnamics simulatOr Code`, it is designed to simulate Stokes flow type thermochemical convection taking different compositional layers into account, and it is also appropriate to simulate Earth's lithospheric dynamics in the geological timescale.
 
-Previous versions of the code were applied to study the evolution of continental margins, showing the interaction between continental lithosphere with the asthenospheric mantle [@sacek2017post;@salazar2021lateral].
+Previous versions of the code were applied to study the evolution of continental margins, showing the interaction of the continental lithosphere with the asthenospheric mantle [@sacek2017post;@salazar2021lateral].
 
 # Mathematics
 
