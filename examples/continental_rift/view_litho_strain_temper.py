@@ -31,6 +31,8 @@ xi = np.linspace(0,Lx/1000,Nx)
 zi = np.linspace(-Lz/1000,0,Nz)
 xx,zz = np.meshgrid(xi,zi)
 
+h_air = 40.0
+
 
 for cont in range(step_initial,step_final,d_step):#
 	print(cont)
@@ -74,14 +76,14 @@ for cont in range(step_initial,step_final,d_step):#
 	color_lit = (155./cr,194./cr,155./cr)
 	color_ast = (207./cr,226./cr,205./cr)
 
-	plt.contourf(xx,zz,rho,levels=[200.,2750,2900,3365,3900],
+	plt.contourf(xx,zz+h_air,rho,levels=[200.,2750,2900,3365,3900],
 		colors=[color_uc,color_lc,color_lit,color_ast])
 
 
 	print("stc",np.min(stc),np.max(stc))
 
 	print("stc(log)",np.min(stc),np.max(stc))
-	plt.imshow(stc[::-1,:],extent=[0,Lx/1000,-Lz/1000,0],
+	plt.imshow(stc[::-1,:],extent=[0,Lx/1000,-Lz/1000+h_air,h_air],
 		zorder=100,alpha=0.2,cmap=plt.get_cmap("Greys"),vmin=-0.5,vmax=0.9)
 
 	plt.text(100,10,"%.1lf Myr"%(tempo[0]/1.0E6))
