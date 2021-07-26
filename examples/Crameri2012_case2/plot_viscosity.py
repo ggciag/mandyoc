@@ -81,11 +81,24 @@ for cont in range(step_initial,step_final,d_step):#
 	color_lid = (228./cr,156./cr,124./cr)
 
 	plt.contourf(xx, zz, viscosity,
-		levels=[19, 20, 21, 23],
+		levels=[19.5, 20.5, 21.5, 23.5],
 		colors=[color_plume, color_mantle, color_lid]
 	)
 
-	plt.colorbar()
+	A = pd.read_csv("strain_"+str(cont)+".txt",delimiter = " ",comment="P",skiprows=2,header=None) 
+	A = A.to_numpy()
+	TT = A*1.0
+	TT[np.abs(TT)<1.0E-200]=0
+	TT = np.reshape(TT,(Nx,Nz),order='F')
+	TTT = np.transpose(TT)
+	TTT[rho<200]=0
+	TTT = np.log10(TTT)
+	stc = np.copy(TTT)
+
+	plt.imshow(stc[::-1,:],extent=[np.min(xx),np.max(xx),np.min(zz),np.max(zz)],
+		zorder=100,alpha=0.2,cmap=plt.get_cmap("Greys"),vmin=-0.5,vmax=0.9)
+
+	#plt.colorbar()
 	plt.title(f'Time = {time:.1f} Myr\n\n')
 
 	plt.savefig("fig_viscosity_{:05}.png".format(cont*1))
