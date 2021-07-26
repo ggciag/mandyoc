@@ -22,7 +22,6 @@ Need any help?
 * Most discussion happens `on Github <https://github.com/ggciag/mandyoc>`__.
   Feel free to `open an issue
   <https://github.com/ggciag/mandyoc/issues/new>`__ or comment  on any open issue or pull request.
-
 *  You can also send an email to sacek@usp.br or jamison.assuncao@usp.br
 
 Contributing
