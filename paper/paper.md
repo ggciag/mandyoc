@@ -10,12 +10,14 @@ authors:
   - name: Victor Sacek
     orcid: 0000-0001-9598-5081
     affiliation: 1
-  - name: Jamison F. Assunção
+  - name: Jamison Assunção
+    orcid: 0000-0003-2822-2417
     affiliation: 1
   - name: Agustina Pesce
     orcid: 0000-0002-5538-8845
     affiliation: "2,3"
   - name: Rafael Monteiro da Silva
+    orcid: 0000-0001-8645-2443
     affiliation: 1
 affiliations:
   - name: Instituto de Astronomia, Geofísica e Ciências Atmosféricas, Universidade de São Paulo, Brazil
@@ -40,8 +42,7 @@ Additionally, the code allows variations of boundary condition for the velocity 
 
 # Statement of need
 
-Although `Mandyoc` is the acronym for `MANtle DYnamics simulatOr Code`, the code is not limited to mantle convection.
-It is designed to simulate general thermo-chemical convection in Stokes flow, taking different compositional layers into account, also appropriate to simulate Earth's lithospheric dynamics in the geological timescale.
+Although `Mandyoc` is the acronym for `MANtle DYnamics simulatOr Code`, it is designed to simulate Stokes flow type thermo-chemical convection taking different compositional layers into account, and it is also appropriate to simulate Earth's lithospheric dynamics in the geological timescale.
 
 Previous versions of the code was applied to study the evolution of continental margins, showing the interaction between continental lithosphere with the asthenospheric mantle [@sacek2017post;@salazar2021lateral].
 
@@ -68,7 +69,7 @@ $u_i$ is the component $i$ of the velocity field, $T$ is temperature, $t$ is tim
 
 The code is fully parallelized using the Portable, Extensible Toolkit for Scientific Computation (PETSc) [@petsc-efficient;@petsc-user-ref;@petsc-web-page].
 The present version of the code can simulate thermochemical convection using different rheological formulations: Newtonian flow, non-linear viscous flow or visco-plastic deformation.
-For example, the lithosphere can be simulated as a combination of different visco-plastic layers in which the effective viscosity depends on a nonlinear power law viscous rheology and a plastic yield criterium, like the Drucker-Prager criterium.
+For example, the lithosphere can be simulated as a combination of different visco-plastic layers in which the effective viscosity depends on a nonlinear power law viscous rheology and a plastic yield criterion, like the Drucker-Prager criterion.
 Additionally, strain softening is implemented to facilitate the localization of strain in the plastic regime during, for example, lithospheric stretching.
 
 The composition and strain history is tracked by particles present in the interior of the finite element.
@@ -81,11 +82,11 @@ Different benchmarks are available in the repository and can be reproduced by th
 
 As an example of application of `Mandyoc`, \autoref{fig:rift} presents snapshots of one numerical scenario of lithospheric stretching imposing a divergent flow direction, resulting in rifting and break-up.
 In this example, the upper crust, lower crust, lithospheric mantle and asthenosphere present different rheology and density, resulting in faulting mainly in the upper crust and part of the lithospheric mantle.
-Additionally, deformations in the lower crust and at the base of the lithospheric mantle are accommodated by ductil creep flow. This example can be reproduced from the repository.
+Additionally, deformations in the lower crust and at the base of the lithospheric mantle are accommodated by ductile creep flow. This example can be reproduced from the repository.
 
 # Figures
 
-![`Mandyoc` example of application of the thermo-mechanical model to simulate the stretching of the lithosphere, assuming different rheologies. Details can be found in the repository.\label{fig:rift}](JOSS_figure.png)
+![`Mandyoc` example of application of the thermo-mechanical model to simulate the stretching of the lithosphere, assuming different rheologies. The scales of gray represent cumulative strain in the different materials. Details can be found in the repository.\label{fig:rift}](JOSS_figure.png)
 
 # Acknowledgements
 
