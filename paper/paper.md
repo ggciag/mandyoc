@@ -1,5 +1,5 @@
 ---
-title: "Mandyoc: A finite element code to simulate thermo-chemical convection in parallel"
+title: "Mandyoc: A finite element code to simulate thermochemical convection in parallel"
 tags:
   - PETSc
   - mantle convection
@@ -36,15 +36,15 @@ bibliography: paper.bib
 
 # Summary
 
-`Mandyoc` is a finite element code written in C dedicated to simulate thermo-chemical convection in the interior of terrestrial planets.
+`Mandyoc` is a finite element code written in C dedicated to simulate thermochemical convection in the interior of terrestrial planets.
 Different linear and non-linear rheologies can be adopted, appropriately simulating the strain and stress pattern in the Earth's crust and mantle, both in extensional or collisional tectonics.
 Additionally, the code allows variations of boundary condition for the velocity field in space and time, simulating different pulses of tectonism in the same numerical scenario.
 
 # Statement of need
 
-Although `Mandyoc` is the acronym for `MANtle DYnamics simulatOr Code`, it is designed to simulate Stokes flow type thermo-chemical convection taking different compositional layers into account, and it is also appropriate to simulate Earth's lithospheric dynamics in the geological timescale.
+Although `Mandyoc` is the acronym for `MANtle DYnamics simulatOr Code`, it is designed to simulate Stokes flow type thermochemical convection taking different compositional layers into account, and it is also appropriate to simulate Earth's lithospheric dynamics in the geological timescale.
 
-Previous versions of the code was applied to study the evolution of continental margins, showing the interaction between continental lithosphere with the asthenospheric mantle [@sacek2017post;@salazar2021lateral].
+Previous versions of the code were applied to study the evolution of continental margins, showing the interaction of the continental lithosphere with the asthenospheric mantle [@sacek2017post;@salazar2021lateral].
 
 # Mathematics
 
