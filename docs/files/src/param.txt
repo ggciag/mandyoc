@@ -21,14 +21,14 @@ visc_ref                  = 1.0e+21    # Reference viscosity [Pa.s]
 visc_max                  = 1.0e+23    # Maximum viscosity [Pa.s]
 visc_min                  = 1.0e+19    # Minimum viscosity [Pa.s]
 
-# External ASCII inputs 
-interfaces_from_ascii     = True       # Use 'initial-interfaces.txt' ASCII file
-# temperature_from_ascii  = True       # Use 'initial-temperature.txt' ASCII file
-velocity_from_ascii       = False      # Use 'initial-velocity.txt' ASCII file
+# External ASCII inputs
+interfaces_from_ascii     = True       # Use 'interfaces.txt' ASCII file
+# temperature_from_ascii  = True       # Use 'input_temperature_0.txt' ASCII file
+velocity_from_ascii       = False      # Use 'input_velocity_0.txt' ASCII file
 
 geo=on#kdjfkdjf
-geoq_fac                  = 100.0      
-surf_veloc                = 0.0e-2.    
+geoq_fac                  = 100.0
+surf_veloc                = 0.0e-2.
 
 temp_diff                 = 0
 
