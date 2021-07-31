@@ -35,8 +35,8 @@ where :math:`\Gamma_{h_i}` is the boundary where the :math:`ith` components of t
     \int_{\Omega}{w_{i,j}c_{ijkl}v_{k,l}d\Omega} -
     \int_{\Omega}{qv_{i,i}d\Omega} -
     \int_{\Omega}{w_{i,i}Pd\Omega} = \\
-    int_{\Omega}{w_{i}f_{i}d\Omega} +
-    \sum_{i=1}^{n_{sd}}{\int_{\Gamma_{h_i}{w_{i}h_{i}d\Gamma}}} - 
+    \int_{\Omega}{w_{i}f_{i}d\Omega} +
+    \sum_{i=1}^{n_{sd}}{\int_{\Gamma_{h_i}}{w_{i}h_{i}d\Gamma}} - 
     \int_{\Omega}{w_{i,j}c_{ijkl}g_{k,l}d\Omega}
     
 where :math:`c_{ijkl}=\eta(\delta_{ik}\delta_{jl}+\delta_{il}\delta_{jk})` is obtained from the stress tensor equation (see :eq:`stress-tensor` in the :doc:`basic theory section<theory>`).
@@ -313,7 +313,7 @@ Additionally, the rheology can also be considered to follow a power law, as a fu
 .. math::
     :label: power-law
 
-    \eta_{visc} = C A^{\frac{-1}{n}} \dot{\varepsilon}^{\frac{1-n}{n}} \exp{\frac{Q+V P}{nRT}}
+    \eta_{visc} = C A^{\frac{-1}{n}} \dot{\varepsilon}^{\frac{1-n}{2n}} \exp{\frac{Q+V P}{nRT}}
 
 where :math:`A` is a pre-exponential scale factor, :math:`n` is the power law exponent, :math:`\dot{\varepsilon}` is the second invariant of the strain rate tensor, :math:`Q` is the activation energy, and :math:`V` is the activation volume. The values of :math:`A`, :math:`n`, :math:`Q`, and :math:`V` are measured under laboratory conditions :cite:`karato1993,gleason1995`.
 
