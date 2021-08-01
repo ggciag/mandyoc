@@ -3,7 +3,7 @@
 Input files
 ===========
 
-*Mandyoc* accepts ASCII files to use as initial conditions for the simulation, such as an initial temperature file ``input_temperature.txt``, a file containing the initial interfaces geometry ``input_interfaces.txt`` and a file containing the initial velocity field at the faces of the model ``input_velocity.txt``. The next subsections will help you creating each one of these files.
+*Mandyoc* accepts ASCII files to use as initial conditions for the simulation, such as an initial temperature file ``input_temperature_0.txt``, a file containing the initial interfaces geometry ``interfaces.txt`` and a file containing the initial velocity field at the faces of the model ``input_velocity_0.txt``. The next subsections will help you creating each one of these files.
 
 
 ASCII temperature file
@@ -12,7 +12,7 @@ ASCII temperature file
 ..
    For both 2-D and 3-D grids, the initial temperature configuration can be provided as an ASCII file called ``intial-temperature.txt``. Considering :math:`x` to be the longitudinal direction, :math:`y` the vertical direction, and :math:`z` the latitudinal direction, the next subsections will guide you through the understanding of the initial temperature file structure.
 
-For a 2-D grid, the initial temperature configuration can be provided as an ASCII file called ``input_temperature.txt``. Considering :math:`x` to be the longitudinal direction and :math:`y` the vertical direction, the next subsections will guide you through the understanding of the initial temperature file structure.
+For a 2-D grid, the initial temperature configuration can be provided as an ASCII file called ``input_temperature_0.txt``. Considering :math:`x` to be the longitudinal direction and :math:`y` the vertical direction, the next subsections will guide you through the understanding of the initial temperature file structure.
 
 2-D temperature grid
 ********************
@@ -28,16 +28,16 @@ Consider a 2-D grid where the number of nodes in the :math:`x` and :math:`y` dir
    :align: center
    :alt: Coordinates
 
-   2-D grid scheme. The red dots represent the grid nodes where the values for the temperature must be defined, the dotted lines represent any number of grid nodes, for simplification, and the labels indicate the :math:`x` and :math:`y` position of each node. 
+   2-D grid scheme. The red dots represent the grid nodes where the values for the temperature must be defined, the dotted lines represent any number of grid nodes, for simplification, and the labels indicate the :math:`x` and :math:`y` position of each node.
 
 ..
    .. note::
       Because of the way *Mandyoc* deals with the coordinates in 2-D, the node at :math:`(x_0,y_0)` is always at the origin :math:`(0,0)`. This is also true for the 3-D grid, where the :math:`(x_0,y_0,z_0)` is at :math:`(0,0,0)`.
 
 .. note::
-   Because of the way *Mandyoc* deals with the coordinates in 2-D, the node at :math:`(x_0,y_0)` is always at the origin :math:`(0,0)`. 
+   Because of the way *Mandyoc* deals with the coordinates in 2-D, the node at :math:`(x_0,y_0)` is always at the origin :math:`(0,0)`.
 
-The example below shows how the ``input_temperature.txt`` file must be written for the 2-D grid in :numref:`coordinates2d`: after writing four lines of comments, the file must include the temperature :math:`T(x_n, y_m)` at each node starting at the bottom left of the model and going up in the :math:`y` direction. Intuitively, the temperature is given in horizontal layers for every :math:`x_n`. 
+The example below shows how the ``input_temperature_0.txt`` file must be written for the 2-D grid in :numref:`coordinates2d`: after writing four lines of comments, the file must include the temperature :math:`T(x_n, y_m)` at each node starting at the bottom left of the model and going up in the :math:`y` direction. Intuitively, the temperature is given in horizontal layers for every :math:`x_n`.
 
 .. literalinclude:: src/initial-temperature-2d.txt
    :language: text
@@ -73,7 +73,7 @@ ASCII interfaces file
 ..
    The ``input_interfaces.txt`` file, for both 2-D and 3-D grids, starts with seven lines of variables that are used by the rheology models. The variables that are in the interfaces are those that might be used in :eq:`power-law` or :eq:`frank-kamenetskii`: :math:`C`, :math:`\rho_r`, :math:`H`, :math:`A`, :math:`n`, :math:`Q`, and :math:`V`. Each one of these variables possesses a number of values (columns) that are assigned to each lithological unit in the model. Every interface is a boundary between two lithological units, therefore the number of columns is 1 plus the number of interfaces set in the ``param.txt`` file (see the :doc:`parameter file section<parameter-file>`), such that if there are :math:`i` interfaces, :math:`i+1` values for each variable **must** be provided in the ``input_interfaces.txt`` file. More will be discussed about the order of these values shortly.
 
-The ``input_interfaces.txt`` file, for a 2-D grid, starts with seven lines of variables that are used by the rheology models. The variables that are in the interfaces are those that might be used in :eq:`power-law` or :eq:`frank-kamenetskii`: :math:`C`, :math:`\rho_r`, :math:`H`, :math:`A`, :math:`n`, :math:`Q`, and :math:`V`. Each one of these variables possesses a number of values (columns) that are assigned to each lithological unit in the model. Every interface is a boundary between two lithological units, therefore the number of columns is 1 plus the number of interfaces set in the ``param.txt`` file (see the :doc:`parameter file section<parameter-file>`), such that if there are :math:`i` interfaces, :math:`i+1` values for each variable **must** be provided in the ``input_interfaces.txt`` file. More will be discussed about the order of these values shortly.
+The ``interfaces.txt`` file, for a 2-D grid, starts with seven lines of variables that are used by the rheology models. The variables that are in the interfaces are those that might be used in :eq:`power-law` or :eq:`frank-kamenetskii`: :math:`C`, :math:`\rho_r`, :math:`H`, :math:`A`, :math:`n`, :math:`Q`, and :math:`V`. Each one of these variables possesses a number of values (columns) that are assigned to each lithological unit in the model. Every interface is a boundary between two lithological units, therefore the number of columns is 1 plus the number of interfaces set in the ``param.txt`` file (see the :doc:`parameter file section<parameter-file>`), such that if there are :math:`i` interfaces, :math:`i+1` values for each variable **must** be provided in the ``interfaces.txt`` file. More will be discussed about the order of these values shortly.
 
 
 2-D Initial interfaces
@@ -107,7 +107,7 @@ ASCII velocities files
 ..
    For both 2-D and 3-D grids, the ``input_velocity.txt`` file possesses four lines of headers followed by the velocity data for each node of the model.
 
-For a 2-D grid, the ``input_velocity.txt`` file possesses four lines of headers followed by the velocity data for each node of the model.
+For a 2-D grid, the ``input_velocity_0.txt`` file possesses four lines of headers followed by the velocity data for each node of the model.
 
 An initial velocity file allows an initial velocity field to be established so the simulated fluid presents an initial momentum. Respecting the conservation of mass equation when designing the initial velocity field is fundamental so the simulation can run properly.
 
@@ -116,7 +116,7 @@ Additionally, the velocity boundary conditions defined in the ``param.txt`` (see
 2-D initial velocity
 ********************
 
-For a 2-D grid, the velocity must be defined for both :math:`x` and :math:`y` directions. Taking the example in the file below, the ``input_velocity.txt`` file must be written in such a way that the values for the velocity in the :math:`x` direction :math:`v_x` and the velocity in the :math:`y` direction :math:`v_y` for the node :math:`(x_0,y_0)` corresponds to lines 5 and 6, respectively, the velocity values for the :math:`(x_1,y_0)` corresponds to lines 7 and 8, and so on until :math:`(x_{nx-1},y_0)`. Once all the nodes in the :math:`y_0` are written, the values for all :math:`x_n` are inserted for :math:`y_1`, and so on until :math:`y_{ny-1}`.
+For a 2-D grid, the velocity must be defined for both :math:`x` and :math:`y` directions. Taking the example in the file below, the ``input_velocity_0.txt`` file must be written in such a way that the values for the velocity in the :math:`x` direction :math:`v_x` and the velocity in the :math:`y` direction :math:`v_y` for the node :math:`(x_0,y_0)` corresponds to lines 5 and 6, respectively, the velocity values for the :math:`(x_1,y_0)` corresponds to lines 7 and 8, and so on until :math:`(x_{nx-1},y_0)`. Once all the nodes in the :math:`y_0` are written, the values for all :math:`x_n` are inserted for :math:`y_1`, and so on until :math:`y_{ny-1}`.
 
 .. literalinclude:: src/initial-velocity-2d.txt
    :language: text
@@ -126,7 +126,7 @@ For a 2-D grid, the velocity must be defined for both :math:`x` and :math:`y` di
    3-D initial velocity
    ********************
 
-   Similarly to the 2-D grid, the ``input_velocity.txt`` file for a 3-D grid must contain the velocity values for each :math:`x`, :math:`y` and :math:`z` components. Therefore, the resulting files differs from the 2-D case as shown in the example below, which specifies the velocity for each node in the :math:`xz` plane for each depth :math:`y_m`.
+   Similarly to the 2-D grid, the ``input_velocity_0.txt`` file for a 3-D grid must contain the velocity values for each :math:`x`, :math:`y` and :math:`z` components. Therefore, the resulting files differs from the 2-D case as shown in the example below, which specifies the velocity for each node in the :math:`xz` plane for each depth :math:`y_m`.
 
    .. literalinclude:: src/initial-velocity-3d.txt
       :language: text

@@ -12,11 +12,8 @@ Dependencies
 ------------
 
 * PETSc_
-
 * gcc
-
 * make
-
 * git
 
 **Optional** dependencies:
