@@ -2,7 +2,7 @@
 
 This example simulates the evolution of divergent margins, taking into account the plastic rheology and the sin-rift geodynamics
 
-The domain of the model comprises 1600 x 300 km^2, composed of a regular mesh with square elements of 1 x 1 km^2.
+The domain of the model comprises 1600 x 300 km<sup>2</sup>, composed of a regular mesh with square elements of 1 x 1 km<sup>2</sup>.
 The boundary conditions for the velocity field simulate the lithospheric stretching
 assuming a reference frame fixed on the lithospheric plate on the left side of the model,
 and the plate on the right side moves rightward with a velocity of 1 cm/year.
@@ -12,7 +12,7 @@ Additionally, free slip condition was assumed on the top and bottom of the numer
 To simulate the free surface, the "sticky air" approach (e.g. Gerya and Yuen, 2003b) is adopted,
 taking into account a 40-km thick layer with a relatively low viscosity material but with a compatible density with the atmospheric air.
 The initial temperature structure is only depth dependent and is 0 ºC at the surface and 1300 ºC at the base of the lithosphere at 130 km.
-Please, see the "generate_input_files.py" to check out how the initial temperature structure in the interior of the lithosphere is obtained.
+Please, see the `generate_input_files.py` to check out how the initial temperature structure in the interior of the lithosphere is obtained.
 
 To avoid artifacts created by a homogeneous rheology, a random perturbation of the initial strain in each finite element of the model (e.g. Brune et al., 2014) is applied.
 This random perturbation follows a normal distribution in which the mean initial strain is 0.25 with a standard deviation of 0.08.
