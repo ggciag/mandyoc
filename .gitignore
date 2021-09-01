@@ -4,3 +4,8 @@ mandyoc
 _build
 # Ignore the documentation building folder
 docs/_build
+
+examples/*/input_temperature_0.txt
+examples/*/input_velocity_0.txt
+examples/*/param.txt
+examples/*/interfaces.txt
