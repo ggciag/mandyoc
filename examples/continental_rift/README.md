@@ -19,6 +19,38 @@ This random perturbation follows a normal distribution in which the mean initial
 Additionally, to ensure the nucleation of rifting at the center of the numerical domain,
 a weak seed (e.g. Huismans and Beaumont, 2003) is present in the lithospheric mantle with a constant initial strain of 0.3.
 
+
+## How to run this example
+First, you need to generate the input files. So run `generate_input_file.py` as:
+```
+python generate_input_files.py
+```
+
+Second, you can run the model as:
+```
+~/petsc/arch-label-optimized/bin/mpirun -n 8 ../../mandyoc -seed 0,2 -strain_seed 0.0,1.0 
+```
+
+Or run the script called `run.sh` as:
+```
+sh run.sh
+```
+
+In this case, `mandyoc` use the following flags:
+
+* `-seed 0,2`:
+
+* `-strain_seed 0.0,1.0`:
+
+
+## Plot results
+
+To plot the result, run `view_litho_strain_temper.py` as:
+```
+python view_litho_strain_temper.py
+```
+
+
 ## References
 Brune S., Heine C., Pérez-Gussinyé M., Sobolev S. V., Rift migration explains continental margin asymmetry and crustal hyper-extension,
 Nature communications, 2014, vol. 5, p. 1.
