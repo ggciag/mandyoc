@@ -5,7 +5,10 @@ _build
 # Ignore the documentation building folder
 docs/_build
 
+# Ignore the input file due to they can be generated using the script
 examples/*/input_temperature_0.txt
 examples/*/input_velocity_0.txt
 examples/*/param.txt
 examples/*/interfaces.txt
+
+example/continental_rift/*.png
