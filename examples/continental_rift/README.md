@@ -21,17 +21,22 @@ a weak seed (e.g. Huismans and Beaumont, 2003) is present in the lithospheric ma
 
 
 ## How to run this example
-First, you need to generate the input files. So run `generate_input_file.py` as:
+
+### Generate the input files
+
+To generate the interface, velocity, temperature and parameter file, you need to run `generate_input_file.py` as:
 ```
 python generate_input_files.py
 ```
 
-Second, you can run the model as:
+### Run the model
+
+Now, you can run the model as:
 ```
 ~/petsc/arch-label-optimized/bin/mpirun -n 8 ../../mandyoc -seed 0,2 -strain_seed 0.0,1.0 
 ```
 
-Or run the script called `run.sh` as:
+Or you can use the script called `run.sh` as: 
 ```
 sh run.sh
 ```
@@ -43,7 +48,7 @@ In this case, `mandyoc` use the following flags:
 * `-strain_seed 0.0,1.0`:
 
 
-## Plot results
+### Plot results
 
 To plot the result, run `view_litho_strain_temper.py` as:
 ```
