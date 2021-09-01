@@ -11,4 +11,4 @@ examples/*/input_velocity_0.txt
 examples/*/param.txt
 examples/*/interfaces.txt
 
-example/continental_rift/*.png
+examples/continental_rift/*.png
