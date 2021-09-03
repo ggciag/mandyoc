@@ -66,7 +66,7 @@ interfaces["seed_top"][
 )
 
 Huc = 2.5e-6 / 2700.0
-Hlc = 0.8e-6 / 2800.0  # old 2.9e-10
+Hlc = 0.8e-6 / 2800.0
 
 # Create the interface file
 with open("interfaces.txt", "w") as f:
