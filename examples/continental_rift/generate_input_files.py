@@ -315,7 +315,6 @@ ax1.set_ylim((Lz - H_sa) / 1.0e3, -H_sa / 1000)
 
 plt.legend()
 plt.savefig("temperature_field.png")
-# plt.show()
 plt.close()
 
 
