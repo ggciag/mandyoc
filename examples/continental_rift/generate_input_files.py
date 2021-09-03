@@ -325,7 +325,7 @@ plt.close()
 
 fac_air = 10.0e3
 
-# 1 cm/ano
+# 1 cm/year
 vL = 0.005 / (365 * 24 * 3600)  # m/s
 
 h_v_const = 150.0e3  # espessura com velocidade constante
