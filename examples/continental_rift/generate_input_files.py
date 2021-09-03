@@ -364,7 +364,6 @@ cond = Z == 0
 VZ[cond] = vv
 
 # print(np.sum(v0))
-# print(np.sum(vf)-np.sum(v0))
 
 VVX = np.copy(np.reshape(VX, Nx * Nz))
 VVZ = np.copy(np.reshape(VZ, Nx * Nz))
