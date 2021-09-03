@@ -65,7 +65,7 @@ interfaces["seed_top"][
     - H_seed // 2
 )
 
-Huc = 2.5e-6 / 2700.0  # old 9.2e-10
+Huc = 2.5e-6 / 2700.0
 Hlc = 0.8e-6 / 2800.0  # old 2.9e-10
 
 # Create the interface file
