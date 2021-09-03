@@ -34,24 +34,28 @@ X, Z = np.meshgrid(x, z)
 # Interfaces (bottom first)
 ##############################################################################
 
-x_plume_left = int(((Lx - D_plume)/2) / (Lx/(Nx-1)))
-x_plume_right = int(((Lx + D_plume)/2) / (Lx/(Nx-1)))
+x_plume_left = int(((Lx - D_plume) / 2) / (Lx / (Nx - 1)))
+x_plume_right = int(((Lx + D_plume) / 2) / (Lx / (Nx - 1)))
 
 plume_bottom = -1 * np.ones(Nx) * (Lz - H_plume)
 plume_top = -1 * np.ones(Nx) * (Lz - H_plume)
 
-plume_bottom[x_plume_left:x_plume_right] = -1 *(Lz - H_plume) - np.sqrt(np.power(D_plume/2, 2) - np.power(x[x_plume_left:x_plume_right] - Lx/2, 2))
-plume_top[x_plume_left:x_plume_right] = -1 * (Lz - H_plume) + np.sqrt(np.power(D_plume/2, 2) - np.power(x[x_plume_left:x_plume_right] - Lx/2, 2))
+plume_bottom[x_plume_left:x_plume_right] = -1 * (Lz - H_plume) - np.sqrt(
+    np.power(D_plume / 2, 2) - np.power(x[x_plume_left:x_plume_right] - Lx / 2, 2)
+)
+plume_top[x_plume_left:x_plume_right] = -1 * (Lz - H_plume) + np.sqrt(
+    np.power(D_plume / 2, 2) - np.power(x[x_plume_left:x_plume_right] - Lx / 2, 2)
+)
 
 interfaces = {
-    'plume_bottom': plume_bottom,
-    'plume_top': plume_top,
-    'mantle_top': -1 * (np.ones(Nx) * (H_sa + H_lid)),
-    'lid_top': -1 * (np.ones(Nx) * (H_sa)),
+    "plume_bottom": plume_bottom,
+    "plume_top": plume_top,
+    "mantle_top": -1 * (np.ones(Nx) * (H_sa + H_lid)),
+    "lid_top": -1 * (np.ones(Nx) * (H_sa)),
 }
 
-with open('interfaces.txt', 'w') as f:
-    layer_properties = f'''
+with open("interfaces.txt", "w") as f:
+    layer_properties = f"""
         C   1.0    0.1    1.0    100.0  0.01
         rho 3300.0 3200.0 3300.0 3300.0 0.0
         H   0.0    0.0    0.0    0.0    0.0
@@ -59,16 +63,16 @@ with open('interfaces.txt', 'w') as f:
         n   0.0    0.0    0.0    0.0    0.0
         Q   0.0    0.0    0.0    0.0    0.0
         V   0.0    0.0    0.0    0.0    0.0
-    '''
+    """
 
-    for line in layer_properties.split('\n'):
+    for line in layer_properties.split("\n"):
         line = line.strip()
         if len(line):
-            f.write(' '.join(line.split()) + '\n')
+            f.write(" ".join(line.split()) + "\n")
 
     # layer interfaces
     data = np.array(tuple(interfaces.values())).T
-    np.savetxt(f, data, fmt='%f')
+    np.savetxt(f, data, fmt="%f")
 
 ##############################################################################
 # Plot interfaces
@@ -76,13 +80,13 @@ with open('interfaces.txt', 'w') as f:
 fig, ax = plt.subplots(figsize=(16, 8))
 
 for label, layer in interfaces.items():
-    ax.plot(x/1.0e3, layer/1.0e3, label=f'{label}')
+    ax.plot(x / 1.0e3, layer / 1.0e3, label=f"{label}")
 
-ax.set_xticks(np.arange(0, Lx/1.0e3+1, 100))
-ax.set_yticks(np.arange(-Lz/1.0e3, 0+1, 50))
+ax.set_xticks(np.arange(0, Lx / 1.0e3 + 1, 100))
+ax.set_yticks(np.arange(-Lz / 1.0e3, 0 + 1, 50))
 
-ax.set_xlim([0, Lx/1.0e3])
-ax.set_ylim([-Lz/1.0e3, 0])
+ax.set_xlim([0, Lx / 1.0e3])
+ax.set_ylim([-Lz / 1.0e3, 0])
 
 plt.legend()
 
@@ -92,7 +96,7 @@ plt.close()
 ##############################################################################
 # Parameters file
 ##############################################################################
-params = f'''# Geometry
+params = f"""# Geometry
 nx                                  = {Nx}           # Number of elements in the longitudinal direction
 nz                                  = {Nz}           # Number of elements in the vertical direction
 lx                                  = {Lx:.1e}       # Extent in the longitudinal direction
@@ -198,8 +202,8 @@ left_temperature                    = fixed
 right_temperature                   = fixed
 
 rheology_model                      = 0
-T_initial                           = 0'''
+T_initial                           = 0"""
 
-with open('param.txt', 'w') as f:
-    for line in params.split('\n'):
-        f.write(line + '\n')
+with open("param.txt", "w") as f:
+    for line in params.split("\n"):
+        f.write(line + "\n")
