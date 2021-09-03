@@ -331,7 +331,7 @@ vL = 0.005 / (365 * 24 * 3600)  # m/s
 h_v_const = 150.0e3  # thickness with constant velocity
 ha = Lz - H_sa - h_v_const  # difference
 
-vR = 2 * vL * (h_v_const + ha) / ha  # garante que integral seja zero
+vR = 2 * vL * (h_v_const + ha) / ha  # this is to ensure integral equals zero
 
 VX = np.zeros_like(X)
 cond = (Z > h_v_const + H_sa) & (X == 0)
