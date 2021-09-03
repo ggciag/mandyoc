@@ -243,7 +243,7 @@ with open("param.txt", "w") as f:
 # Initial temperature field
 ##############################################################################
 
-T = 1300 * (z - H_sa) / (H_litho)  # Temperatura
+T = 1300 * (z - H_sa) / (H_litho)  # Temperature
 
 Ta = 1262 / np.exp(-10 * 3.28e-5 * (z - H_sa) / 1250)
 
