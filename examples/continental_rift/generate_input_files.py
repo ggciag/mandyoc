@@ -65,8 +65,8 @@ interfaces["seed_top"][
     - H_seed // 2
 )
 
-Huc = 2.5e-6 / 2700.0  # old 9.2e-10
-Hlc = 0.8e-6 / 2800.0  # old 2.9e-10
+Huc = 2.5e-6 / 2700.0
+Hlc = 0.8e-6 / 2800.0
 
 # Create the interface file
 with open("interfaces.txt", "w") as f:
@@ -74,9 +74,9 @@ with open("interfaces.txt", "w") as f:
         C   1.0       1.0        0.1        1.0        1.0         1.0         1.0
         rho 3378.0    3354.0     3354.0     3354.0     2800.0      2700.0      1.0
         H   0.0       9.0e-12    9.0e-12    9.0e-12    {Hlc}       {Huc}       0.0
-        A   1.393e-14 2.4168E-15 2.4168E-15 2.4168E-15 8.574e-28   8.574e-28   1.0e-18
+        A   1.393e-14 2.4168e-15 2.4168e-15 2.4168e-15 8.574e-28   8.574e-28   1.0e-18
         n   3.0       3.5        3.5        3.5        4.0         4.0         1.0
-        Q   429.0e3   540.0E3    540.0E3    540.0E3    222.0e3     222.0e3     0.0
+        Q   429.0e3   540.0e3    540.0e3    540.0e3    222.0e3     222.0e3     0.0
         V   15.0e-6   25.0e-6    25.0e-6    25.0e-6    0.0         0.0         0.0
     """
 
@@ -243,7 +243,7 @@ with open("param.txt", "w") as f:
 # Initial temperature field
 ##############################################################################
 
-T = 1300 * (z - H_sa) / (H_litho)  # Temperatura
+T = 1300 * (z - H_sa) / (H_litho)  # Temperature
 
 Ta = 1262 / np.exp(-10 * 3.28e-5 * (z - H_sa) / 1250)
 
@@ -315,7 +315,6 @@ ax1.set_ylim((Lz - H_sa) / 1.0e3, -H_sa / 1000)
 
 plt.legend()
 plt.savefig("temperature_field.png")
-# plt.show()
 plt.close()
 
 
@@ -325,13 +324,13 @@ plt.close()
 
 fac_air = 10.0e3
 
-# 1 cm/ano
+# 1 cm/year
 vL = 0.005 / (365 * 24 * 3600)  # m/s
 
-h_v_const = 150.0e3  # espessura com velocidade constante
-ha = Lz - H_sa - h_v_const  # diferenca
+h_v_const = 150.0e3  # thickness with constant velocity
+ha = Lz - H_sa - h_v_const  # difference
 
-vR = 2 * vL * (h_v_const + ha) / ha  # garante que integral seja zero
+vR = 2 * vL * (h_v_const + ha) / ha  # this is to ensure integral equals zero
 
 VX = np.zeros_like(X)
 cond = (Z > h_v_const + H_sa) & (X == 0)
@@ -365,8 +364,6 @@ cond = Z == 0
 VZ[cond] = vv
 
 # print(np.sum(v0))
-# print(np.sum(vf))
-# print(np.sum(vf)-np.sum(v0))
 
 VVX = np.copy(np.reshape(VX, Nx * Nz))
 VVZ = np.copy(np.reshape(VZ, Nx * Nz))
