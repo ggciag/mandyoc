@@ -1,1 +1,6 @@
-/Users/kugelblitz/opt/petsc/arch-0-fast/bin/mpirun -n 2 /Users/kugelblitz/Desktop/mandyoc-misc/mandyoc/mandyoc
+#!/bin/sh
+
+MANDYOC_PATH = ../..
+MPI_PATH=$HOME/petsc/arch-label-optimized/bin/
+
+MPI_PATH/mpirun -n 2 $MANDYOC_PATH/mandyoc
