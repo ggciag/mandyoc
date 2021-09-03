@@ -1,4 +1,6 @@
-# Please, update the following paths according to your PETSC_DIR and PETSC_ARCH installation
-# and path to MANDYOC binary
+#!/bin/sh
 
-${PETSC_DIR}/${PETSC_ARCH}/bin/mpirun -n 4 ../../mandyoc
+MANDYOC_PATH = ../..
+MPI_PATH=$HOME/petsc/arch-label-optimized/bin/
+
+MPI_PATH/mpirun -n 4 $MANDYOC_PATH/mandyoc
