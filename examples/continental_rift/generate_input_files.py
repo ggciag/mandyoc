@@ -328,7 +328,7 @@ fac_air = 10.0e3
 # 1 cm/year
 vL = 0.005 / (365 * 24 * 3600)  # m/s
 
-h_v_const = 150.0e3  # espessura com velocidade constante
+h_v_const = 150.0e3  # thickness with constant velocity
 ha = Lz - H_sa - h_v_const  # diferenca
 
 vR = 2 * vL * (h_v_const + ha) / ha  # garante que integral seja zero
