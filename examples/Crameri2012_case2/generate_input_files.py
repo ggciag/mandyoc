@@ -1,3 +1,6 @@
+"""
+Generate the input files to run the Case 2 experiment presented by Crameri et al. (2012), which evaluates the sticky air method to obtain a numerical surface topography in geodynamic modelling.
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -90,6 +93,7 @@ ax.set_ylim([-Lz / 1.0e3, 0])
 
 plt.legend()
 
+# Create the interface file
 plt.savefig("interfaces.png")
 plt.close()
 
@@ -204,6 +208,7 @@ right_temperature                   = fixed
 rheology_model                      = 0
 T_initial                           = 0"""
 
+# Create the parameter file
 with open("param.txt", "w") as f:
     for line in params.split("\n"):
         f.write(line + "\n")
