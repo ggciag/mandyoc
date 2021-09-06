@@ -3,8 +3,8 @@
 The Case 2 experiment presented by Crameri et al. (2012) evaluates the sticky air method to obtain a numerical surface topography in geodynamic modelling.
 
 The experiment analyses the change in topography due to the rising of a mantle plume.
-The model setup consists of a 2800km by 850km box with a 150km sticky air layer on the top of the model.
-The mantle thickness is 600km with a 100km thick lithosphere.
+The model setup consists of a 2800 km by 850 km box with a 150 km sticky air layer on the top of the model.
+The mantle thickness is 600 km with a 100 km thick lithosphere.
 The lithosphere density is 3300 kg/m<sup>3</sup> with viscosity 10<sup>23</sup> Pa.s,
 the mantle density is 3300 kg/m<sup>3</sup> with viscosity 10<sup>21</sup> Pa.s
 and the mantle plume density is 3200 kg/m<sup>3</sup> with viscosity 10<sup>20</sup> Pa.s.
