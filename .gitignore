@@ -4,3 +4,18 @@ mandyoc
 _build
 # Ignore the documentation building folder
 docs/_build
+
+
+# Ignore output when run the test 
+test/testing_result_data/density_* 
+test/testing_result_data/heat_*
+test/testing_result_data/pressure_*
+test/testing_result_data/strain_*
+test/testing_result_data/strain_rate_*
+test/testing_result_data/temperature_*
+test/testing_result_data/sp_surface_global_*
+test/testing_result_data/viscosity_*
+test/testing_result_data/step_*
+test/testing_result_data/time_*
+test/testing_result_data/bc_*
+test/testing_result_data/velocity_*
