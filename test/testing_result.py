@@ -27,7 +27,7 @@ file_name = [
 # steps to compare
 steps = [0, 1]
 
-rtol = 0.1 
+rtol = 0.1
 
 # Error message
 error_message = "The test result is not equal or similar to the expected value for {}. Please contact the Mandyoc developers."
