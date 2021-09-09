@@ -11,7 +11,7 @@ test_path = "test/testing_data"
 expected_result_path = os.path.join(test_path, "expected")
 # Name of the files to compare
 file_name = [
-    "density_{}", 
+    "density_{}",
     "heat_{}",
     "pressure_{}",
     "strain_{}",
