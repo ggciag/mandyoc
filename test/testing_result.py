@@ -1,5 +1,5 @@
 """
-Testing Mandyoc code using Crameri example for only 3 time steps
+Testing Mandyoc code using Crameri example for only 2 time steps
 """
 
 import numpy as np
