@@ -1,76 +1,57 @@
 """
-Testing Mandyoc code using Crameri example for only 2 time steps
+Compare the Mandyoc output data with the expected data using the Crameri model 
 """
-
-import numpy as np
 import os
+import pytest
+import numpy as np
+import numpy.testing as npt
+from pathlib import Path
 
 # Test path
-test_path = "test/testing_data"
-# Path to the expected data to make the comparison
-expected_result_path = os.path.join(test_path, "expected")
+base_path = Path(os.path.realpath(os.path.abspath(__file__))).parent
+test_path = base_path / "testing_data"
+
+# Expected data
+# expected_path = os.path.join(test_path, "expected")
+expected_path = test_path / "expected"
+
 # Name of the files to compare
-file_name = [
-    "density_{}",
-    "heat_{}",
-    "pressure_{}",
-    "strain_{}",
-    "strain_rate_{}",
-    "temperature_{}",
-    #"sp_surface_global_{}",
-    "viscosity_{}",
-    "step_{}_0",
-    "step_{}_1",
-    "time_{}",
-    "velocity_{}",
+fields = [
+    "density",
+    "heat",
+    "pressure",
+    "strain",
+    "strain_rate",
+    "temperature",
+    # "sp_surface_global_{}",
+    "viscosity",
+    "step_0",
+    "step_1",
+    "time",
+    "velocity",
 ]
 # steps to compare
 steps = [0, 1]
 
-rtol = 0.1
 
-# Error message
-error_message = "The test result is not equal or similar to the expected value for {}. Please contact the Mandyoc developers."
+def read(filename):
+    """
+    Read the file
+    """
+    if "time" not in filename.name:
+        args = dict(unpack=True, comments="P", skiprows=2)
+    else:
+        args = dict(unpack=True, delimiter=":", usecols=1)
+    data = np.loadtxt(filename, **args)
+    return data
 
-for step in steps:
-    for name in file_name:
-        if name != "time_{}":
-            # Load the Mandyoc result
-            filename = os.path.join(test_path, name + ".txt").format(step)
-            data_step = np.loadtxt(
-                filename,
-                unpack=True,
-                comments="P",
-                skiprows=2,
-            )
 
-            # Load the expected result
-            expected_filename = os.path.join(
-                expected_result_path, name + ".txt"
-            ).format(step)
-            expected_data_step = np.loadtxt(
-                expected_filename,
-                unpack=True,
-                comments="P",
-                skiprows=2,
-            )
-        else:
-            # Load the Mandyoc result for time
-            filename = os.path.join(test_path, name + ".txt").format(step)
-            data_step = time = np.loadtxt(
-                filename, unpack=True, delimiter=":", usecols=(1)
-            )
-            # data_step +=1
-            # Load the expected result for time
-            expected_filename = os.path.join(
-                expected_result_path, name + ".txt"
-            ).format(step)
-            expected_data_step = time = np.loadtxt(
-                expected_filename, unpack=True, delimiter=":", usecols=(1)
-            )
+@pytest.mark.parametrize("field", fields)
+@pytest.mark.parametrize("step", steps)
+def test_result(field, step):
+    """ """
+    filename = f"{field}_{step}" + ".txt"
+    output = read(test_path / filename)
+    expected = read(expected_path / filename)
 
-        # Compare the Mandyoc results with the expected results
-        if (abs(data_step - expected_data_step) >= rtol).any():
-            raise ValueError(error_message.format(filename))
-
-print("Mandyoc test has run successfully.")
+    npt.assert_allclose(output, expected, rtol=1e-5)
