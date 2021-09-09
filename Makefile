@@ -40,7 +40,7 @@ help:
 test_madyoc:
 
 	@echo "Run MANDYOC test may take several minutes (approx. 10 minutes)"
-	cd test/testing_result_data/ ; ${MPI_PATH}/mpirun -n 2 ../../mandyoc 
+	cd test/testing_data/ ; ${MPI_PATH}/mpirun -n 2 ../../mandyoc
 	python test/testing_result.py 
 
 # Build Mandyoc
