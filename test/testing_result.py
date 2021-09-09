@@ -25,7 +25,7 @@ file_name = [
     "velocity_{}",
 ]
 # steps to compare
-steps = [0, 10, 20]
+steps = [0, 1]
 
 rtol = 0.1 
 
