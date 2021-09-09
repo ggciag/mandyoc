@@ -43,7 +43,7 @@ time_max                            = 21.0E6        # Maximum time of the simula
 dt_max                              = 10.0E3        # Maximum time between steps of the simulation [years]
 step_print                          = 10            # Make file every <step_print>
 sub_division_time_step              = 1.0           # default is 1.0
-initial_print_step                  = 10            # default is 0
+initial_print_step                  = 1             # default is 0
 initial_print_max_time              = 1.0E6         # default is 1.0E6 [years]
 
 # Viscosity
