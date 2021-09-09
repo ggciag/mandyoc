@@ -1,10 +1,10 @@
 mandyoc
+test/__pycache__/
 
 # Ignore _build folder
 _build
 # Ignore the documentation building folder
 docs/_build
-
 
 # Ignore output when run the test 
 test/testing_data/density_* 
