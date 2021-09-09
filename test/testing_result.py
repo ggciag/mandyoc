@@ -6,7 +6,7 @@ import numpy as np
 import os
 
 # Test path
-test_path = "test/testing_result_data"
+test_path = "test/testing_data"
 # Path to the expected data to make the comparison
 expected_result_path = os.path.join(test_path, "expected_result")
 # Name of the files to compare
