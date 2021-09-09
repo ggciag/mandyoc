@@ -41,7 +41,7 @@ test_madyoc:
 
 	@echo "Run MANDYOC test may take several minutes.."
 	cd test/testing_data/ ; ${MPI_PATH}/mpirun -n 2 ../../mandyoc
-	python test/testing_result.py 
+	pytest -v test/testing_result.py 
 
 # Build Mandyoc
 all: ${OBJECTS} chkopts
