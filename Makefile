@@ -26,7 +26,7 @@ SOURCEC = $(SRC)/main.cpp \
 	$(SRC)/sp.cpp
 OBJECTS = $(SOURCEC:%.cpp=%.o)
 
-MPI_PATH = ${PETSC_DIR}/arch-label-opt/bin
+MPI_PATH = ${PETSC_DIR}/${PETSC_ARCH}/bin
 
 help:
 	@echo ""
