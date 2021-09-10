@@ -27,16 +27,18 @@ python generate_input_files.py
 
 Now, you can run the model as:
 ```
-${PETSC_DIR}/${PETSC_ARCH}/bin/mpirun -n number_of_cores ../../mandyoc
+/petsc/arch-label-optimized/bin/mpirun -n NUMBER_OF_CORES ../../mandyoc
 ```
-__You have to change `number_of_cores`.__ If `PETSC_DIR` and `PETSC_ARCH` environment variables are not defined, you must adjust the path to _mpirun_ accordingly.
 
-
-Or you can use the script called `run.sh` to run it using 4 cores:
+Or you can use the script called `run.sh` to run it:
 ```
 sh run.sh
 ```
-__Remember to change the number of cores.__
+__You have to change `NUMBER_OF_CORES`.__ 
+
+Remember that `PETSc` is installed by default in `~/`. 
+If you have changed it you must adjust the path to _mpirun_ accordingly.
+
 
 ### Plot viscosity results
 

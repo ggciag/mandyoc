@@ -1,6 +1,6 @@
 # Example: Continental rift
 
-This example simulates the evolution of divergent margins, taking into account the plastic rheology and the sin-rift geodynamics
+This example simulates the evolution of divergent margins, taking into account the plastic rheology and the sin-rift geodynamics.
 
 The domain of the model comprises 1600 x 300 km<sup>2</sup>, composed of a regular mesh with square elements of 1 x 1 km<sup>2</sup>.
 The boundary conditions for the velocity field simulate the lithospheric stretching
@@ -31,24 +31,25 @@ python generate_input_files.py
 
 ### Run the model
 
-Now, you can run the model as:
-```
-${PETSC_DIR}/${PETSC_ARCH}/bin/mpirun -n number_of_cores ../../mandyoc -seed 0,2 -strain_seed 0.0,1.0
-```
-__You have to change `number_of_cores`.__ If `PETSC_DIR` and `PETSC_ARCH` environment variables are not defined, you must adjust the path to _mpirun_ accordingly.
+In this example, `mandyoc` use the following flags:
 
+* `-seed 0,2`
 
-Or you can use the script called `run.sh` to run it. __Remember to update the `NUMBER_OF_CORES`__ variable in the script.
+* `-strain_seed 0.0,1.0`
+
+You can run the model as:
+```
+~/petsc/arch-label-optimized/bin/mpirun -n NUMBER_OF_CORES ../../mandyoc -seed 0,2 -strain_seed 0.0,1.0
+```
+
+Or you can use the script called `run.sh` to run it:
 ```
 sh run.sh
 ```
+__You have to change `NUMBER_OF_CORES`.__ 
 
-In this case, `mandyoc` use the following flags:
-
-* `-seed 0,2`:
-
-* `-strain_seed 0.0,1.0`:
-
+Remember that `PETSc` is installed by default in `~/`. 
+If you have changed it you must adjust the path to _mpirun_ accordingly.
 
 ### Plot results
 
@@ -62,8 +63,6 @@ python view_litho_strain_temper.py
 Brune S., Heine C., Pérez-Gussinyé M., Sobolev S. V., Rift migration explains continental margin asymmetry and crustal hyper-extension,
 Nature communications, 2014, vol. 5, p. 1.
 
-Gerya T. V., Yuen D. A., Characteristics-based marker-in-cell method with conservative finite-differences schemes for modeling geological flows with strongly variable transport properties,
-Physics of the Earth and Planetary Interiors, 2003a, vol. 140, p. 293
+Gerya T. V., Yuen D. A., Characteristics-based marker-in-cell method with conservative finite-differences schemes for modeling geological flows with strongly variable transport properties, Physics of the Earth and Planetary Interiors, 2003a, vol. 140, p. 293
 
-Huismans R. S., Beaumont C., Symmetric and asymmetric lithospheric extension: Relative effects of frictional-plastic and viscous strain softening,
-Journal of Geophysical Research: Solid Earth, 2003, vol. 108
+Huismans R. S., Beaumont C., Symmetric and asymmetric lithospheric extension: Relative effects of frictional-plastic and viscous strain softening, Journal of Geophysical Research: Solid Earth, 2003, vol. 108

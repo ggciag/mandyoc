@@ -11,28 +11,33 @@ under a denser thicker package.
 
 ### Generate the input files
 
-To generate the interface, velocity, temperature and parameter file, you
-need to run `generate_interface.py` as:
-
-    python generate_interfaces.py
+To generate the interface, velocity, temperature and parameter file, you need to run `generate_interface.py` as:
+```
+python generate_interfaces.py
+```
 
 ### Run the model
 
 Now, you can run the model as:
+```
+~/petsc/arch-label-optimized/bin/mpirun -n NUMBER_OF_CORES ../../mandyoc
+```
+Or you can use the script called `run.sh` to run it:
+```
+sh run.sh
+```
+__You have to change `NUMBER_OF_CORES`.__ 
 
-    ${PETSC_DIR}/${PETSC_ARCH}/bin/mpirun -n number_of_cores ../../mandyoc
+Remember that `PETSc` is installed by default in `~/`. 
+If you have changed it you must adjust the path to _mpirun_ accordingly.
 
-**You have to change `number_of_cores`.** If `PETSC_DIR` and `PETSC_ARCH` environment variables are not defined, you must adjust the path to _mpirun_ accordingly.
-
-Or you can use the script called `run.sh` to run it. __Remember to update the `NUMBER_OF_CORES`__ variable in the script.
-
-    sh run.sh
 
 ### Plot results
 
 To plot the result, run `view_density.py` as:
-
-    python view_density.py
+```
+python view_density.py
+```
 
 ## References
 
