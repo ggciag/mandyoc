@@ -20,11 +20,11 @@ need to run `generate_interface.py` as:
 
 Now, you can run the model as:
 
-    ~/petsc/arch-label-optimized/bin/mpirun -n number_of_cores ../../mandyoc
+    ${PETSC_DIR}/${PETSC_ARCH}/bin/mpirun -n number_of_cores ../../mandyoc
 
-**You have to change `number_of_cores`.**
+**You have to change `number_of_cores`.** If `PETSC_DIR` and `PETSC_ARCH` environment variables are not defined, you must adjust the path to _mpirun_ accordingly.
 
-Or you can use the script called `run.sh` to run it using 2 cores:
+Or you can use the script called `run.sh` to run it. __Remember to update the `NUMBER_OF_CORES`__ variable in the script.
 
     sh run.sh
 
