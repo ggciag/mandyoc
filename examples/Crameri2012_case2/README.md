@@ -29,7 +29,7 @@ Now, you can run the model as:
 ```
 ${PETSC_DIR}/${PETSC_ARCH}/bin/mpirun -n number_of_cores ../../mandyoc
 ```
-__You have to change `number_of_cores`.__
+__You have to change `number_of_cores`.__ If `PETSC_DIR` and `PETSC_ARCH` environment variables are not defined, you must adjust the path to _mpirun_ accordingly.
 
 
 Or you can use the script called `run.sh` to run it using 4 cores:
