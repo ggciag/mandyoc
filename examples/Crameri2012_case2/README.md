@@ -27,7 +27,7 @@ python generate_input_files.py
 
 Now, you can run the model as:
 ```
-/petsc/arch-label-optimized/bin/mpirun -n NUMBER_OF_CORES ../../mandyoc
+~/petsc/arch-label-optimized/bin/mpirun -n NUMBER_OF_CORES ../../mandyoc
 ```
 
 Or you can use the script called `run.sh` to run it:
