@@ -54,18 +54,18 @@ particles_per_element_z             = 0             # default is 0
 # Simulation options
 multigrid                           = 1             # ok -> soon to be on the command line only
 solver                              = direct        # default is direct [direct/iterative]
-denok                               = 1.0E-15       # default is 1.0E-4
+denok                               = 1.0e-15       # default is 1.0e-4
 particles_per_element               = 1100          # default is 81
 particles_perturb_factor            = 0.0           # default is 0.5 [values are between 0 and 1]
-rtol                                = 1.0E-5        # the absolute size of the residual norm (relevant only for iterative methods), default is 1.0E-5
+rtol                                = 1.0e-5        # the absolute size of the residual norm (relevant only for iterative methods), default is 1.0E-5
 RK4                                 = Euler         # default is Euler [Euler/Runge-Kutta]
-Xi_min                              = 1.0E-14       # default is 1.0E-14
+Xi_min                              = 1.0e-14       # default is 1.0e-14
 random_initial_strain               = 0.0           # default is 0.0
 pressure_const                      = -1.0          # default is -1.0 (not used)
 initial_dynamic_range               = False         # default is False [True/False]
 periodic_boundary                   = False         # default is False [True/False]
 high_kappa_in_asthenosphere         = False         # default is False [True/False]
-K_fluvial                           = 2.0E-7        # default is 2.0E-7
+K_fluvial                           = 2.0e-7        # default is 2.0e-7
 m_fluvial                           = 1.0           # default is 1.0
 sea_level                           = 0.0           # default is 0.0
 basal_heat                          = -1.0          # default is -1.0
@@ -83,17 +83,17 @@ theta_FSSA                          = 0.5           # default is 0.5 (only relev
 
 # Time constrains
 step_max                            = 4000          # Maximum time-step of the simulation
-time_max                            = 140000.0E6    # Maximum time of the simulation [s]
+time_max                            = 140000.0e6    # Maximum time of the simulation [s]
 dt_max                              = 1000.0e6      # Maximum time between steps of the simulation [s]
 step_print                          = 20            # Make file every <step_print>
 sub_division_time_step              = 1.0           # default is 1.0
 initial_print_step                  = 0             # default is 0
-initial_print_max_time              = 1.0E6         # default is 1.0E6 [years]
+initial_print_max_time              = 1.0e6         # default is 1.0e6 [years]
 
 # Viscosity
-viscosity_reference                 = 1.0E21        # Reference viscosity [Pa.s]
-viscosity_max                       = 1.0E25        # Maximum viscosity [Pa.s]
-viscosity_min                       = 1.0E17        # Minimum viscosity [Pa.s]
+viscosity_reference                 = 1.0e21        # Reference viscosity [Pa.s]
+viscosity_max                       = 1.0e25        # Maximum viscosity [Pa.s]
+viscosity_min                       = 1.0e17        # Minimum viscosity [Pa.s]
 viscosity_per_element               = constant      # default is variable [constant/variable]
 viscosity_mean_method               = harmonic      # default is harmonic [harmonic/arithmetic]
 viscosity_dependence                = pressure      # default is depth [pressure/depth]
@@ -120,11 +120,11 @@ geoq_fac                            = 1.0           # ok
 
 # Physical parameters
 temperature_difference              = 0.            # ok
-thermal_expansion_coefficient       = 3.28E-5       # ok
-thermal_diffusivity_coefficient     = 1.0E-6        # ok
+thermal_expansion_coefficient       = 3.28e-5       # ok
+thermal_diffusivity_coefficient     = 1.0e-6        # ok
 gravity_acceleration                = 10.0          # ok
 density_mantle                      = 3300.         # ok
-external_heat                       = 0.0E-12       # ok
+external_heat                       = 0.0e-12       # ok
 heat_capacity                       = 1250.         # ok
 
 non_linear_method                   = off           # ok
@@ -141,7 +141,7 @@ left_tangential_velocity            = free          # ok
 right_normal_velocity               = fixed         # ok
 right_tangential_velocity           = free          # ok
 
-surface_velocity                    = 0.0E-2        # ok
+surface_velocity                    = 0.0e-2        # ok
 multi_velocity                      = False         # default is False [True/False]
 
 # Temperature boundary conditions
@@ -152,13 +152,6 @@ right_temperature                   = free          # ok
 
 rheology_model                      = 0             # ok
 T_initial                           = 0             # ok
-
-#H_lito                             = 80000.0
-#h_air                              = 0.0
-#beta_max                           = 3.0
-#ramp_begin                         = 2000.0E3
-#ramp_end                           = 2200.0E3
-
 """
 
 # Create the parameter file
