@@ -1,0 +1,91 @@
+# NOTE: Pin actions to a specific commit to avoid having the authentication
+# token stolen if the Action is compromised. See the comments and links here:
+# https://github.com/pypa/gh-action-pypi-publish/issues/27
+#
+
+name: build-docker-image
+
+# Only build the master branch and releases.
+on:
+  push:
+    branches:
+      - "main"
+
+    tags:
+      - "v*.*.*"
+
+jobs:
+  # Build the docker image
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Cancel any previous run of the test job
+      # We pin the commit hash corresponding to v0.5.0, and not pinning the tag
+      # because we are giving full access through the github.token.
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@148d9a848c6acaf90a3ec30bc5062f646f8a4163
+        with:
+          access_token: ${{ github.token }}
+
+      # Cache layer
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      # Checks-out your repository under $GITHUB_WORKSPACE
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          # Need to fetch more than the last commit so that setuptools-scm can
+          # create the correct version string. If the number of commits since
+          # the last release is greater than this, the version still be wrong.
+          # Increase if necessary.
+          fetch-depth: 100
+          # The GitHub token is preserved by default but this job doesn't need
+          # to be able to push to GitHub.
+          persist-credentials: false
+
+      - name: Docker meta
+        id: meta
+        uses: crazy-max/ghaction-docker-meta@v2
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            rafaelmds/mandyoc
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: ./docker
+          file: mandyoc.Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
