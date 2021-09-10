@@ -33,7 +33,7 @@ python generate_input_files.py
 
 Now, you can run the model as:
 ```
-~/petsc/arch-label-optimized/bin/mpirun -n number_of_cores ../../mandyoc -seed 0,2 -strain_seed 0.0,1.0 
+${PETSC_DIR}/${PETSC_ARCH}/bin/mpirun -n number_of_cores ../../mandyoc -seed 0,2 -strain_seed 0.0,1.0
 ```
 __You have to change `number_of_cores`.__
 
