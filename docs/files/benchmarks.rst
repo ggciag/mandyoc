@@ -1,9 +1,19 @@
 .. _benchmarks:
 
-Benchmarks 
+Benchmarks
 ==========
 
 In order to test the accuracy of the *Mandyoc* code, its results can be compared to benchmark studies. The following subsections will present the procedures and results for some well established modeling problems. Such cases should provide information about the applicability and performance of the code as well as some of its limitations.
+
+The scripts to build and run these numerical experiments are located in the `examples <https://github.com/ggciag/mandyoc/tree/main/examples>`_ folder of the Mandyoc repository.
+
+.. how-to-run-examples:
+
+**How to run examples:**
+
+Inside each example folder, you find a ``README.md`` file with detailed explanation and instrutions on how to run the experiment.
+First, you need to run the python script file named ``generate_input_files.py`` to generate the :ref:`input files<inputfiles>` needed by Mandyoc.
+Then, you may execute mandyoc directly from a terminal command or update the bash script ``run.sh`` accordingly to your setup and execute it to run the experiment.
 
 van Keken et al. (1997) :cite:`vankeken1997`
 --------------------------------------------
@@ -53,7 +63,7 @@ The simulations are carried out in a Cartesian box where the fluid is isothermal
 Results for *case 1a*
 *********************
 
-For the *case 1a* where :math:`\eta_0/\eta_r=1.00`, :numref:`vankekenCase1aEvolution` below compares the evolution of the isoviscous Rayleigh-Taylor instability between the van Keken et al. (1997) :cite:`vankeken1997` and the *Mandyoc*. The time steps shown for the *Mandyoc* code are the closest the simulation could provide, considering the chosen simulation parameters. 
+For the *case 1a* where :math:`\eta_0/\eta_r=1.00`, :numref:`vankekenCase1aEvolution` below compares the evolution of the isoviscous Rayleigh-Taylor instability between the van Keken et al. (1997) :cite:`vankeken1997` and the *Mandyoc*. The time steps shown for the *Mandyoc* code are the closest the simulation could provide, considering the chosen simulation parameters.
 
 .. _vankekenCase1aEvolution:
 
@@ -81,7 +91,7 @@ Evolution of the isoviscous Rayleigh-Taylor instability for :math:`\eta_0/\eta_r
 Results for *case 1b*
 *********************
 
-For the *case 1b* where :math:`\eta_0/\eta_r=0.10`, :numref:`vankekenCase1bEvolution` compares the evolution of the isoviscous Rayleigh-Taylor instability between van Keken et al. (1997) :cite:`vankeken1997` and *Mandyoc*. The time steps shown for the *Mandyoc* code are the closest the simulation could provide, considering the chosen simulation parameters. 
+For the *case 1b* where :math:`\eta_0/\eta_r=0.10`, :numref:`vankekenCase1bEvolution` compares the evolution of the isoviscous Rayleigh-Taylor instability between van Keken et al. (1997) :cite:`vankeken1997` and *Mandyoc*. The time steps shown for the *Mandyoc* code are the closest the simulation could provide, considering the chosen simulation parameters.
 
 .. _vankekenCase1bEvolution:
 
@@ -106,7 +116,7 @@ For the *case 1b* where :math:`\eta_0/\eta_r=0.10`, :numref:`vankekenCase1bEvolu
 Results for *case 1c*
 *********************
 
-For the *case 1c* where :math:`\eta_0/\eta_r=0.01`, :numref:`vankekenCase1cEvolution` compares the evolution of the isoviscous Rayleigh-Taylor instability between van Keken et al. (1997) :cite:`vankeken1997` and *Mandyoc*. The time steps shown for the *Mandyoc* code are the closest the simulation could provide, considering the chosen simulation parameters. 
+For the *case 1c* where :math:`\eta_0/\eta_r=0.01`, :numref:`vankekenCase1cEvolution` compares the evolution of the isoviscous Rayleigh-Taylor instability between van Keken et al. (1997) :cite:`vankeken1997` and *Mandyoc*. The time steps shown for the *Mandyoc* code are the closest the simulation could provide, considering the chosen simulation parameters.
 
 .. _vankekenCase1cEvolution:
 
