@@ -35,10 +35,10 @@ Now, you can run the model as:
 ```
 ${PETSC_DIR}/${PETSC_ARCH}/bin/mpirun -n number_of_cores ../../mandyoc -seed 0,2 -strain_seed 0.0,1.0
 ```
-__You have to change `number_of_cores`.__
+__You have to change `number_of_cores`.__ If `PETSC_DIR` and `PETSC_ARCH` environment variables are not defined, you must adjust the path to _mpirun_ accordingly.
 
 
-Or you can use the script called `run.sh` to run it using 8 cores:
+Or you can use the script called `run.sh` to run it. __Remember to update the `NUMBER_OF_CORES`__ variable in the script.
 ```
 sh run.sh
 ```
