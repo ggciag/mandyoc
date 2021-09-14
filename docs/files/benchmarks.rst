@@ -6,14 +6,7 @@ Benchmarks
 In order to test the accuracy of the *Mandyoc* code, its results can be compared to benchmark studies. The following subsections will present the procedures and results for some well established modeling problems. Such cases should provide information about the applicability and performance of the code as well as some of its limitations.
 
 The scripts to build and run these numerical experiments are located in the `examples <https://github.com/ggciag/mandyoc/tree/main/examples>`_ folder of the Mandyoc repository.
-
-.. how-to-run-examples:
-
-**How to run examples:**
-
 Inside each example folder, you find a ``README.md`` file with detailed explanation and instrutions on how to run the experiment.
-First, you need to run the python script file named ``generate_input_files.py`` to generate the :ref:`input files<inputfiles>` needed by Mandyoc.
-Then, you may execute mandyoc directly from a terminal command or update the bash script ``run.sh`` accordingly to your setup and execute it to run the experiment.
 
 van Keken et al. (1997) :cite:`vankeken1997`
 --------------------------------------------
