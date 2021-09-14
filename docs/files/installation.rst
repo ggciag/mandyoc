@@ -18,7 +18,12 @@ Dependencies
 
 **Optional** dependencies:
 
-* `gfortran`
+* gfortran
+* numpy to run the examples.
+
+**Developers dependencies**
+
+* pytest
 
 PETSc Installation
 ------------------
