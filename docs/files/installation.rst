@@ -101,36 +101,13 @@ Next, **build and install** *Mandyoc* by running::
 	argument.
 
 Examples
----------------
+--------
 
-Steps to run the van Keken et al. (1997)
-++++++++++++++++++++++++++++++++++++++++
+The benchmarks and other experiments are located in the `examples <https://github.com/ggciag/mandyoc/tree/main/examples>`_ folder of the Mandyoc repository.
 
-#. From the `src/` folder, copy the executable to the `examples/vanKeken1997/` folder:
-
-	.. code-block:: bash
-
-		cp mandyoc ../examples/vanKeken1997/
-
-#. Go to the example folder:
-
-	.. code-block:: bash
-
-		cd ../examples/vanKeken1997/
-
-#. Modify the path of the `mpirun` in `run.sh`.
-
-#. Run the `run.sh` script:
-
-	.. code-block:: bash
-
-		sh run.sh
-
-#. To visualize the evolution of the density structure, run:
-
-	.. code-block:: bash
-
-		ipython rho_imshow.py
+Inside each example folder, you find a ``README.md`` file with detailed explanation and instrutions on how to run the experiment.
+First, you need to run the python script file named ``generate_input_files.py`` to generate the :ref:`input files<inputfiles>` needed by Mandyoc.
+Then, you may execute `mandyoc` directly from a terminal command or update the bash script ``run.sh`` accordingly to your setup and execute it to run the experiment.
 
 
 .. _PETSc: https://www.mcs.anl.gov/petsc/
