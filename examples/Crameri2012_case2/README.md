@@ -49,7 +49,7 @@ python plot_viscosity.py
 
 ## Compare the result with other programs
 
-You can compare the result obtained using the Mandyoc code with the results of other codes, such as UNDERWORLD, I2VEA, and STAGE, for the same model, run:
+You can compare the result obtained using the Mandyoc code with the results of other codes, such as UNDERWORLD, I2VES, and STAGYY, for the same model, run:
 ```
 python plot_max_surface.py
 ```
