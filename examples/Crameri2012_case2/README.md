@@ -16,6 +16,12 @@ There is no temperature difference, and the geodynamic evolution is guided solel
 
 ## How to run this example
 
+### Dependencies
+
+To run this example you need to install:
+
+* `numpy`
+
 ### Generate the input files
 
 To generate the interface, velocity, temperature and parameter file, you need to run `generate_input_file.py` as:

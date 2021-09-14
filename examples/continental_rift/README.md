@@ -22,6 +22,12 @@ a weak seed (e.g. Huismans and Beaumont, 2003) is present in the lithospheric ma
 
 ## How to run this example
 
+### Dependencies
+
+To run this example you need to install:
+
+* `numpy`
+
 ### Generate the input files
 
 To generate the interface, velocity, temperature and parameter file, you need to run `generate_input_file.py` as:
