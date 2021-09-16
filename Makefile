@@ -32,18 +32,15 @@ help:
 	@echo ""
 	@echo "Commands:"
 	@echo ""
-	@echo "  all		Build and install Mandyoc by running."
-	@echo "  test_madyoc	Run the Mandyoc test using 2 cores." 
-	@echo "                To change the number of cores: core=[code_number]."
-	@echo "                It takes several munutes"
+	@echo "  all		Build and install Mandyoc by running"
+	@echo "  test_madyoc	Run the Mandyoc test using 2 cores. It takes several munutes"
 	@echo ""
 
 # Run test
-cores=2
 test_madyoc:
 
 	@echo "Run MANDYOC test may take several minutes.."
-	cd test/testing_data/ ; ${MPI_PATH}/mpirun -n ${cores} ../../mandyoc
+	cd test/testing_data/ ; ${MPI_PATH}/mpirun -n 2 ../../mandyoc
 	pytest -v test/testing_result.py 
 
 # Build Mandyoc
