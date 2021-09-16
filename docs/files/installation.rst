@@ -24,8 +24,6 @@ Dependencies
 **Developers dependencies**
 
 * pytest
-* numpy
-* os
 
 PETSc Installation
 ------------------
