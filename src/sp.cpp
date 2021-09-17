@@ -497,7 +497,7 @@ PetscErrorCode sp_write_surface_vec(PetscInt i)
 
 	MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
 
-    sprintf(filename, "sp_surface_global_%010d.txt", i); CHKERRQ(ierr);
+    sprintf(filename, "sp_surface_global_%d.txt", i); CHKERRQ(ierr);
     ierr = PetscViewerASCIIOpen(PETSC_COMM_WORLD, filename, &viewer); CHKERRQ(ierr);
     ierr = VecView(sp_surface_global, viewer); CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer); CHKERRQ(ierr);
