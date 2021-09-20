@@ -27,4 +27,6 @@ RUN git clone https://github.com/ggciag/mandyoc ${MANDYOC_DIR} \
 # =============================================================================
 USER ${USER}
 
+RUN mkdir /home/${USER}/simulation
+
 WORKDIR /home/${USER}/simulation
