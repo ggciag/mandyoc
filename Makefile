@@ -37,7 +37,7 @@ help:
 	@echo ""
 
 # Run test
-test_madyoc:
+test_mandyoc:
 
 	@echo "Run MANDYOC test may take several minutes.."
 	cd test/testing_data/ ; ${MPI_PATH}/mpirun -n 2 ../../mandyoc
