@@ -33,7 +33,7 @@ help:
 	@echo "Commands:"
 	@echo ""
 	@echo "  all		Build and install Mandyoc by running"
-	@echo "  test_madyoc	Run the Mandyoc test using 2 cores. It takes several munutes"
+	@echo "  test_mandyoc	Run the Mandyoc test using 2 cores. It takes several munutes"
 	@echo ""
 
 # Run test
