@@ -10,6 +10,8 @@ name: build-docs-web
 # from branches in the origin repository (1 for PR and 1 for push).
 on:
   pull_request:
+    paths:
+      - 'docs/**'
   push:
     branches:
       - main
