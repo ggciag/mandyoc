@@ -23,7 +23,7 @@ fields = [
     "strain",
     "strain_rate",
     "temperature",
-    # "sp_surface_global_{}",
+    "sp_surface_global",
     "viscosity",
     "step_0",
     "step_1",
