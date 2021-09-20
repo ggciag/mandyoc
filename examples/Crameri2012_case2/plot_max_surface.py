@@ -10,10 +10,6 @@ import sys
 import glob
 
 
-param_filename = "param_1.5.3_2D.txt"
-filename_prefix = "step_"
-interfaces_filename = "interfaces_creep.txt"
-
 surface_filenames = sorted(glob.glob(f"sp_surface_global_*"))
 
 nproc = len(glob.glob("step_0-rank_new*"))
