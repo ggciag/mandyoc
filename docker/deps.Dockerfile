@@ -6,27 +6,34 @@
 # MANDYOC is hosted at https://github.com/ggciag/mandyoc.
 #
 
-FROM debian:10 AS base_stage
+FROM debian:11-slim AS base_stage
 
 LABEL maintainer "Rafael Silva <rafael.m.silva@alumni.usp.br>"
 
 # =============================================================================
 # Variables
 # =============================================================================
+ENV USER aipim
 ENV PETSC_VERSION 3.15.0
-ENV PETSC_DIR /home/petsc-${PETSC_VERSION}
+ENV PETSC_DIR /home/${USER}/petsc-${PETSC_VERSION}
 ENV PETSC_ARCH optimized-${PETSC_VERSION}
+
+# =============================================================================
+# Create user
+# =============================================================================
+RUN groupadd -r ${USER} && useradd --no-log-init -r -m -g ${USER} ${USER}
 
 # =============================================================================
 # Install dependencies
 # =============================================================================
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
         build-essential \
         cmake \
         gcc \
         gfortran \
-        python \
+        python3 \
+        python3-pip \
         vim \
         nano \
         git \
@@ -35,10 +42,9 @@ RUN apt-get update && \
         ca-certificates \
         bash-completion \
         openssh-client \
-        openssh-server && \
-    apt-get clean && \
-    apt-get autoremove; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
-    update-ca-certificates
+        openssh-server \
+    && apt-get autoremove; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    && update-ca-certificates
 
 # =============================================================================
 # Building and installing PETSc
@@ -65,3 +71,10 @@ RUN curl -k https://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PET
         --download-scalapack \
         --download-hdf5 && \
     make PETSC_DIR=${PETSC_DIR} PETSC_ARCH=${PETSC_ARCH} all
+
+# =============================================================================
+# Final setup
+# =============================================================================
+USER ${USER}
+
+WORKDIR /home/${USER}
