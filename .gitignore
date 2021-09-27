@@ -21,6 +21,7 @@ test/testing_data/bc_*
 test/testing_data/velocity_*
 
 .vscode/
+.DS_store
 
 # Ignore the input file due to they can be generated using the script
 examples/*/input_temperature_0.txt
