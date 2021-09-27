@@ -21,6 +21,11 @@ There is no temperature difference, and the geodynamic evolution is guided solel
 To run this example you need to install:
 
 * `numpy`
+* `matplotlib`
+* `pandas`
+* `os`
+* `sys`
+* `glob`
 
 ### Generate the input files
 

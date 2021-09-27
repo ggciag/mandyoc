@@ -14,6 +14,7 @@ under a denser thicker package.
 To run this example you need to install:
 
 * `numpy`
+* `matplotlib`
 
 ### Generate the input files
 
