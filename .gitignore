@@ -1,11 +1,27 @@
 mandyoc
+test/__pycache__/
 
 # Ignore _build folder
 _build
 # Ignore the documentation building folder
 docs/_build
 
+# Ignore output when run the test 
+test/testing_data/density_* 
+test/testing_data/heat_*
+test/testing_data/pressure_*
+test/testing_data/strain_*
+test/testing_data/strain_rate_*
+test/testing_data/temperature_*
+test/testing_data/sp_surface_global_*
+test/testing_data/viscosity_*
+test/testing_data/step_*
+test/testing_data/time_*
+test/testing_data/bc_*
+test/testing_data/velocity_*
+
 .vscode/
+.DS_store
 
 # Ignore the input file due to they can be generated using the script
 examples/*/input_temperature_0.txt
@@ -16,3 +32,4 @@ examples/*/interfaces.txt
 # Ignore some examples figures
 examples/continental_rift/*.png
 examples/Crameri2012_case2/interfaces.png
+

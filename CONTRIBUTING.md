@@ -49,6 +49,7 @@ General guidelines for pull requests (PRs):
 - **Open an issue first describing what you want to do**.
   If there is already an issue that matches your PR, leave a comment there
   instead to let us know what you plan to do.
+
 - **Create a fork** of the repository on your personal account.
   **Then, clone it** in your computer:
 
@@ -69,21 +70,28 @@ General guidelines for pull requests (PRs):
   Also, remember to write helpful commit messages, so that someone can
   understand what the commit does.
 
-```bash
-git add filename
+  ```bash
+  git add filename
 
-git commit
-```
+  git commit
+  ```
+  After that **push up your changes** to your fork:
 
-After that **push up your changes** to your fork:
-
-```bash
-git push
-```
+  ```bash
+  git push
+  ```
 
 - **Make a pull request**.
   Ensure the PR description clearly describes the problem and solution.
   Include the relevant issue number.
+
+**Remember to test your changes**. We have a regression test to check that the 
+Mandyoc output result for the Crameri model is equal to the expected result.
+To make this test you need to install `pytest` and run:
+
+```bash
+make test
+```
 
 ## Do you have questions about MANDYOC code?
 

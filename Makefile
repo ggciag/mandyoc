@@ -26,6 +26,24 @@ SOURCEC = $(SRC)/main.cpp \
 	$(SRC)/sp.cpp
 OBJECTS = $(SOURCEC:%.cpp=%.o)
 
+MPI_PATH = ${PETSC_DIR}/${PETSC_ARCH}/bin
+
+help:
+	@echo ""
+	@echo "Commands:"
+	@echo ""
+	@echo "  all		Build and install Mandyoc by running"
+	@echo "  test_mandyoc	Run the Mandyoc test using 2 cores. It takes several munutes"
+	@echo ""
+
+# Run test
+test_mandyoc:
+
+	@echo "Run MANDYOC test may take several minutes.."
+	cd test/testing_data/ ; ${MPI_PATH}/mpirun -n 2 ../../mandyoc
+	pytest -v test/testing_result.py 
+
+# Build Mandyoc
 all: ${OBJECTS} chkopts
 	-${CLINKER} -o mandyoc ${OBJECTS} ${PETSC_LIB}
 	rm $(SRC)/*.o

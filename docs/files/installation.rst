@@ -18,7 +18,10 @@ Dependencies
 
 **Optional** dependencies:
 
-* `gfortran`
+* gfortran
+* pytest
+* numpy
+* os
 
 PETSc Installation
 ------------------
@@ -99,6 +102,12 @@ Next, **build and install** *Mandyoc* by running::
 
 	To print *Mandyoc* runtime options, run mandyoc with `-flags` command line
 	argument.
+
+**Check** Mandyoc installation with:
+
+.. code-block::
+
+	make test_mandyoc
 
 Examples
 --------
