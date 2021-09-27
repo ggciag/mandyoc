@@ -27,6 +27,10 @@ a weak seed (e.g. Huismans and Beaumont, 2003) is present in the lithospheric ma
 To run this example you need to install:
 
 * `numpy`
+* `matplotlib`
+* `pandas`
+* `sys`
+* `glob`
 
 ### Generate the input files
 
