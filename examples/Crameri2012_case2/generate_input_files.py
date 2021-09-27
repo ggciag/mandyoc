@@ -1,3 +1,6 @@
+"""
+Generate the input files to run the Case 2 experiment presented by Crameri et al. (2012), which evaluates the sticky air method to obtain a numerical surface topography in geodynamic modelling.
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -34,24 +37,28 @@ X, Z = np.meshgrid(x, z)
 # Interfaces (bottom first)
 ##############################################################################
 
-x_plume_left = int(((Lx - D_plume)/2) / (Lx/(Nx-1)))
-x_plume_right = int(((Lx + D_plume)/2) / (Lx/(Nx-1)))
+x_plume_left = int(((Lx - D_plume) / 2) / (Lx / (Nx - 1)))
+x_plume_right = int(((Lx + D_plume) / 2) / (Lx / (Nx - 1)))
 
 plume_bottom = -1 * np.ones(Nx) * (Lz - H_plume)
 plume_top = -1 * np.ones(Nx) * (Lz - H_plume)
 
-plume_bottom[x_plume_left:x_plume_right] = -1 *(Lz - H_plume) - np.sqrt(np.power(D_plume/2, 2) - np.power(x[x_plume_left:x_plume_right] - Lx/2, 2))
-plume_top[x_plume_left:x_plume_right] = -1 * (Lz - H_plume) + np.sqrt(np.power(D_plume/2, 2) - np.power(x[x_plume_left:x_plume_right] - Lx/2, 2))
+plume_bottom[x_plume_left:x_plume_right] = -1 * (Lz - H_plume) - np.sqrt(
+    np.power(D_plume / 2, 2) - np.power(x[x_plume_left:x_plume_right] - Lx / 2, 2)
+)
+plume_top[x_plume_left:x_plume_right] = -1 * (Lz - H_plume) + np.sqrt(
+    np.power(D_plume / 2, 2) - np.power(x[x_plume_left:x_plume_right] - Lx / 2, 2)
+)
 
 interfaces = {
-    'plume_bottom': plume_bottom,
-    'plume_top': plume_top,
-    'mantle_top': -1 * (np.ones(Nx) * (H_sa + H_lid)),
-    'lid_top': -1 * (np.ones(Nx) * (H_sa)),
+    "plume_bottom": plume_bottom,
+    "plume_top": plume_top,
+    "mantle_top": -1 * (np.ones(Nx) * (H_sa + H_lid)),
+    "lid_top": -1 * (np.ones(Nx) * (H_sa)),
 }
 
-with open('interfaces.txt', 'w') as f:
-    layer_properties = f'''
+with open("interfaces.txt", "w") as f:
+    layer_properties = f"""
         C   1.0    0.1    1.0    100.0  0.01
         rho 3300.0 3200.0 3300.0 3300.0 0.0
         H   0.0    0.0    0.0    0.0    0.0
@@ -59,16 +66,16 @@ with open('interfaces.txt', 'w') as f:
         n   0.0    0.0    0.0    0.0    0.0
         Q   0.0    0.0    0.0    0.0    0.0
         V   0.0    0.0    0.0    0.0    0.0
-    '''
+    """
 
-    for line in layer_properties.split('\n'):
+    for line in layer_properties.split("\n"):
         line = line.strip()
         if len(line):
-            f.write(' '.join(line.split()) + '\n')
+            f.write(" ".join(line.split()) + "\n")
 
     # layer interfaces
     data = np.array(tuple(interfaces.values())).T
-    np.savetxt(f, data, fmt='%f')
+    np.savetxt(f, data, fmt="%f")
 
 ##############################################################################
 # Plot interfaces
@@ -76,23 +83,24 @@ with open('interfaces.txt', 'w') as f:
 fig, ax = plt.subplots(figsize=(16, 8))
 
 for label, layer in interfaces.items():
-    ax.plot(x/1.0e3, layer/1.0e3, label=f'{label}')
+    ax.plot(x / 1.0e3, layer / 1.0e3, label=f"{label}")
 
-ax.set_xticks(np.arange(0, Lx/1.0e3+1, 100))
-ax.set_yticks(np.arange(-Lz/1.0e3, 0+1, 50))
+ax.set_xticks(np.arange(0, Lx / 1.0e3 + 1, 100))
+ax.set_yticks(np.arange(-Lz / 1.0e3, 0 + 1, 50))
 
-ax.set_xlim([0, Lx/1.0e3])
-ax.set_ylim([-Lz/1.0e3, 0])
+ax.set_xlim([0, Lx / 1.0e3])
+ax.set_ylim([-Lz / 1.0e3, 0])
 
 plt.legend()
 
+# Create the interface file
 plt.savefig("interfaces.png")
 plt.close()
 
 ##############################################################################
 # Parameters file
 ##############################################################################
-params = f'''# Geometry
+params = f"""# Geometry
 nx                                  = {Nx}           # Number of elements in the longitudinal direction
 nz                                  = {Nz}           # Number of elements in the vertical direction
 lx                                  = {Lx:.1e}       # Extent in the longitudinal direction
@@ -101,20 +109,20 @@ lz                                  = {Lz:.1e}       # Extent in the vertical di
 # Simulation options
 multigrid                           = 1
 solver                              = direct        # default is direct [direct/iterative]
-denok                               = 1.0E-15       # default is 1.0E-4
+denok                               = 1.0e-15       # default is 1.0E-4
 particles_per_element               = 600           # default is 81
 particles_per_element_x             = 6             # Number of particles per element in longitudinal (default is 0)
 particles_per_element_z             = 100           # Number of particles per element in vertical (default is 0)
 particles_perturb_factor            = 0.7           # default is 0.5 [values are between 0 and 1]
-rtol                                = 1.0E-7        # the absolute size of the residual norm (relevant only for iterative methods), default is 1.0E-5
+rtol                                = 1.0e-7        # the absolute size of the residual norm (relevant only for iterative methods), default is 1.0E-5
 RK4                                 = Euler         # default is Euler [Euler/Runge-Kutta]
-Xi_min                              = 1.0E-14       # default is 1.0E-14
+Xi_min                              = 1.0e-14       # default is 1.0E-14
 random_initial_strain               = 0.0           # default is 0.0
 pressure_const                      = -1.0          # default is -1.0 (not used) - useful only in horizontal 2D models
 initial_dynamic_range               = False         # default is False [True/False]
 periodic_boundary                   = False         # default is False [True/False]
 high_kappa_in_asthenosphere         = False         # default is False [True/False]
-K_fluvial                           = 2.0E-7        # default is 2.0E-7
+K_fluvial                           = 2.0e-7        # default is 2.0E-7
 m_fluvial                           = 1.0           # default is 1.0
 sea_level                           = 0.0           # default is 0.0
 basal_heat                          = -1.0          # default is -1.0
@@ -133,17 +141,17 @@ theta_FSSA                          = 0.5           # default is 0.5 (only relev
 
 # Time constrains
 step_max                            = 7000          # Maximum time-step of the simulation
-time_max                            = 21.0E6        # Maximum time of the simulation [years]
-dt_max                              = 10.0E3        # Maximum time between steps of the simulation [years]
+time_max                            = 21.0e6        # Maximum time of the simulation [years]
+dt_max                              = 10.0e3        # Maximum time between steps of the simulation [years]
 step_print                          = 10            # Make file every <step_print>
 sub_division_time_step              = 1.0           # default is 1.0
 initial_print_step                  = 2             # default is 0
-initial_print_max_time              = 1.0E6         # default is 1.0E6 [years]
+initial_print_max_time              = 1.0e6         # default is 1.0e6 [years]
 
 # Viscosity
-viscosity_reference                 = 1.0E21        # Reference viscosity [Pa.s]
-viscosity_max                       = 1.0E23        # Maximum viscosity [Pa.s]
-viscosity_min                       = 1.0E19        # Minimum viscosity [Pa.s]
+viscosity_reference                 = 1.0e21        # Reference viscosity [Pa.s]
+viscosity_max                       = 1.0e23        # Maximum viscosity [Pa.s]
+viscosity_min                       = 1.0e19        # Minimum viscosity [Pa.s]
 viscosity_per_element               = constant      # default is variable [constant/variable]
 viscosity_mean_method               = arithmetic    # default is harmonic [harmonic/arithmetic]
 viscosity_dependence                = pressure      # default is depth [pressure/depth]
@@ -167,11 +175,11 @@ geoq_fac                            = 100.0
 
 # Physical parameters
 temperature_difference              = 0.0
-thermal_expansion_coefficient       = 3.28E-5
-thermal_diffusivity_coefficient     = 1.0E-6
+thermal_expansion_coefficient       = 3.28e-5
+thermal_diffusivity_coefficient     = 1.0e-6
 gravity_acceleration                = 10.0
 density_mantle                      = 3300.0
-external_heat                       = 0.0E-12
+external_heat                       = 0.0e-12
 heat_capacity                       = 1250.0
 
 non_linear_method                   = off
@@ -198,8 +206,10 @@ left_temperature                    = fixed
 right_temperature                   = fixed
 
 rheology_model                      = 0
-T_initial                           = 0'''
+T_initial                           = 0
+"""
 
-with open('param.txt', 'w') as f:
-    for line in params.split('\n'):
-        f.write(line + '\n')
+# Create the parameter file
+with open("param.txt", "w") as f:
+    for line in params.split("\n"):
+        f.write(line + "\n")

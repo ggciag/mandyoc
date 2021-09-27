@@ -19,3 +19,16 @@ test/testing_data/step_*
 test/testing_data/time_*
 test/testing_data/bc_*
 test/testing_data/velocity_*
+
+.vscode/
+
+# Ignore the input file due to they can be generated using the script
+examples/*/input_temperature_0.txt
+examples/*/input_velocity_0.txt
+examples/*/param.txt
+examples/*/interfaces.txt
+
+# Ignore some examples figures
+examples/continental_rift/*.png
+examples/Crameri2012_case2/interfaces.png
+
