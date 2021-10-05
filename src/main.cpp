@@ -81,6 +81,11 @@ int main(int argc,char **args)
 		PetscPrintf(PETSC_COMM_WORLD,"%s",help);
 		exit(1);
 	}
+	ierr = PetscOptionsGetInt(NULL,NULL,"-dimen",&DIMEN,NULL);CHKERRQ(ierr);
+	if (DIMEN!=2 && DIMEN!=3){
+		PetscPrintf(PETSC_COMM_WORLD,"Incorrect dimension.\n");
+		exit(-3);
+	}
 
 	int rank;
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);

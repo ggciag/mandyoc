@@ -14,6 +14,7 @@ PetscReal Xi_min = 1.0E-14;
 PetscReal random_initial_strain = 0;
 PetscReal pressure_const = -1.0;
 PetscInt nx_ppe = 0;
+PetscInt ny_ppe = 0;
 PetscInt nz_ppe = 0;
 PetscInt initial_print_step = 0;
 PetscReal initial_print_max_time = 1.0E6;
@@ -57,9 +58,10 @@ PetscBool plot_sediment = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
 PetscBool a2l = PETSC_TRUE; // PETSC_TRUE/PETSC_FALSE
 // Parameter file native C variables
 long Nx = -1;
+long Ny = -1;
 long Nz = -1;
 long layers;
-double Lx, depth;
+double Lx,Ly, depth;
 int n_interfaces = 0;
 int ContMult;
 long stepMAX;
@@ -100,16 +102,16 @@ double visc_MIN_comp;
 double visc_aux_MAX;
 double visc_aux_MIN;
 
-long T_NE = 4;
-long T_GN = 1;
+long T_NE = 4;//!!!
+long T_GN = 1;//!!!
 
-long DIMEN = 2;
+int DIMEN = 2;//!!!
 
-long GaussQuad = 9;
+long GaussQuad = 9;//!!!
 
-long V_NE = 4;
-long V_GN = 2;
-long V_GT = V_NE*V_GN;
+long V_NE = 4;//!!!
+long V_GN = 2;//!!!
+long V_GT = V_NE*V_GN;//!!!
 
 // Interfaces file variables
 PetscScalar *interfaces;
@@ -137,6 +139,7 @@ double comp_alpha_thermal = 1.0 - alpha_thermal;
 PetscInt i_veloc=0;
 
 double dx_const;
+double dy_const;
 double dz_const;
 
 
@@ -166,6 +169,7 @@ double r5p9 = 5.0/9.0;
 
 PetscReal *NT;
 PetscReal *NT_x;
+PetscReal *NT_y;
 PetscReal *NT_z;
 
 

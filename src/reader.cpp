@@ -7,9 +7,17 @@ PetscBool check_a_b_bool(char tkn_w[], char tkn_v[], const char str_a[], const c
 void ErrorInterfaces();
 
 // Parameter file variables
-extern long Nx, Nz;
+extern long T_NE;
+extern long T_GN;
+extern int DIMEN;
+extern long GaussQuad;
+extern long V_NE;
+extern long V_GN;
+extern long V_GT;
+
+extern long Nx, Ny, Nz;
 extern long layers;
-extern double Lx, depth;
+extern double Lx, Ly, depth;
 extern int ContMult;
 extern long stepMAX;
 extern double timeMAX;
@@ -77,6 +85,7 @@ extern PetscReal pressure_const;
 extern PetscInt initial_dynamic_range;
 extern PetscInt periodic_boundary;
 extern PetscInt nx_ppe;
+extern PetscInt ny_ppe;
 extern PetscInt nz_ppe;
 extern PetscInt initial_print_step;
 extern PetscReal initial_print_max_time;
@@ -168,8 +177,10 @@ PetscErrorCode reader(int rank, const char fName[]){
 			// Store and check every parameter.
 			// Parameters with values
 			if (strcmp(tkn_w, "nx") == 0) {Nx = atol(tkn_v);}
+			else if (strcmp(tkn_w, "ny") == 0) {Ny = atol(tkn_v);}
 			else if (strcmp(tkn_w, "nz") == 0) {Nz = atol(tkn_v);}
 			else if (strcmp(tkn_w, "lx") == 0) {Lx = atof(tkn_v);}
+			else if (strcmp(tkn_w, "ly") == 0) {Ly = atof(tkn_v);}
 			else if (strcmp(tkn_w, "lz") == 0) {depth = atof(tkn_v);}
 			else if (strcmp(tkn_w, "multigrid") == 0) {ContMult = atoi(tkn_v);}
 			else if (strcmp(tkn_w, "step_max") == 0) {stepMAX = atol(tkn_v);}
@@ -202,6 +213,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "random_initial_strain") == 0) {random_initial_strain = atof(tkn_v);}
 			else if (strcmp(tkn_w, "pressure_const") == 0) {pressure_const = atof(tkn_v);}
 			else if (strcmp(tkn_w, "particles_per_element_x") == 0) {nx_ppe = atoi(tkn_v);}
+			else if (strcmp(tkn_w, "particles_per_element_y") == 0) {ny_ppe = atoi(tkn_v);}
 			else if (strcmp(tkn_w, "particles_per_element_z") == 0) {nz_ppe = atoi(tkn_v);}
 			else if (strcmp(tkn_w, "initial_print_step") == 0) {initial_print_step = atoi(tkn_v);}
 			else if (strcmp(tkn_w, "initial_print_max_time") == 0) {initial_print_max_time = atof(tkn_v);}
@@ -270,6 +282,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 		if (particles_perturb_factor < 0.0) particles_perturb_factor = 0.0;
 		layers = Nz;
 		if (nx_ppe < 0) nx_ppe = 0;
+		if (ny_ppe < 0) ny_ppe = 0;
 		if (nz_ppe < 0) nz_ppe = 0;
 		if (initial_print_step < 0) initial_print_step = 0;
 		if (sp_dt > 0) set_sp_dt = PETSC_TRUE;
@@ -301,8 +314,10 @@ PetscErrorCode reader(int rank, const char fName[]){
 	
 	// Broadcast every parameter from the parameter file.
 	MPI_Bcast(&Nx,1,MPI_LONG,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&Ny,1,MPI_LONG,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&Nz,1,MPI_LONG,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&Lx,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&Ly,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&depth,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&ContMult,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&stepMAX,1,MPI_LONG,0,PETSC_COMM_WORLD);
@@ -370,6 +385,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&initial_dynamic_range,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&periodic_boundary,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&nx_ppe,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&ny_ppe,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&nz_ppe,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&initial_print_step,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&initial_print_max_time,1,MPIU_REAL,0,PETSC_COMM_WORLD);
@@ -397,8 +413,25 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&ramp_end,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);*/
 	
 	if (rank==0){
-		printf("Mesh size:   %ld %ld\n",Nx,Nz);
-		printf("Domain size  %lf %lf\n\n",Lx,depth);
+		if (DIMEN==2){
+			printf("Mesh size:   %ld %ld\n",Nx,Nz);
+			printf("Domain size  %lf %lf\n\n",Lx,depth);
+		}
+		else {
+			printf("Mesh size:   %ld %ld %ld\n",Nx,Ny,Nz);
+			printf("Domain size  %lf %lf %lf\n\n",Lx,Ly,depth);
+		}
+	}
+
+	if (DIMEN==3){
+		T_NE = 8;
+		T_GN = 1;
+
+		GaussQuad=27;
+
+		V_NE = 8;
+		V_GN = 3;
+		V_GT = V_NE*V_GN;
 	}
 	
 	// Interfaces
@@ -507,10 +540,18 @@ PetscErrorCode reader(int rank, const char fName[]){
 			for (PetscInt i=0;i<n_interfaces+1;i++)
 				fscanf(f_interfaces,"%lf",&inter_V[i]);
 		else { ErrorInterfaces(); exit(1);}
-		
-		for (PetscInt i=0; i<Nx; i++){
-			for (PetscInt j=0; j<n_interfaces; j++){
-				fscanf(f_interfaces,"%lf",&interfaces[j*Nx+i]);
+		if (DIMEN==2){
+			for (PetscInt i=0; i<Nx; i++){
+				for (PetscInt j=0; j<n_interfaces; j++){
+					fscanf(f_interfaces,"%lf",&interfaces[j*Nx+i]);
+				}
+			}
+		}
+		else {
+			for (PetscInt i=0; i<Nx*Ny; i++){
+				for (PetscInt j=0; j<n_interfaces; j++){
+					fscanf(f_interfaces,"%lf",&interfaces[j*Nx*Ny+i]);
+				}
 			}
 		}
 
