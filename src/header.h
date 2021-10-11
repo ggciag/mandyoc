@@ -102,16 +102,16 @@ double visc_MIN_comp;
 double visc_aux_MAX;
 double visc_aux_MIN;
 
-long T_NE = 4;//!!!
-long T_GN = 1;//!!!
+long T_NE = 4;
+long T_GN = 1;
 
-int DIMEN = 2;//!!!
+int DIMEN = 2;
 
-long GaussQuad = 9;//!!!
+long GaussQuad = 9;
 
-long V_NE = 4;//!!!
-long V_GN = 2;//!!!
-long V_GT = V_NE*V_GN;//!!!
+long V_NE = 4;
+long V_GN = 2;
+long V_GT = V_NE*V_GN;
 
 // Interfaces file variables
 PetscScalar *interfaces;

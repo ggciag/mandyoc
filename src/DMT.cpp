@@ -25,8 +25,11 @@ extern double Lx, Ly, depth;
 
 extern double dz_const;
 
+extern int DIMEN;
+
 extern PetscReal *NT;
 extern PetscReal *NT_x;
+extern PetscReal *NT_y;
 extern PetscReal *NT_z;
 
 extern long GaussQuad;
@@ -94,7 +97,7 @@ extern double kappa;
 extern double RHOM;
 extern double c_heat_capacity;
 
-PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
+PetscErrorCode create_thermal_2d_3d(PetscInt mx,PetscInt my,PetscInt mz,PetscInt Px,PetscInt Py,PetscInt Pz)
 {
 
 	PetscInt       dof,stencil_width;
@@ -110,15 +113,22 @@ PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz
 	PetscTime(&Tempo1p);
 	
 	dof           = 1;
-	if (periodic_boundary==0)	{
-		stencil_width = 1;
-		ierr          = DMDACreate2d(PETSC_COMM_WORLD,DM_BOUNDARY_NONE,DM_BOUNDARY_NONE,DMDA_STENCIL_BOX,
-								 mx+1,mz+1,Px,Pz,dof,stencil_width,NULL,NULL,&da_Thermal);CHKERRQ(ierr);
+	if (DIMEN==2){
+		if (periodic_boundary==0)	{
+			stencil_width = 1;
+			ierr          = DMDACreate2d(PETSC_COMM_WORLD,DM_BOUNDARY_NONE,DM_BOUNDARY_NONE,DMDA_STENCIL_BOX,
+									mx+1,mz+1,Px,Pz,dof,stencil_width,NULL,NULL,&da_Thermal);CHKERRQ(ierr);
+		}
+		else {
+			stencil_width = 2;
+			ierr          = DMDACreate2d(PETSC_COMM_WORLD,DM_BOUNDARY_PERIODIC,DM_BOUNDARY_NONE,DMDA_STENCIL_BOX,
+									mx+1,mz+1,Px,Pz,dof,stencil_width,NULL,NULL,&da_Thermal);CHKERRQ(ierr);
+		}
 	}
 	else {
-		stencil_width = 2;
-		ierr          = DMDACreate2d(PETSC_COMM_WORLD,DM_BOUNDARY_PERIODIC,DM_BOUNDARY_NONE,DMDA_STENCIL_BOX,
-								 mx+1,mz+1,Px,Pz,dof,stencil_width,NULL,NULL,&da_Thermal);CHKERRQ(ierr);
+		stencil_width = 1;
+		ierr          = DMDACreate3d(PETSC_COMM_WORLD,DM_BOUNDARY_NONE,DM_BOUNDARY_NONE,DM_BOUNDARY_NONE,DMDA_STENCIL_BOX,
+								 mx+1,my+1,mz+1,Px,Py,Pz,dof,stencil_width,NULL,NULL,NULL,&da_Thermal);CHKERRQ(ierr);
 	}
 
 	ierr = DMSetFromOptions(da_Thermal);CHKERRQ(ierr);
@@ -131,6 +141,9 @@ PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz
 	
 	ierr = PetscCalloc1(GaussQuad*T_NE,&NT); CHKERRQ(ierr);
 	ierr = PetscCalloc1(GaussQuad*T_NE,&NT_x); CHKERRQ(ierr);
+	if (DIMEN==3){
+		ierr = PetscCalloc1(GaussQuad*T_NE,&NT_y); CHKERRQ(ierr);
+	}
 	ierr = PetscCalloc1(GaussQuad*T_NE,&NT_z); CHKERRQ(ierr);
 	
 	ierr = PetscCalloc1(T_NE*T_NE,&TKe); CHKERRQ(ierr);
@@ -149,9 +162,12 @@ PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz
 	
 	montaKeThermal_general(TKe,TMe,TFe);
 	
-	
-	ierr = DMDASetUniformCoordinates(da_Thermal,0.0,Lx,-depth,0.0,0.0,0.0);CHKERRQ(ierr);
-	
+	if (DIMEN==2){
+		ierr = DMDASetUniformCoordinates(da_Thermal,0.0,Lx,-depth,0.0,0.0,0.0);CHKERRQ(ierr);
+	}
+	else {
+		ierr = DMDASetUniformCoordinates(da_Thermal,0.0,Lx,0.0,Ly,-depth,0.0);CHKERRQ(ierr);
+	}
 		
 	/* Generate a matrix with the correct non-zero pattern of type AIJ. This will work in parallel and serial */
 	ierr = DMSetMatType(da_Thermal,MATAIJ);CHKERRQ(ierr);
@@ -195,41 +211,84 @@ PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz
 	ierr = DMCreateGlobalVector(da_Thermal,&Temper_Cond);CHKERRQ(ierr);
 	
 	
-	PetscScalar					**ff;
-	PetscInt               M,P;
-	
-	ierr = DMDAGetInfo(da_Thermal,0,&M,&P,NULL,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
-	
-	
-	ierr = VecZeroEntries(local_FT);CHKERRQ(ierr);
-	ierr = DMDAVecGetArray(da_Thermal,local_FT,&ff);CHKERRQ(ierr);
-	
-	PetscInt       sx,sz,mmx,mmz;
-	PetscInt i,k;
-	
-	ierr = DMDAGetCorners(da_Thermal,&sx,&sz,NULL,&mmx,&mmz,NULL);CHKERRQ(ierr);
-	
-	for (k=sz; k<sz+mmz; k++) {
-		for (i=sx; i<sx+mmx; i++) {
-			ff[k][i] = 1.0;
-			
-			if (periodic_boundary==0){
-				if (i==0   && bcT_left==1) ff[k][i] = 0.0;
+
+	if (DIMEN==2){
+		PetscScalar					**ff;
+		PetscInt               M,P;
+		
+		ierr = DMDAGetInfo(da_Thermal,0,&M,&P,NULL,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
+		
+		
+		ierr = VecZeroEntries(local_FT);CHKERRQ(ierr);
+		ierr = DMDAVecGetArray(da_Thermal,local_FT,&ff);CHKERRQ(ierr);
+		
+		PetscInt       sx,sz,mmx,mmz;
+		PetscInt i,k;
+		
+		ierr = DMDAGetCorners(da_Thermal,&sx,&sz,NULL,&mmx,&mmz,NULL);CHKERRQ(ierr);
+		
+		for (k=sz; k<sz+mmz; k++) {
+			for (i=sx; i<sx+mmx; i++) {
+				ff[k][i] = 1.0;
 				
-				if (i==M-1 && bcT_right==1)ff[k][i] = 0.0;
+				if (periodic_boundary==0){
+					if (i==0   && bcT_left==1) ff[k][i] = 0.0;
+					
+					if (i==M-1 && bcT_right==1)ff[k][i] = 0.0;
+				}
+				
+				
+				if (k==0   && bcT_bot==1) ff[k][i] = 0.0;
+				
+				
+				if (k==P-1 && bcT_top==1) ff[k][i] = 0.0;
 			}
-			
-			
-			if (k==0   && bcT_bot==1) ff[k][i] = 0.0;
-			
-			
-			if (k==P-1 && bcT_top==1) ff[k][i] = 0.0;
 		}
+		ierr = DMDAVecRestoreArray(da_Thermal,local_FT,&ff);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalBegin(da_Thermal,local_FT,INSERT_VALUES,Temper_Cond);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalEnd(da_Thermal,local_FT,INSERT_VALUES,Temper_Cond);CHKERRQ(ierr);
+
+	}
+	else {
+		PetscScalar					***ff;
+		PetscInt               M,N,P;
+		
+		ierr = DMDAGetInfo(da_Thermal,0,&M,&N,&P,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
+		
+		
+		ierr = VecZeroEntries(local_FT);CHKERRQ(ierr);
+		ierr = DMDAVecGetArray(da_Thermal,local_FT,&ff);CHKERRQ(ierr);
+		
+		PetscInt       sx,sy,sz,mmx,mmy,mmz;
+		PetscInt i,j,k;
+		
+		ierr = DMDAGetCorners(da_Thermal,&sx,&sy,&sz,&mmx,&mmy,&mmz);CHKERRQ(ierr);
+		
+		for (k=sz; k<sz+mmz; k++) {
+			for (j=sy; j<sy+mmy; j++) {
+				for (i=sx; i<sx+mmx; i++) {
+					ff[k][j][i] = 1.0;
+					
+					if (i==0   && bcT_left==1) ff[k][j][i] = 0.0;
+					
+					
+					if (i==M-1 && bcT_right==1)ff[k][j][i] = 0.0;
+					
+					
+					if (k==0   && bcT_bot==1) ff[k][j][i] = 0.0;
+					
+					
+					if (k==P-1 && bcT_top==1) ff[k][j][i] = 0.0;
+					
+				}
+			}
+		}
+		ierr = DMDAVecRestoreArray(da_Thermal,local_FT,&ff);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalBegin(da_Thermal,local_FT,INSERT_VALUES,Temper_Cond);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalEnd(da_Thermal,local_FT,INSERT_VALUES,Temper_Cond);CHKERRQ(ierr);
 	}
 	
-	ierr = DMDAVecRestoreArray(da_Thermal,local_FT,&ff);CHKERRQ(ierr);
-	ierr = DMLocalToGlobalBegin(da_Thermal,local_FT,INSERT_VALUES,Temper_Cond);CHKERRQ(ierr);
-	ierr = DMLocalToGlobalEnd(da_Thermal,local_FT,INSERT_VALUES,Temper_Cond);CHKERRQ(ierr);
+	
 	
 	
 	///////

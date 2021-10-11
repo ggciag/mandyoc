@@ -21,7 +21,7 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 #include "header.h"
 
 // Petsc prototypes
-PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz);
+PetscErrorCode create_thermal_2d_3d(PetscInt mx,PetscInt my,PetscInt mz,PetscInt Px,PetscInt Py,PetscInt Pz);
 PetscErrorCode build_thermal_3d();
 PetscErrorCode solve_thermal_3d();
 PetscErrorCode destroy_thermal_();
@@ -55,7 +55,7 @@ int main(int argc,char **args)
 {
 	PetscErrorCode ierr;
 	char prefix[PETSC_MAX_PATH_LEN];
-	PetscInt Px,Pz;
+	PetscInt Px,Py,Pz;
 
 	ierr = PetscInitialize(&argc,&args,(char*)0,help);CHKERRQ(ierr);
 	
@@ -99,9 +99,10 @@ int main(int argc,char **args)
 	PetscTime(&Tempo1);
 	char variable_name[100];
 
-	Px = Pz = PETSC_DECIDE;
+	Px = Py = Pz = PETSC_DECIDE;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-Px",&Px,NULL);CHKERRQ(ierr);
-	Pz = Px;
+	Py   = Px; Pz = Px;
+	ierr = PetscOptionsGetInt(NULL,NULL,"-Py",&Py,NULL);CHKERRQ(ierr);
 	ierr = PetscOptionsGetInt(NULL,NULL,"-Pz",&Pz,NULL);CHKERRQ(ierr);
 
 	if (n_interfaces>0 && interfaces_from_ascii==1){
@@ -161,7 +162,7 @@ int main(int argc,char **args)
 
 	//if (rank==0) printf("dx=%lf dz=%lf\n",dx_const,dz_const);
 
-	ierr = create_thermal_2d(Nx-1,Nz-1,Px,Pz);CHKERRQ(ierr);
+	ierr = create_thermal_2d_3d(Nx-1,Ny-1,Nz-1,Px,Py,Pz);CHKERRQ(ierr);
 
 	sprintf(variable_name,"temperature");
 	ierr = write_all_(-1,Temper, variable_name, binary_output);

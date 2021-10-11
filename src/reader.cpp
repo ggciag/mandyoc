@@ -435,7 +435,10 @@ PetscErrorCode reader(int rank, const char fName[]){
 	}
 	
 	// Interfaces
-	if (n_interfaces>0 && interfaces_from_ascii==1) PetscCalloc1(Nx*n_interfaces,&interfaces);
+	if (n_interfaces>0 && interfaces_from_ascii==1) {
+		if (DIMEN==2) PetscCalloc1(Nx*n_interfaces,&interfaces);
+		else PetscCalloc1(Nx*Ny*n_interfaces,&interfaces);
+	}
 	PetscCalloc1(n_interfaces+1,&inter_geoq);
 	PetscCalloc1(n_interfaces+1,&inter_rho);
 	PetscCalloc1(n_interfaces+1,&inter_H);
@@ -585,7 +588,10 @@ PetscErrorCode reader(int rank, const char fName[]){
 		fclose(f_interfaces); // Close file
 	}
 	
-	if (n_interfaces>0 && interfaces_from_ascii==1) MPI_Bcast(interfaces,Nx*n_interfaces,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+	if (n_interfaces>0 && interfaces_from_ascii==1) {
+		if (DIMEN==2) MPI_Bcast(interfaces,Nx*n_interfaces,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+		else MPI_Bcast(interfaces,Nx*Ny*n_interfaces,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+	}
 	MPI_Bcast(inter_geoq,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_rho,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_H,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
