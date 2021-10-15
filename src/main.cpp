@@ -28,7 +28,7 @@ PetscErrorCode destroy_thermal_();
 PetscErrorCode write_all_(int cont,Vec u, char *variable_name, PetscInt binary_out);
 PetscErrorCode write_pressure(int cont, PetscInt binary_out);
 PetscErrorCode write_geoq_(int cont, PetscInt binary_out);
-PetscErrorCode create_veloc_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz);
+PetscErrorCode create_veloc_2d_3d(PetscInt mx,PetscInt my,PetscInt mz,PetscInt Px,PetscInt Py,PetscInt Pz);
 PetscErrorCode createSwarm();
 PetscErrorCode moveSwarm(PetscReal dt);
 PetscErrorCode Swarm_add_remove();
@@ -85,6 +85,9 @@ int main(int argc,char **args)
 	if (DIMEN!=2 && DIMEN!=3){
 		PetscPrintf(PETSC_COMM_WORLD,"Incorrect dimension.\n");
 		exit(-3);
+	}
+	if (DIMEN==3) {
+		GaussQuad = 27;
 	}
 
 	int rank;
@@ -158,6 +161,7 @@ int main(int argc,char **args)
 	}
 	
 	dx_const = Lx/(Nx-1);
+	if (DIMEN == 3) dy_const = Ly/(Ny-1);
 	dz_const = depth/(Nz-1);
 
 	//if (rank==0) printf("dx=%lf dz=%lf\n",dx_const,dz_const);
@@ -167,7 +171,7 @@ int main(int argc,char **args)
 	sprintf(variable_name,"temperature");
 	ierr = write_all_(-1,Temper, variable_name, binary_output);
 
-	ierr = create_veloc_2d(Nx-1,Nz-1,Px,Pz);CHKERRQ(ierr);
+	ierr = create_veloc_2d_3d(Nx-1,Ny-1,Nz-1,Px,Py,Pz);CHKERRQ(ierr);
 
 	if (geoq_on){
 		PetscPrintf(PETSC_COMM_WORLD,"\nSwarm (creating)\n");

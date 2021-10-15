@@ -5,7 +5,7 @@
 
 PetscErrorCode DMDAGetElementCorners(DM da,PetscInt *sx,PetscInt *sz,PetscInt *mx,PetscInt *mz);
 
-PetscReal montaKeVeloc_simplif(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_ele);
+PetscReal montaKeVeloc_simplif_2d(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_ele);
 
 PetscErrorCode write_veloc_3d(int cont, PetscInt binary_out);
 PetscErrorCode write_veloc_cond(int cont, PetscInt binary_out);
@@ -251,7 +251,7 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da){
 			for (i=0;i<T_NE;i++) geoq_ele[i]=qq[indr[i].j][indr[i].i];
 
 
-			montaKeVeloc_simplif(Ke_veloc,Ke_veloc_general,geoq_ele);
+			montaKeVeloc_simplif_2d(Ke_veloc,Ke_veloc_general,geoq_ele);
 
 
 			for (i=0;i<V_GT*V_GT;i++) Ke_veloc_final[i]=Ke_veloc[i]*volume;

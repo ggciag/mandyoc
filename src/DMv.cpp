@@ -24,8 +24,15 @@ extern PetscInt visc_const_per_element;
 typedef struct {
 	PetscScalar u;
 	PetscScalar w;
-	//PetscScalar p; //check for the future 3d version
+	//PetscScalar p;
 } Stokes;
+
+typedef struct {
+	PetscScalar u;
+	PetscScalar v;
+	PetscScalar w;
+	//PetscScalar p;
+} Stokes3d;
 
 PetscErrorCode ascii2bin(char *s1, char *s2);
 
@@ -33,13 +40,16 @@ PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da);
 
 PetscErrorCode AssembleF_Veloc(Vec F,DM veloc_da,DM drho_da, Vec FP);
 
-PetscErrorCode montaKeVeloc_general(PetscReal *KeG, double dx_const, double dz_const);
+PetscErrorCode montaKeVeloc_general_2d(PetscReal *KeG, double dx_const, double dz_const);
+PetscErrorCode montaKeVeloc_general_3d(PetscReal *KeG, double dx_const, double dy_const, double dz_const);
 
-PetscReal montaKeVeloc_simplif(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_ele);
+PetscReal montaKeVeloc_simplif_2d(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_ele);
 
-PetscErrorCode montaCeVeloc(PetscReal *Ce);
+PetscErrorCode montaCeVeloc_2d(PetscReal *Ce);
+PetscErrorCode montafeVeloc_2d(PetscReal *fMe);
 
-PetscErrorCode montafeVeloc(PetscReal *fMe);
+PetscErrorCode montaCeVeloc_3d(PetscReal *Ce);
+PetscErrorCode montafeVeloc_3d(PetscReal *fMe);
 
 PetscErrorCode calc_drho();
 
@@ -64,6 +74,8 @@ PetscErrorCode Swarm2Mesh();
 extern double r06;
 extern double r8p9;
 extern double r5p9;
+
+extern int DIMEN;
 
 extern long V_NE, V_GN, V_GT;
 
@@ -110,6 +122,7 @@ extern PetscReal *Vfe;
 
 
 extern double dx_const;
+extern double dy_const;
 extern double dz_const;
 
 
@@ -145,7 +158,7 @@ extern int n_interfaces;
 
 extern PetscInt binary_output;
 
-PetscErrorCode create_veloc_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
+PetscErrorCode create_veloc_2d_3d(PetscInt mx,PetscInt my,PetscInt mz,PetscInt Px,PetscInt Py,PetscInt Pz)
 {
 
 	PetscInt       dof,stencil_width;
@@ -164,23 +177,36 @@ PetscErrorCode create_veloc_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 
 	PetscFunctionBeginUser;
 
-
-	dof           = 2; //check for the future 3d version
-	if (periodic_boundary==0){
-		stencil_width = 1;
-		ierr          = DMDACreate2d(PETSC_COMM_WORLD,DM_BOUNDARY_NONE,DM_BOUNDARY_NONE,DMDA_STENCIL_BOX,
-								 mx+1,mz+1,Px,Pz,dof,stencil_width,NULL,NULL,&da_Veloc);CHKERRQ(ierr);
+	if (DIMEN==2){
+		dof           = 2;
+		if (periodic_boundary==0){
+			stencil_width = 1;
+			ierr          = DMDACreate2d(PETSC_COMM_WORLD,DM_BOUNDARY_NONE,DM_BOUNDARY_NONE,DMDA_STENCIL_BOX,
+									mx+1,mz+1,Px,Pz,dof,stencil_width,NULL,NULL,&da_Veloc);CHKERRQ(ierr);
+		}
+		else {
+			stencil_width = 2;
+			ierr          = DMDACreate2d(PETSC_COMM_WORLD,DM_BOUNDARY_PERIODIC,DM_BOUNDARY_NONE,DMDA_STENCIL_BOX,
+									mx+1,mz+1,Px,Pz,dof,stencil_width,NULL,NULL,&da_Veloc);CHKERRQ(ierr);
+		}
 	}
 	else {
-		stencil_width = 2;
-		ierr          = DMDACreate2d(PETSC_COMM_WORLD,DM_BOUNDARY_PERIODIC,DM_BOUNDARY_NONE,DMDA_STENCIL_BOX,
-								 mx+1,mz+1,Px,Pz,dof,stencil_width,NULL,NULL,&da_Veloc);CHKERRQ(ierr);
+		dof = 3;
+		stencil_width = 1;
+		ierr          = DMDACreate3d(PETSC_COMM_WORLD,DM_BOUNDARY_NONE,DM_BOUNDARY_NONE,DM_BOUNDARY_NONE,DMDA_STENCIL_BOX,
+								 mx+1,my+1,mz+1,Px,Py,Pz,dof,stencil_width,NULL,NULL,NULL,&da_Veloc);CHKERRQ(ierr);
 	}
 	ierr = DMSetFromOptions(da_Veloc);CHKERRQ(ierr);
 	ierr = DMSetUp(da_Veloc);CHKERRQ(ierr);
 
 	ierr = DMDASetFieldName(da_Veloc,0,"V_x");CHKERRQ(ierr);
-	ierr = DMDASetFieldName(da_Veloc,1,"V_z");CHKERRQ(ierr);
+	if (DIMEN==2){
+		ierr = DMDASetFieldName(da_Veloc,1,"V_z");CHKERRQ(ierr);
+	}
+	else {
+		ierr = DMDASetFieldName(da_Veloc,1,"V_y");CHKERRQ(ierr);
+		ierr = DMDASetFieldName(da_Veloc,2,"V_z");CHKERRQ(ierr);
+	}
 
 
 	ierr = PetscCalloc1(V_GT*V_GT,&Ke_veloc); CHKERRQ(ierr);
@@ -193,8 +219,12 @@ PetscErrorCode create_veloc_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 	ierr = PetscCalloc1(V_GT*V_NE,&VfMe); CHKERRQ(ierr);
 	ierr = PetscCalloc1(V_GT,&VCe); CHKERRQ(ierr);
 
-
-	ierr = DMDASetUniformCoordinates(da_Veloc,0.0,Lx,-depth,0.0,-1,-1);CHKERRQ(ierr); //check: in 2D, the last two are ignored
+	if (DIMEN==2){
+		ierr = DMDASetUniformCoordinates(da_Veloc,0.0,Lx,-depth,0.0,-1,-1);CHKERRQ(ierr); //check: in 2D, the last two are ignored
+	}
+	else {
+		ierr = DMDASetUniformCoordinates(da_Veloc,0.0,Lx,0.0,Ly,-depth,0.0);CHKERRQ(ierr);
+	}
 
 
 
@@ -241,122 +271,248 @@ PetscErrorCode create_veloc_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 
 	ierr = DMCreateLocalVector(da_Veloc,&local_Precon);CHKERRQ(ierr);
 
+	if (DIMEN==2){
+		Stokes					**ff;
+		PetscInt               M,P;
 
-	Stokes					**ff;
-	PetscInt               M,P;
-
-	ierr = DMDAGetInfo(da_Veloc,0,&M,&P,NULL,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
+		ierr = DMDAGetInfo(da_Veloc,0,&M,&P,NULL,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
 
 
-	ierr = VecZeroEntries(local_FV);CHKERRQ(ierr);
-	ierr = DMDAVecGetArray(da_Veloc,local_FV,&ff);CHKERRQ(ierr);
+		ierr = VecZeroEntries(local_FV);CHKERRQ(ierr);
+		ierr = DMDAVecGetArray(da_Veloc,local_FV,&ff);CHKERRQ(ierr);
 
-	PetscInt       sx,sz,mmx,mmz;
-	PetscInt i,k,t;
+		PetscInt       sx,sz,mmx,mmz;
+		PetscInt i,k,t;
 
-	ierr = DMDAGetCorners(da_Veloc,&sx,&sz,NULL,&mmx,&mmz,NULL);CHKERRQ(ierr);
+		ierr = DMDAGetCorners(da_Veloc,&sx,&sz,NULL,&mmx,&mmz,NULL);CHKERRQ(ierr);
 
-	PetscInt ix[1];
-	PetscScalar y[1];
+		PetscInt ix[1];
+		PetscScalar y[1];
 
-	PetscInt low,high;
+		PetscInt low,high;
 
-	if (bcv_extern==1){
-		char s1[100],s2[100];
+		if (bcv_extern==1){
+			char s1[100],s2[100];
 
-		sprintf(s1,"bcv_0.txt");
-		sprintf(s2,"bcv_init.bin");
+			sprintf(s1,"bcv_0.txt");
+			sprintf(s2,"bcv_init.bin");
 
-		if (rank==0){
-			ierr = ascii2bin(s1,s2); CHKERRQ(ierr);
+			if (rank==0){
+				ierr = ascii2bin(s1,s2); CHKERRQ(ierr);
+			}
+			MPI_Barrier(PETSC_COMM_WORLD);
+
+
+			PetscInt size0;
+			PetscViewer    viewer;
+
+			VecGetSize(Veloc_Cond,&size0);
+
+
+			Vec Fprov;
+
+
+			PetscViewerBinaryOpen(PETSC_COMM_WORLD,s2,FILE_MODE_READ,&viewer);
+			VecCreate(PETSC_COMM_WORLD,&Fprov);
+			VecLoad(Fprov,viewer);
+			PetscViewerDestroy(&viewer);
+
+
+			VecGetOwnershipRange(Fprov,&low,&high);
+
+			Vec FN;
+
+			DMDACreateNaturalVector(da_Veloc,&FN);
+
+
+			for (t=low;t<high;t++){
+				ix[0] = t;
+				VecGetValues(Fprov,1,ix,y);
+				VecSetValue(FN,t,y[0], INSERT_VALUES);
+			}
+
+			VecAssemblyBegin(FN);
+			VecAssemblyEnd(FN);
+
+			DMDANaturalToGlobalBegin(da_Veloc,FN,INSERT_VALUES,Veloc_Cond);
+			DMDANaturalToGlobalEnd(da_Veloc,FN,INSERT_VALUES,Veloc_Cond);
+
+
+			//VecView(F,PETSC_VIEWER_STDOUT_WORLD);
+
+			PetscBarrier(NULL);
+
+			VecAssemblyBegin(Veloc_Cond);
+			VecAssemblyEnd(Veloc_Cond);
+
+			char nome[100];
+			PetscViewer viewer2;
+			sprintf(nome,"Init_bcve.txt");
+			PetscViewerASCIIOpen(PETSC_COMM_WORLD,nome,&viewer2);
+			VecView(Veloc_Cond,viewer2);
+			PetscViewerDestroy(&viewer2);
+			//VecView(F,PETSC_VIEWER_STDOUT_WORLD);
+
 		}
-		MPI_Barrier(PETSC_COMM_WORLD);
+		else {
+			for (k=sz; k<sz+mmz; k++) {
+				for (i=sx; i<sx+mmx; i++) {
+					ff[k][i].u = 1.0;
+					ff[k][i].w = 1.0;
 
+					if (periodic_boundary==0){
+						if (i==0   && bcv_left_normal==1) ff[k][i].u = 0.0;
+						if (i==0   && bcv_left_slip==1) {
+							ff[k][i].w = 0.0;
+						}
 
-		PetscInt size0;
-		PetscViewer    viewer;
+						if (i==M-1 && bcv_right_normal==1)ff[k][i].u = 0.0;
+						if (i==M-1   && bcv_right_slip==1) {
+							ff[k][i].w = 0.0;
+						}
+					}
 
-		VecGetSize(Veloc_Cond,&size0);
+					if (k==0   && bcv_bot_normal==1) ff[k][i].w = 0.0;
+					if (k==0   && bcv_bot_slip==1){
+						ff[k][i].u = 0.0;
+					}
 
+					if (k==P-1 && bcv_top_normal==1) ff[k][i].w = 0.0;
+					if (k==P-1 && bcv_top_slip==1){
+						ff[k][i].u = 0.0;
+					}
 
-		Vec Fprov;
-
-
-		PetscViewerBinaryOpen(PETSC_COMM_WORLD,s2,FILE_MODE_READ,&viewer);
-		VecCreate(PETSC_COMM_WORLD,&Fprov);
-		VecLoad(Fprov,viewer);
-		PetscViewerDestroy(&viewer);
-
-
-		VecGetOwnershipRange(Fprov,&low,&high);
-
-		Vec FN;
-
-		DMDACreateNaturalVector(da_Veloc,&FN);
-
-
-		for (t=low;t<high;t++){
-			ix[0] = t;
-			VecGetValues(Fprov,1,ix,y);
-			VecSetValue(FN,t,y[0], INSERT_VALUES);
+				}
+			}
+			ierr = DMDAVecRestoreArray(da_Veloc,local_FV,&ff);CHKERRQ(ierr);
+			ierr = DMLocalToGlobalBegin(da_Veloc,local_FV,INSERT_VALUES,Veloc_Cond);CHKERRQ(ierr);
+			ierr = DMLocalToGlobalEnd(da_Veloc,local_FV,INSERT_VALUES,Veloc_Cond);CHKERRQ(ierr);
 		}
-
-		VecAssemblyBegin(FN);
-		VecAssemblyEnd(FN);
-
-		DMDANaturalToGlobalBegin(da_Veloc,FN,INSERT_VALUES,Veloc_Cond);
-		DMDANaturalToGlobalEnd(da_Veloc,FN,INSERT_VALUES,Veloc_Cond);
-
-
-		//VecView(F,PETSC_VIEWER_STDOUT_WORLD);
-
-		PetscBarrier(NULL);
-
-		VecAssemblyBegin(Veloc_Cond);
-		VecAssemblyEnd(Veloc_Cond);
-
-		char nome[100];
-		PetscViewer viewer2;
-		sprintf(nome,"Init_bcve.txt");
-		PetscViewerASCIIOpen(PETSC_COMM_WORLD,nome,&viewer2);
-		VecView(Veloc_Cond,viewer2);
-		PetscViewerDestroy(&viewer2);
-		//VecView(F,PETSC_VIEWER_STDOUT_WORLD);
-
 	}
 	else {
-		for (k=sz; k<sz+mmz; k++) {
-			for (i=sx; i<sx+mmx; i++) {
-				ff[k][i].u = 1.0;
-				ff[k][i].w = 1.0;
 
-				if (periodic_boundary==0){
-					if (i==0   && bcv_left_normal==1) ff[k][i].u = 0.0;
-					if (i==0   && bcv_left_slip==1) {
-						ff[k][i].w = 0.0;
-					}
-
-					if (i==M-1 && bcv_right_normal==1)ff[k][i].u = 0.0;
-					if (i==M-1   && bcv_right_slip==1) {
-						ff[k][i].w = 0.0;
-					}
-				}
-
-				if (k==0   && bcv_bot_normal==1) ff[k][i].w = 0.0;
-				if (k==0   && bcv_bot_slip==1){
-					ff[k][i].u = 0.0;
-				}
-
-				if (k==P-1 && bcv_top_normal==1) ff[k][i].w = 0.0;
-				if (k==P-1 && bcv_top_slip==1){
-					ff[k][i].u = 0.0;
-				}
-
+		Stokes3d 	 			***ff;
+		PetscInt               M,N,P;
+		
+		ierr = DMDAGetInfo(da_Veloc,0,&M,&N,&P,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
+		
+		
+		ierr = VecZeroEntries(local_FV);CHKERRQ(ierr);
+		ierr = DMDAVecGetArray(da_Veloc,local_FV,&ff);CHKERRQ(ierr);
+		
+		PetscInt       sx,sy,sz,mmx,mmy,mmz;
+		PetscInt i,j,k,t;
+		
+		ierr = DMDAGetCorners(da_Veloc,&sx,&sy,&sz,&mmx,&mmy,&mmz);CHKERRQ(ierr);
+		
+		PetscInt ix[1];
+		PetscScalar y[1];
+		
+		PetscInt low,high;
+		
+		if (bcv_extern==1){
+			char s1[100],s2[100];
+			
+			sprintf(s1,"bcv_0.txt");
+			sprintf(s2,"bcv_init.bin");
+			
+			if (rank==0){
+				ierr = ascii2bin(s1,s2); CHKERRQ(ierr);
 			}
+			MPI_Barrier(PETSC_COMM_WORLD);
+			
+			
+			PetscInt size0;
+			PetscViewer    viewer;
+			
+			VecGetSize(Veloc_Cond,&size0);
+			
+			
+			Vec Fprov;
+			
+			//PetscPrintf(PETSC_COMM_WORLD,"size = %d\n",size);
+			
+			//PetscViewerBinaryOpen(PETSC_COMM_WORLD,"Temper_init.bin",FILE_MODE_READ,&viewer);
+			PetscViewerBinaryOpen(PETSC_COMM_WORLD,s2,FILE_MODE_READ,&viewer);
+			VecCreate(PETSC_COMM_WORLD,&Fprov);
+			VecLoad(Fprov,viewer);
+			PetscViewerDestroy(&viewer);
+			
+			
+			VecGetOwnershipRange(Fprov,&low,&high);
+			
+			printf("%d %d\n",low,high);
+			
+			
+			Vec FN;
+			
+			DMDACreateNaturalVector(da_Veloc,&FN);
+			
+			
+			for (t=low;t<high;t++){
+				ix[0] = t;
+				VecGetValues(Fprov,1,ix,y);
+				VecSetValue(FN,t,y[0], INSERT_VALUES);
+			}
+			
+			VecAssemblyBegin(FN);
+			VecAssemblyEnd(FN);
+			
+			DMDANaturalToGlobalBegin(da_Veloc,FN,INSERT_VALUES,Veloc_Cond);
+			DMDANaturalToGlobalEnd(da_Veloc,FN,INSERT_VALUES,Veloc_Cond);
+			
+			
+			//VecView(F,PETSC_VIEWER_STDOUT_WORLD);
+			
+			PetscBarrier(NULL);
+			
+			VecAssemblyBegin(Veloc_Cond);
+			VecAssemblyEnd(Veloc_Cond);
+
+			
+			
 		}
-		ierr = DMDAVecRestoreArray(da_Veloc,local_FV,&ff);CHKERRQ(ierr);
-		ierr = DMLocalToGlobalBegin(da_Veloc,local_FV,INSERT_VALUES,Veloc_Cond);CHKERRQ(ierr);
-		ierr = DMLocalToGlobalEnd(da_Veloc,local_FV,INSERT_VALUES,Veloc_Cond);CHKERRQ(ierr);
+		else {
+			for (k=sz; k<sz+mmz; k++) {
+				for (j=sy; j<sy+mmy; j++) {
+					for (i=sx; i<sx+mmx; i++) {
+						ff[k][j][i].u = 1.0;
+						ff[k][j][i].v = 1.0;
+						ff[k][j][i].w = 1.0;
+						
+						if (i==0   && bcv_left_normal==1) ff[k][j][i].u = 0.0;
+						if (i==0   && bcv_left_slip==1) {
+							ff[k][j][i].v = 0.0;
+							ff[k][j][i].w = 0.0;
+						}
+						
+						if (i==M-1 && bcv_right_normal==1)ff[k][j][i].u = 0.0;
+						if (i==M-1   && bcv_right_slip==1) {
+							ff[k][j][i].v = 0.0;
+							ff[k][j][i].w = 0.0;
+						}
+						
+						if (j==0 || j==N-1) ff[k][j][i].v = 0.0;
+						
+						if (k==0   && bcv_bot_normal==1) ff[k][j][i].w = 0.0;
+						if (k==0   && bcv_bot_slip==1){
+							ff[k][j][i].u = 0.0;
+							ff[k][j][i].v = 0.0;
+						}
+						
+						if (k==P-1 && bcv_top_normal==1) ff[k][j][i].w = 0.0;
+						if (k==P-1 && bcv_top_slip==1){
+							ff[k][j][i].u = 0.0;
+							ff[k][j][i].v = 0.0;
+						}
+						
+					}
+				}
+			}
+			ierr = DMDAVecRestoreArray(da_Veloc,local_FV,&ff);CHKERRQ(ierr);
+			ierr = DMLocalToGlobalBegin(da_Veloc,local_FV,INSERT_VALUES,Veloc_Cond);CHKERRQ(ierr);
+			ierr = DMLocalToGlobalEnd(da_Veloc,local_FV,INSERT_VALUES,Veloc_Cond);CHKERRQ(ierr);
+		}
 	}
 
 
@@ -387,10 +543,17 @@ PetscErrorCode create_veloc_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 	PetscTime(&Tempo2p);
 	if (rank==0) printf("Velocity field (creation): %lf s\n",Tempo2p-Tempo1p);
 
-	montaKeVeloc_general(Ke_veloc_general,dx_const,dz_const);
+	if (DIMEN==2){
+		montaKeVeloc_general_2d(Ke_veloc_general,dx_const,dz_const);
+		montaCeVeloc_2d(VCe);
+		montafeVeloc_2d(VfMe);
+	}
+	else {
+		montaKeVeloc_general_3d(Ke_veloc_general,dx_const,dy_const,dz_const);
+		montaCeVeloc_3d(VCe);
+		montafeVeloc_3d(VfMe);
+	}
 
-	montaCeVeloc(VCe);
-	montafeVeloc(VfMe);
 
 
 	PetscFunctionReturn(0);
@@ -626,7 +789,7 @@ PetscErrorCode write_veloc_cond(int cont, PetscInt binary_out)
 
 
 
-PetscErrorCode montaKeVeloc_general(PetscReal *KeG, double dx_const, double dz_const){
+PetscErrorCode montaKeVeloc_general_2d(PetscReal *KeG, double dx_const, double dz_const){
 
 	long i,j,ii;
 	long aux;
@@ -727,7 +890,119 @@ PetscErrorCode montaKeVeloc_general(PetscReal *KeG, double dx_const, double dz_c
 
 
 
-PetscReal montaKeVeloc_simplif(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_ele){
+PetscErrorCode montaKeVeloc_general_3d(PetscReal *KeG, double dx_const, double dy_const, double dz_const){
+	
+	long i,j,ii;
+	long aux;
+	
+	
+	
+	double kx,ky,kz;
+	
+	double ex,ey,ez;
+	
+	long cont;
+	
+	double N_x[V_NE];
+	double N_y[V_NE];
+	double N_z[V_NE];
+	
+	double SN[6][V_GT];
+	
+	for (i=0;i<6;i++){
+		for (j=0;j<V_GT;j++){
+			SN[i][j]=0;
+		}
+	}
+	
+	
+	long point;
+	
+	for (point=0;point<GaussQuad;point++){
+		for (i=0;i<V_GT;i++){
+			for (j=0;j<V_GT;j++){
+				KeG[(i*V_GT+j)+point*V_GT*V_GT]=0.0;
+			}
+		}
+	}
+	
+	double Hx,Hy,Hz,prodH;
+	
+	
+	point=0;
+	for (kz=-r06; kz<=r06; kz+=r06){
+		if (kz==0) Hz=r8p9;
+		else Hz=r5p9;
+		for (ky=-r06; ky<=r06; ky+=r06){
+			if (ky==0) Hy=r8p9;
+			else Hy=r5p9;
+			for (kx=-r06; kx<=r06; kx+=r06){
+				if (kx==0) Hx=r8p9;
+				else Hx=r5p9;
+				
+				prodH = Hx*Hy*Hz;
+				cont=0;
+				for (ez=-1.;ez<=1.;ez+=2.){
+					for (ey=-1.;ey<=1.;ey+=2.){
+						for (ex=-1.;ex<=1.;ex+=2.){
+							//N[cont]=(1+ex*kx)*(1+ey*ky)*(1+ez*kz)/8.0;
+							N_x[cont]=ex*(1+ey*ky)*(1+ez*kz)/4.0/dx_const;
+							N_y[cont]=(1+ex*kx)*ey*(1+ez*kz)/4.0/dy_const;
+							N_z[cont]=(1+ex*kx)*(1+ey*ky)*ez/4.0/dz_const;
+							
+							cont++;
+						}
+					}
+				}
+				
+				
+				for (j=0;j<V_NE;j++){
+					aux = j*V_GN;
+					SN[0][aux  ]=N_x[j];
+					SN[1][aux+1]=N_y[j];
+					SN[2][aux+2]=N_z[j];
+					
+					SN[3][aux  ]=N_y[j];SN[3][aux+1]=N_x[j];
+					SN[4][aux+1]=N_z[j];SN[4][aux+2]=N_y[j];
+					SN[5][aux  ]=N_z[j];					SN[5][aux+2]=N_x[j];
+					
+					//Nd[aux  ]=N_x[j];
+					//Nd[aux+1]=N_y[j];
+					//Nd[aux+2]=N_z[j];
+				}
+				
+				
+				for (i=0;i<V_GT;i++){
+					for (j=0;j<V_GT;j++){
+						for (ii=0;ii<3;ii++){
+							KeG[(i*V_GT+j)+point*V_GT*V_GT]+=prodH*2*SN[ii][i]*SN[ii][j];
+						}
+						for (;ii<6;ii++){
+							KeG[(i*V_GT+j)+point*V_GT*V_GT]+=prodH*SN[ii][i]*SN[ii][j];
+						}
+						
+					}
+				}
+				
+				point++;
+				
+			}
+		}
+	}
+	
+	/*for (i=0;i<V_NE*GaussQuad;i++){
+		PetscPrintf(PETSC_COMM_WORLD,"%lg %lg %lg\n",N_x_Gauss[i],N_y_Gauss[i],N_z_Gauss[i]);
+	}
+	exit(1);*/
+	
+	
+	PetscFunctionReturn(0);
+	
+}
+
+
+
+PetscReal montaKeVeloc_simplif_2d(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_ele){
 
 	long i,j;
 
@@ -824,7 +1099,110 @@ PetscReal montaKeVeloc_simplif(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_ele
 }
 
 
-PetscErrorCode montafeVeloc(PetscReal *fMe)
+PetscReal montaKeVeloc_simplif_3d(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_ele){
+	
+	long i,j;
+	
+	double Visc_local,Geoq_local;
+	double visc_meio=-1.0;
+	
+	double kx,ky,kz;
+	
+	double ex,ey,ez;
+	
+	long cont;
+	
+	long point=0;
+	
+	for (i=0;i<V_GT*V_GT;i++) Ke[i]=0.0;
+	
+	if (visc_const_per_element==0){
+		
+		for (kz=-r06; kz<=r06; kz+=r06){
+			
+			for (ky=-r06; ky<=r06; ky+=r06){
+				
+				for (kx=-r06; kx<=r06; kx+=r06){
+					
+					Geoq_local = 0.0;
+					
+					cont=0;
+					for (ez=-1.;ez<=1.;ez+=2.){
+						for (ey=-1.;ey<=1.;ey+=2.){
+							for (ex=-1.;ex<=1.;ex+=2.){
+								Geoq_local+=geoq_ele[cont]*(1+ex*kx)*(1+ey*ky)*(1+ez*kz)/8.0;
+								cont++;
+							}
+						}
+					}
+					
+					Visc_local = Geoq_local;
+					
+					if (kx==0 && ky==0 && kz==0) visc_meio = Visc_local;
+					
+					
+					if (Visc_local<visc_aux_MIN) visc_aux_MIN=Visc_local;
+					if (Visc_local>visc_aux_MAX) visc_aux_MAX=Visc_local;
+					
+					
+					for (i=0;i<V_GT;i++){
+						for (j=0;j<V_GT;j++){
+							Ke[i*V_GT+j]+=KeG[(i*V_GT+j)+point]*Visc_local;
+						}
+					}
+					
+					point+=V_GT*V_GT;
+				}
+			}
+		}
+	}
+	else {
+		double Visc_mean;
+
+		Geoq_local = geoq_ele[0];
+
+		Visc_local = Geoq_local;
+
+		Visc_mean = Visc_local;
+
+
+		if (Visc_local<visc_aux_MIN) visc_aux_MIN=Visc_local;
+		if (Visc_local>visc_aux_MAX) visc_aux_MAX=Visc_local;
+		
+		for (kz=-r06; kz<=r06; kz+=r06){
+			
+			for (ky=-r06; ky<=r06; ky+=r06){
+				
+				for (kx=-r06; kx<=r06; kx+=r06){
+					
+					
+					for (i=0;i<V_GT;i++){
+						for (j=0;j<V_GT;j++){
+							Ke[i*V_GT+j]+=KeG[(i*V_GT+j)+point];
+						}
+					}
+					
+					point+=V_GT*V_GT;
+				}
+			}
+		}
+		
+		visc_meio = Visc_mean;
+		
+		for (i=0;i<V_GT;i++){
+			for (j=0;j<V_GT;j++){
+				Ke[i*V_GT+j]*=Visc_mean;
+			}
+		}
+	}
+	
+	
+	return(visc_meio);
+
+}
+
+
+PetscErrorCode montafeVeloc_2d(PetscReal *fMe)
 {
 	long i,j;
 
@@ -881,7 +1259,7 @@ PetscErrorCode montafeVeloc(PetscReal *fMe)
 }
 
 
-PetscErrorCode montaCeVeloc(PetscReal *Ce){
+PetscErrorCode montaCeVeloc_2d(PetscReal *Ce){
 
 	long i;
 
@@ -937,4 +1315,132 @@ PetscErrorCode montaCeVeloc(PetscReal *Ce){
 	PetscFunctionReturn(0);
 
 
+}
+
+
+PetscErrorCode montafeVeloc_3d(PetscReal *fMe)
+{
+	long i,j;
+	
+	double kx,ky,kz;
+	
+	double ex,ey,ez;
+	
+	long cont;
+	
+	double N[V_NE];
+	
+	for (i=0;i<V_GT;i++){
+		for (j=0;j<V_NE;j++){
+			fMe[i*V_NE+j]=0.0;
+		}
+	}
+	
+	double Hx,Hy,Hz,prodH;
+	for (kz=-r06; kz<=r06; kz+=r06){
+		if (kz==0) Hz=r8p9;
+		else Hz=r5p9;
+		for (ky=-r06; ky<=r06; ky+=r06){
+			if (ky==0) Hy=r8p9;
+			else Hy=r5p9;
+			for (kx=-r06; kx<=r06; kx+=r06){
+				if (kx==0) Hx=r8p9;
+				else Hx=r5p9;
+				
+				
+				prodH = Hx*Hy*Hz;
+				cont=0;
+				for (ez=-1.;ez<=1.;ez+=2.){
+					for (ey=-1.;ey<=1.;ey+=2.){
+						for (ex=-1.;ex<=1.;ex+=2.){
+							N[cont]=(1+ex*kx)*(1+ey*ky)*(1+ez*kz)/8.0;
+							cont++;
+						}
+					}
+				}
+				
+				
+				for (i=0;i<V_NE;i++){
+					for (j=0;j<V_NE;j++){
+						fMe[(i*V_GN+2)*V_NE+j]+=prodH*N[i]*N[j];
+					}
+				}
+				
+				
+				
+			}
+		}
+	}
+	
+	for (i=0;i<V_GT*V_NE;i++){
+		fMe[i]*=dx_const*dy_const*dz_const;
+	}
+
+	
+	PetscFunctionReturn(0);
+}
+
+
+PetscErrorCode montaCeVeloc_3d(PetscReal *Ce){
+	
+	long i;
+	
+	double kx,ky,kz;
+	
+	double ex,ey,ez;
+	
+	long cont;
+	
+	double N_x[V_NE];
+	double N_y[V_NE];
+	double N_z[V_NE];
+	
+	for (i=0;i<V_GT;i++){
+		Ce[i]=0.0;
+	}
+	
+	double Hx,Hy,Hz,prodH;
+	
+	for (kz=-r06; kz<=r06; kz+=r06){
+		if (kz==0) Hz=r8p9;
+		else Hz=r5p9;
+		for (ky=-r06; ky<=r06; ky+=r06){
+			if (ky==0) Hy=r8p9;
+			else Hy=r5p9;
+			for (kx=-r06; kx<=r06; kx+=r06){
+				if (kx==0) Hx=r8p9;
+				else Hx=r5p9;
+				
+				
+				prodH = Hx*Hy*Hz;
+				cont=0;
+				for (ez=-1.;ez<=1.;ez+=2.){
+					for (ey=-1.;ey<=1.;ey+=2.){
+						for (ex=-1.;ex<=1.;ex+=2.){
+							//N[cont]=(1+ex*kx)*(1+ey*ky)*(1+ez*kz)/8.0;
+							N_x[cont]=ex*(1+ey*ky)*(1+ez*kz)/4.0/dx_const;
+							N_y[cont]=(1+ex*kx)*ey*(1+ez*kz)/4.0/dy_const;
+							N_z[cont]=(1+ex*kx)*(1+ey*ky)*ez/4.0/dz_const;
+							cont++;
+						}
+					}
+				}
+				
+				for (i=0;i<V_NE;i++){
+					Ce[i*V_GN]+=prodH*N_x[i]; // 1/8 funcao de forma da pressao (constante no elemento)
+					Ce[i*V_GN+1]+=prodH*N_y[i];
+					Ce[i*V_GN+2]+=prodH*N_z[i];
+				}
+				
+			}
+		}
+	}
+
+	for (i=0;i<V_GT;i++){
+		Ce[i]*=-dx_const*dy_const*dz_const;
+	}
+	
+	PetscFunctionReturn(0);
+
+	
 }

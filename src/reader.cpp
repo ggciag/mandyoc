@@ -690,7 +690,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 /*   #number_of_profiles*/
 /*   t0 h h h ... h (#Nx h values) */
 /*   t1 h h h ... h (#Nx h values) */
-PetscErrorCode load_topo_var(int rank)
+PetscErrorCode load_topo_var(int rank)  //!!!3D
 {
     PetscInt i;
     PetscInt j;
