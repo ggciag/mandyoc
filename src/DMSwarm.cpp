@@ -7,6 +7,8 @@
 #include <petsc/private/dmimpl.h>
 #include <petscmath.h>
 
+extern int DIMEN;
+
 extern DM dmcell;
 
 extern DM dms;
@@ -14,17 +16,20 @@ extern DM dms;
 extern DM da_Veloc;
 
 extern long Nx;
+extern long Ny;
 
 extern double dx_const;
+extern double dy_const;
 extern double dz_const;
 
-extern double Lx, depth;
+extern double Lx, Ly, depth;
 
 extern double H_lito;
 extern double escala_viscosidade;
 
 extern PetscInt particles_per_ele;
 extern PetscInt nx_ppe;
+extern PetscInt ny_ppe;
 extern PetscInt nz_ppe;
 
 extern double H_per_mass;
@@ -268,22 +273,35 @@ PetscErrorCode createSwarm()
 	PetscReal *rarray;
 	PetscReal *strain_array;
 
+	PetscInt nx_part, ny_part, nz_part;
 
-	PetscInt nz_part = (int)PetscSqrtReal(particles_per_ele*dz_const/dx_const);
-	PetscInt nx_part = (int)(particles_per_ele/nz_part);
+	if (DIMEN==2){
+		nz_part = (int)PetscSqrtReal(particles_per_ele*dz_const/dx_const);
+		nx_part = (int)(particles_per_ele/nz_part);
 
-	if (nx_ppe > 0) {
-		nx_part = nx_ppe;
+		if (nx_ppe > 0) {nx_part = nx_ppe;}
+		if (nz_ppe > 0) {nz_part = nz_ppe;}
+
+		particles_per_ele = nx_part*nz_part;
 	}
+	else {
+		nx_part = (int)PetscCbrtReal(particles_per_ele*dx_const*dx_const/(dy_const*dz_const));
+		ny_part = (int)PetscCbrtReal(particles_per_ele*dy_const*dy_const/(dz_const*dx_const));
+		nz_part = (int)PetscCbrtReal(particles_per_ele*dz_const*dz_const/(dx_const*dy_const));
 
-	if (nz_ppe > 0) {
-		nz_part = nz_ppe;
+		if (nx_ppe > 0) {nx_part = nx_ppe;}
+		if (ny_ppe > 0) {ny_part = ny_ppe;}
+		if (nz_ppe > 0) {nz_part = nz_ppe;}
+
+		particles_per_ele = nx_part*ny_part*nz_part;
+		
 	}
-
-	particles_per_ele = nx_part*nz_part;
 
 
 	PetscPrintf(PETSC_COMM_WORLD,"particles per element in x:  %d\n",nx_part);
+	if (DIMEN==3){
+		PetscPrintf(PETSC_COMM_WORLD,"particles per element in y:  %d\n",ny_part);
+	}
 	PetscPrintf(PETSC_COMM_WORLD,"particles per element in z:  %d\n",nz_part);
 	PetscPrintf(PETSC_COMM_WORLD,"total particles per element: %d\n\n",particles_per_ele);
 
@@ -296,7 +314,7 @@ PetscErrorCode createSwarm()
 	/* Create the swarm */
 	ierr = DMCreate(PETSC_COMM_WORLD,&dms);CHKERRQ(ierr);
 	ierr = DMSetType(dms,DMSWARM);CHKERRQ(ierr);
-	ierr = DMSetDimension(dms,2);CHKERRQ(ierr);
+	ierr = DMSetDimension(dms,DIMEN);CHKERRQ(ierr);
 
 	ierr = DMSwarmSetType(dms,DMSWARM_PIC);CHKERRQ(ierr);
 	ierr = DMSwarmSetCellDM(dms,dmcell);CHKERRQ(ierr);
@@ -310,7 +328,7 @@ PetscErrorCode createSwarm()
 	ierr = DMSwarmRegisterPetscDatatypeField(dms,"cont",1,PETSC_INT);CHKERRQ(ierr);
 	ierr = DMSwarmFinalizeFieldRegister(dms);CHKERRQ(ierr);
 
-	{
+	if (DIMEN==2){
 		PetscInt si,sk,milocal,mklocal;
 		PetscReal *LA_coors;
 		Vec coors;
@@ -470,6 +488,172 @@ PetscErrorCode createSwarm()
 		ierr = DMSwarmRestoreField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 
 	}
+	else {
+		PetscInt si,sj,sk,milocal,mjlocal,mklocal;
+		PetscReal *LA_coors;
+		Vec coors;
+		PetscInt cnt;
+		
+		ierr = DMDAGetCorners(da_Veloc,&si,&sj,&sk,&milocal,&mjlocal,&mklocal);CHKERRQ(ierr);
+		
+		
+		ierr = DMGetCoordinates(da_Veloc,&coors);CHKERRQ(ierr);
+
+		ierr = VecGetArray(coors,&LA_coors);CHKERRQ(ierr);
+		
+		ierr = DMSwarmSetLocalSizes(dms,milocal*mjlocal*mklocal*(particles_per_ele),4);CHKERRQ(ierr);
+		ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
+		
+		particles_add_remove = milocal*mjlocal*mklocal;
+		
+		ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
+		
+		cnt = 0;
+		
+		for (p=0; p<nlocal/particles_per_ele; p++) {
+			PetscReal px,py,pz,rx,ry,rz;
+			
+			for (int contx=0;contx<nx_part;contx++){
+				for (int conty=0;conty<ny_part;conty++){
+					for (int contz=0;contz<nz_part;contz++){
+
+
+						rx = 1.0*(float)rand_r(&seed)/RAND_MAX-0.5;
+						ry = 1.0*(float)rand_r(&seed)/RAND_MAX-0.5;
+						rz = 1.0*(float)rand_r(&seed)/RAND_MAX-0.5;
+		
+						px = LA_coors[3*p+0] + (0.5+contx+rx*particles_perturb_factor)*(dx_const/nx_part);
+						py = LA_coors[3*p+1] + (0.5+conty+ry*particles_perturb_factor)*(dy_const/ny_part);
+						pz = LA_coors[3*p+2] + (0.5+contz+rz*particles_perturb_factor)*(dz_const/nz_part);
+					
+						
+						if ((px>=0) && (px<=Lx) && (py>=0) && (py<=Ly) && (pz>=-depth) && (pz<=0)) {
+							array[bs*cnt+0] = px;
+							array[bs*cnt+1] = py;
+							array[bs*cnt+2] = pz;
+							cnt++;
+						}
+					}
+				}
+			}	
+		}
+		
+		ierr = DMSwarmRestoreField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
+		ierr = VecRestoreArray(coors,&LA_coors);CHKERRQ(ierr);
+		ierr = DMSwarmSetLocalSizes(dms,cnt,4);CHKERRQ(ierr);
+		
+		ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
+		ierr = DMSwarmGetField(dms,"itag",&bs,NULL,(void**)&iarray);CHKERRQ(ierr);
+		ierr = DMSwarmGetField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
+		ierr = DMSwarmGetField(dms,"strain_fac",&bs,NULL,(void**)&strain_array);CHKERRQ(ierr);
+		
+		ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
+		for (p=0; p<nlocal; p++) {
+			iarray[p] = p%particles_per_ele;
+			if (p%particles_per_ele==0){
+				iarray[p] = 10000 + p/particles_per_ele + 1000000*rank;
+			}
+		}
+		
+		ierr = DMSwarmRestoreField(dms,"itag",&bs,NULL,(void**)&iarray);CHKERRQ(ierr);
+		
+		ierr = DMSwarmGetField(dms,"geoq_fac",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
+		
+		if (n_interfaces==0){
+			for (p=0; p<nlocal; p++){
+				rarray[p] = escala_viscosidade;
+				layer_array[p] = 0;
+			}
+		}
+		else{
+			PetscReal cx,cy,cz;
+			PetscReal rx,ry,rfac;
+			PetscReal interp_interfaces[n_interfaces];
+			PetscInt in,verif,i,j,k;
+
+			unsigned int seed_strain;
+			
+			for (p=0; p<nlocal; p++){
+				cx = array[3*p];
+				cy = array[3*p+1];
+				cz = array[3*p+2];
+				
+				i = (int)(cx/dx_const);
+				j = (int)(cy/dy_const);
+				k = (int)((cz+depth)/dz_const);
+				seed_strain=(k*Nx*Ny+j*Nx+i)*(k*Nx*Ny+j*Nx+i);
+				
+				if (i<0 || i>=Nx-1) {printf("weird: i=%d create cx = %lf\n",i,cx); exit(1);}
+				if (j<0 || j>=Ny-1) {printf("weird: j=%d create cy = %lf\n",j,cy); exit(1);}
+
+				
+				if (i==Nx-1) i=Nx-2;
+				if (j==Ny-1) j=Ny-2;
+				
+				
+				rx = (cx-i*dx_const)/dx_const;
+				ry = (cy-j*dy_const)/dy_const;
+				
+				
+				if (rx<0 || rx>1) {printf("weird rx=%f\n",rx); exit(1);}
+				if (ry<0 || ry>1) {printf("weird ry=%f\n",ry); exit(1);}
+				
+				
+				for (in=0;in<n_interfaces;in++){
+					rfac = (1.0-rx)*(1.0-ry);
+					interp_interfaces[in] = interfaces[j*Nx+i + Nx*Ny*in] * rfac;
+					
+					rfac = (rx)*(1.0-ry);
+					interp_interfaces[in] += interfaces[j*Nx+(i+1) + Nx*Ny*in] * rfac;
+					
+					rfac = (1.0-rx)*(ry);
+					interp_interfaces[in] += interfaces[(j+1)*Nx+i + Nx*Ny*in] * rfac;
+					
+					rfac = (rx)*(ry);
+					interp_interfaces[in] += interfaces[(j+1)*Nx+(i+1) + Nx*Ny*in] * rfac;
+				}
+				
+				verif=0;
+				for (in=0;in<n_interfaces && verif==0;in++){
+					if (cz<interp_interfaces[in]){
+						verif=1;
+						rarray[p] = inter_geoq[in];
+						layer_array[p] = in;
+					}
+				}
+				if (verif==0){
+					rarray[p] = inter_geoq[n_interfaces];
+					layer_array[p] = n_interfaces;
+				}
+
+				rand_r(&seed_strain);
+				strain_array[p]=random_initial_strain*(float)rand_r(&seed_strain)/RAND_MAX;
+
+				if (seed_layer_set == PETSC_TRUE) {
+					if (seed_layer_size == 1 && layer_array[p] == seed_layer[0]) {
+						strain_array[p] = strain_seed_layer[0];
+					}
+					else {
+						for (int k = 0; k < seed_layer_size; k++) {
+							if (layer_array[p] == seed_layer[k]) {
+								strain_array[p] = strain_seed_layer[k];
+							}
+						}
+					}
+				}
+				
+			}
+		}
+		
+		ierr = DMSwarmRestoreField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
+		
+		ierr = DMSwarmRestoreField(dms,"geoq_fac",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
+
+		ierr = DMSwarmRestoreField(dms,"strain_fac",&bs,NULL,(void**)&strain_array);CHKERRQ(ierr);
+		
+		ierr = DMSwarmRestoreField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
+		
+	}
 
 	ierr = DMView(dms,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
 
@@ -485,7 +669,7 @@ PetscErrorCode createSwarm()
 	ierr = PetscCalloc1(particles_add_remove ,&p_remove);
 	ierr = PetscCalloc1(particles_add_remove ,&p_i);
 
-	ierr = PetscCalloc1(particles_add_remove*2,&p_add_coor);
+	ierr = PetscCalloc1(particles_add_remove*DIMEN,&p_add_coor);
 	ierr = PetscCalloc1(particles_add_remove ,&p_add_r);
 	ierr = PetscCalloc1(particles_add_remove ,&p_add_i);
 	ierr = PetscCalloc1(particles_add_remove ,&p_add_layer);

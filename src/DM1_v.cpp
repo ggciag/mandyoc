@@ -17,6 +17,16 @@ typedef struct {
 	PetscScalar w;
 } Stokes;
 
+
+typedef struct {
+	PetscScalar u;
+	PetscScalar v;
+	PetscScalar w;
+	//PetscScalar p;
+} Stokes3d;
+
+extern int DIMEN;
+
 extern PetscInt binary_output;
 
 extern double Lx, depth;
@@ -697,23 +707,42 @@ PetscErrorCode Init_Veloc(){
 
 	}
 	else {
+		if (DIMEN==2){
+			Stokes					**VV;
 
-		Stokes					**VV;
+			ierr = VecZeroEntries(local_V);CHKERRQ(ierr);
+			ierr = DMDAVecGetArray(da_Veloc,local_V,&VV);CHKERRQ(ierr);
 
-		ierr = VecZeroEntries(local_V);CHKERRQ(ierr);
-		ierr = DMDAVecGetArray(da_Veloc,local_V,&VV);CHKERRQ(ierr);
+			PetscInt       sx,sz,mmx,mmz;
 
-		PetscInt       sx,sz,mmx,mmz;
+			ierr = DMDAGetCorners(da_Veloc,&sx,&sz,NULL,&mmx,&mmz,NULL);CHKERRQ(ierr);
 
-		ierr = DMDAGetCorners(da_Veloc,&sx,&sz,NULL,&mmx,&mmz,NULL);CHKERRQ(ierr);
+			PetscInt               M,P;
 
-		PetscInt               M,P;
+			ierr = DMDAGetInfo(da_Veloc,0,&M,&P,NULL,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
 
-		ierr = DMDAGetInfo(da_Veloc,0,&M,&P,NULL,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
-
-		ierr = DMDAVecRestoreArray(da_Veloc,local_V,&VV);CHKERRQ(ierr);
-		ierr = DMLocalToGlobalBegin(da_Veloc,local_V,INSERT_VALUES,Veloc);CHKERRQ(ierr);
-		ierr = DMLocalToGlobalEnd(da_Veloc,local_V,INSERT_VALUES,Veloc);CHKERRQ(ierr);
+			ierr = DMDAVecRestoreArray(da_Veloc,local_V,&VV);CHKERRQ(ierr);
+			ierr = DMLocalToGlobalBegin(da_Veloc,local_V,INSERT_VALUES,Veloc);CHKERRQ(ierr);
+			ierr = DMLocalToGlobalEnd(da_Veloc,local_V,INSERT_VALUES,Veloc);CHKERRQ(ierr);
+		}
+		else {
+			Stokes3d				***VV;
+		
+			ierr = VecZeroEntries(local_V);CHKERRQ(ierr);
+			ierr = DMDAVecGetArray(da_Veloc,local_V,&VV);CHKERRQ(ierr);
+			
+			PetscInt       sx,sy,sz,mmx,mmy,mmz;
+			
+			ierr = DMDAGetCorners(da_Veloc,&sx,&sy,&sz,&mmx,&mmy,&mmz);CHKERRQ(ierr);
+			
+			PetscInt               M,N,P;
+			
+			ierr = DMDAGetInfo(da_Veloc,0,&M,&N,&P,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
+			
+			ierr = DMDAVecRestoreArray(da_Veloc,local_V,&VV);CHKERRQ(ierr);
+			ierr = DMLocalToGlobalBegin(da_Veloc,local_V,INSERT_VALUES,Veloc);CHKERRQ(ierr);
+			ierr = DMLocalToGlobalEnd(da_Veloc,local_V,INSERT_VALUES,Veloc);CHKERRQ(ierr);
+		}
 	}
 
 

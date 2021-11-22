@@ -68,7 +68,8 @@ PetscErrorCode shift_pressure();
 PetscErrorCode write_all_(int cont,Vec u, char *variable_name, PetscInt binary_out);
 
 
-PetscErrorCode moveSwarm(PetscReal dt);
+PetscErrorCode moveSwarm2d(PetscReal dt);
+PetscErrorCode moveSwarm3d(PetscReal dt);
 PetscErrorCode Swarm2Mesh();
 
 extern double r06;
@@ -589,7 +590,12 @@ PetscErrorCode build_veloc_3d()
 		write_pressure(-1,binary_output);
 	}
 
-	ierr = moveSwarm(0.0);
+	if (DIMEN==2){
+		ierr = moveSwarm2d(0.0);
+	}
+	else {
+		ierr = moveSwarm3d(0.0);
+	}//!!! continuar aqui
 	ierr = Swarm2Mesh();
 
 

@@ -30,8 +30,10 @@ PetscErrorCode write_pressure(int cont, PetscInt binary_out);
 PetscErrorCode write_geoq_(int cont, PetscInt binary_out);
 PetscErrorCode create_veloc_2d_3d(PetscInt mx,PetscInt my,PetscInt mz,PetscInt Px,PetscInt Py,PetscInt Pz);
 PetscErrorCode createSwarm();
-PetscErrorCode moveSwarm(PetscReal dt);
-PetscErrorCode Swarm_add_remove();
+PetscErrorCode moveSwarm2d(PetscReal dt);
+PetscErrorCode moveSwarm3d(PetscReal dt);
+PetscErrorCode Swarm_add_remove2d();
+PetscErrorCode Swarm_add_remove3d();
 PetscErrorCode SwarmViewGP(DM dms,const char prefix[]);
 PetscErrorCode Init_Veloc();
 PetscErrorCode reader(int rank, const char fName[]);
@@ -182,7 +184,7 @@ int main(int argc,char **args)
 //	PetscPrintf(PETSC_COMM_SELF,"********** <rank:%d> <particles_per_ele:%d>\n", rank, particles_per_ele); -> conversar com Victor sobre
 //	PetscPrintf(PETSC_COMM_SELF,"********** <rank:%d> <layers:%d>\n", rank, layers); -> conversar com Victor sobre
 	
-	// Surface Processes Swarm
+	// Surface Processes Swarm ///!!! 3D update necessary
 	if (geoq_on && sp_surface_tracking && n_interfaces>0 && interfaces_from_ascii==1) {
 		PetscPrintf(PETSC_COMM_WORLD, "\nSP Swarm (creating)\n");
 		ierr = sp_create_surface_vec(); CHKERRQ(ierr);
@@ -294,7 +296,12 @@ int main(int argc,char **args)
 		if (geoq_on){
 			if (RK4==1){
 				VecCopy(Veloc_fut,Veloc_weight);
-				ierr = moveSwarm(dt_calor_sec);
+				if (DIMEN==2){
+					ierr = moveSwarm2d(dt_calor_sec);
+				}
+				else {
+					ierr = moveSwarm3d(dt_calor_sec);
+				}
 			}
 			else {
 				for (PetscInt cont=0, max_cont=4;cont<max_cont; cont++){
@@ -304,10 +311,20 @@ int main(int argc,char **args)
 					VecCopy(Veloc,Veloc_weight);
 					//			y			a		b		x
 					VecAXPBY(Veloc_weight, fac, (1.0-fac),Veloc_fut); //y = a*x + b*y
-					ierr = moveSwarm(dt_calor_sec/max_cont);
+					if (DIMEN==2){
+						ierr = moveSwarm2d(dt_calor_sec/max_cont);
+					}
+					else {
+						ierr = moveSwarm3d(dt_calor_sec/max_cont);
+					}
 				}
 			}
-			Swarm_add_remove();
+			if (DIMEN==2){
+				Swarm_add_remove2d();
+			}
+			else {
+				Swarm_add_remove3d();
+			}
 		}
 
 		if (sp_surface_tracking && geoq_on && n_interfaces>0 && interfaces_from_ascii==1) {

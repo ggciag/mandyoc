@@ -7,8 +7,6 @@ PetscErrorCode montaKeThermal_general(PetscReal *Ke, PetscReal *Me, PetscReal *F
 
 PetscErrorCode DMDAGetElementCorners(DM da,PetscInt *sx,PetscInt *sz,PetscInt *mx,PetscInt *mz);
 
-PetscErrorCode DMDAGetLocalElementSize(DM da,PetscInt *mxl,PetscInt *mzl);
-
 PetscErrorCode DMDAGetElementCorners(DM da,PetscInt *sx,PetscInt *sz,PetscInt *mx,PetscInt *mz);
 
 PetscErrorCode AssembleA_Thermal(Mat TA,DM thermal_da,PetscReal *TKe,PetscReal *TMe,PetscReal *TFe,
@@ -103,7 +101,7 @@ PetscErrorCode create_thermal_2d_3d(PetscInt mx,PetscInt my,PetscInt mz,PetscInt
 	PetscInt       dof,stencil_width;
 	PetscErrorCode ierr;
 	
-	
+
 	
 	int rank;
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
