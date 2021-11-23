@@ -70,7 +70,8 @@ PetscErrorCode write_all_(int cont,Vec u, char *variable_name, PetscInt binary_o
 
 PetscErrorCode moveSwarm2d(PetscReal dt);
 PetscErrorCode moveSwarm3d(PetscReal dt);
-PetscErrorCode Swarm2Mesh();
+PetscErrorCode Swarm2Mesh2d();
+PetscErrorCode Swarm2Mesh3d();
 
 extern double r06;
 extern double r8p9;
@@ -592,11 +593,13 @@ PetscErrorCode build_veloc_3d()
 
 	if (DIMEN==2){
 		ierr = moveSwarm2d(0.0);
+		ierr = Swarm2Mesh2d();
 	}
 	else {
 		ierr = moveSwarm3d(0.0);
+		ierr = Swarm2Mesh3d();
 	}//!!! continuar aqui
-	ierr = Swarm2Mesh();
+	
 
 
 	ierr = AssembleA_Veloc(VA,VG,da_Veloc,da_Thermal);CHKERRQ(ierr);
