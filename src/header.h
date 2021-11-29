@@ -12,6 +12,7 @@ PetscReal particles_perturb_factor = 0.5;
 PetscInt sp_mode = 1;
 PetscReal Xi_min = 1.0E-14;
 PetscReal random_initial_strain = 0;
+PetscReal initial_strain_gaussian_width = -1.0; // negative values mean that the flag is not active
 PetscReal pressure_const = -1.0;
 PetscInt nx_ppe = 0;
 PetscInt nz_ppe = 0;

@@ -72,6 +72,7 @@ extern PetscInt print_step_files;
 extern PetscInt RK4;
 extern PetscReal Xi_min;
 extern PetscReal random_initial_strain;
+extern PetscReal initial_strain_gaussian_width;
 extern PetscInt checkered;
 extern PetscReal pressure_const;
 extern PetscInt initial_dynamic_range;
@@ -200,6 +201,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "sp_mode") == 0) {sp_mode = atoi(tkn_v);}
 			else if (strcmp(tkn_w, "Xi_min") == 0) {Xi_min = atof(tkn_v);}
 			else if (strcmp(tkn_w, "random_initial_strain") == 0) {random_initial_strain = atof(tkn_v);}
+			else if (strcmp(tkn_w, "initial_strain_gaussian_width") == 0) {initial_strain_gaussian_width = atof(tkn_v);}
 			else if (strcmp(tkn_w, "pressure_const") == 0) {pressure_const = atof(tkn_v);}
 			else if (strcmp(tkn_w, "particles_per_element_x") == 0) {nx_ppe = atoi(tkn_v);}
 			else if (strcmp(tkn_w, "particles_per_element_z") == 0) {nz_ppe = atoi(tkn_v);}
@@ -365,6 +367,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&RK4,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&Xi_min,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&random_initial_strain,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&initial_strain_gaussian_width,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&checkered,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&pressure_const,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&initial_dynamic_range,1,MPI_INT,0,PETSC_COMM_WORLD);

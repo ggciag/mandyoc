@@ -73,6 +73,7 @@ extern PetscInt checkered;
 extern PetscBool plot_sediment;
 
 extern PetscReal random_initial_strain;
+extern PetscReal initial_strain_gaussian_width;
 
 extern PetscInt binary_output;
 
@@ -442,7 +443,14 @@ PetscErrorCode createSwarm()
 				}
 
 				rand_r(&seed_strain);
-				strain_array[p]=random_initial_strain*(float)rand_r(&seed_strain)/RAND_MAX;
+
+				if (initial_strain_gaussian_width>=0){
+					PetscReal xg = (cx - Lx/2)/initial_strain_gaussian_width;
+					strain_array[p]=exp(-(xg*xg)/2)*random_initial_strain*(float)rand_r(&seed_strain)/RAND_MAX;
+				}
+				else {
+					strain_array[p]=random_initial_strain*(float)rand_r(&seed_strain)/RAND_MAX;
+				}
 
 				if (seed_layer_set == PETSC_TRUE) {
 					if (seed_layer_size == 1 && layer_array[p] == seed_layer[0]) {
