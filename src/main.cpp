@@ -40,7 +40,8 @@ PetscErrorCode reader(int rank, const char fName[]);
 PetscErrorCode write_veloc_3d(int cont, PetscInt binary_out);
 PetscErrorCode write_veloc_cond(int cont, PetscInt binary_out);
 PetscErrorCode destroy_veloc_3d();
-PetscErrorCode Calc_dt_calor();
+PetscErrorCode Calc_dt_calor2d();
+PetscErrorCode Calc_dt_calor3d();
 PetscErrorCode write_tempo(int cont);
 PetscErrorCode veloc_total();
 PetscErrorCode rescaleVeloc(Vec Veloc_fut, double tempo);
@@ -245,7 +246,8 @@ int main(int argc,char **args)
 	}
 
 	VecCopy(Veloc_fut,Veloc);
-	ierr = Calc_dt_calor();
+	if (DIMEN==2) {ierr = Calc_dt_calor2d();}
+	else {ierr = Calc_dt_calor3d();}
 
 	if (initial_print_step > 0) {
 		print_step_aux = print_step;
@@ -350,7 +352,8 @@ int main(int argc,char **args)
 			}
 		}
 
-		ierr = Calc_dt_calor();
+		if (DIMEN==2) {ierr = Calc_dt_calor2d();}
+		else {ierr = Calc_dt_calor3d();}
 
 	}
 	if (rank==0) printf("write\n");
@@ -371,7 +374,7 @@ int main(int argc,char **args)
 }
 
 
-PetscErrorCode Calc_dt_calor(){
+PetscErrorCode Calc_dt_calor2d(){
 
 	int rank;
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
@@ -397,6 +400,38 @@ PetscErrorCode Calc_dt_calor(){
 	dt_calor_sec = dt_calor*seg_per_ano;
 	
 
+	PetscFunctionReturn(0);
+
+}
+
+PetscErrorCode Calc_dt_calor3d(){
+
+	int rank;
+	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
+	
+	//////calc dt
+	PetscInt ind_v_max,ind_v_min,ind_v_mod;
+	PetscReal min_v,max_v,max_mod_v,dh_v_mod;
+	
+	VecMax(Veloc_fut,&ind_v_min,&max_v);
+	VecMin(Veloc_fut,&ind_v_max,&min_v);
+	//printf("max_v = %g\n",max_v);
+	//printf("max_v = %g\n",min_v);
+	max_mod_v = fabs(max_v);
+	ind_v_mod = ind_v_max;
+	if (max_mod_v<fabs(min_v)){
+		max_mod_v = fabs(min_v);
+		ind_v_mod = ind_v_min;
+	}
+	if (ind_v_mod%3==0) dh_v_mod = dx_const;
+	if (ind_v_mod%3==1) dh_v_mod = dy_const;
+	if (ind_v_mod%3==2) dh_v_mod = dz_const;
+	if (rank==0) printf("dt = %g",(dh_v_mod/max_mod_v)/seg_per_ano);
+	dt_calor = 0.2*(dh_v_mod/max_mod_v)/seg_per_ano;
+	if (dt_calor>dt_MAX) dt_calor=dt_MAX;
+	dt_calor_sec = dt_calor*seg_per_ano;
+	////////fim calc dt
+	
 	PetscFunctionReturn(0);
 
 }

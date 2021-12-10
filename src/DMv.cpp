@@ -36,9 +36,11 @@ typedef struct {
 
 PetscErrorCode ascii2bin(char *s1, char *s2);
 
-PetscErrorCode AssembleA_Veloc(Mat A,Mat AG,DM veloc_da, DM temper_da);
+PetscErrorCode AssembleA_Veloc2d(Mat A,Mat AG,DM veloc_da, DM temper_da);
+PetscErrorCode AssembleA_Veloc3d(Mat A,Mat AG,DM veloc_da, DM temper_da);
 
-PetscErrorCode AssembleF_Veloc(Vec F,DM veloc_da,DM drho_da, Vec FP);
+PetscErrorCode AssembleF_Veloc2d(Vec F,DM veloc_da,DM drho_da, Vec FP);
+PetscErrorCode AssembleF_Veloc3d(Vec F,DM veloc_da,DM drho_da,Vec FP);
 
 PetscErrorCode montaKeVeloc_general_2d(PetscReal *KeG, double dx_const, double dz_const);
 PetscErrorCode montaKeVeloc_general_3d(PetscReal *KeG, double dx_const, double dy_const, double dz_const);
@@ -594,22 +596,28 @@ PetscErrorCode build_veloc_3d()
 	if (DIMEN==2){
 		ierr = moveSwarm2d(0.0);
 		ierr = Swarm2Mesh2d();
+		ierr = AssembleA_Veloc2d(VA,VG,da_Veloc,da_Thermal);CHKERRQ(ierr);
 	}
 	else {
 		ierr = moveSwarm3d(0.0);
 		ierr = Swarm2Mesh3d();
-	}//!!! continuar aqui
+		ierr = AssembleA_Veloc3d(VA,VG,da_Veloc,da_Thermal);CHKERRQ(ierr);
+	}
 	
 
 
-	ierr = AssembleA_Veloc(VA,VG,da_Veloc,da_Thermal);CHKERRQ(ierr);
+	
 
 	ierr = VecReciprocal(Precon);
 
 	ierr = calc_drho();CHKERRQ(ierr);
 
-
-	ierr = AssembleF_Veloc(Vf,da_Veloc,da_Thermal,Vf_P);CHKERRQ(ierr);
+	if (DIMEN==2){
+		ierr = AssembleF_Veloc2d(Vf,da_Veloc,da_Thermal,Vf_P);CHKERRQ(ierr);
+	}
+	else {
+		ierr = AssembleF_Veloc3d(Vf,da_Veloc,da_Thermal,Vf_P);CHKERRQ(ierr);
+	}
 
 
 	PetscTime(&Tempo2p);

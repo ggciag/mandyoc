@@ -4,15 +4,22 @@
 #include <petsctime.h>
 
 PetscErrorCode montaKeThermal_general(PetscReal *Ke, PetscReal *Me, PetscReal *Fe);
+PetscErrorCode montaKeThermal_general3d(PetscReal *Ke, PetscReal *Me, PetscReal *Fe);
 
 PetscErrorCode DMDAGetElementCorners(DM da,PetscInt *sx,PetscInt *sz,PetscInt *mx,PetscInt *mz);
 
 PetscErrorCode DMDAGetElementCorners(DM da,PetscInt *sx,PetscInt *sz,PetscInt *mx,PetscInt *mz);
 
-PetscErrorCode AssembleA_Thermal(Mat TA,DM thermal_da,PetscReal *TKe,PetscReal *TMe,PetscReal *TFe,
+PetscErrorCode AssembleA_Thermal2d(Mat TA,DM thermal_da,PetscReal *TKe,PetscReal *TMe,PetscReal *TFe,
 								 DM veloc_da, Vec Veloc_total);
 
-PetscErrorCode AssembleF_Thermal(Vec F,DM thermal_da,PetscReal *TKe,PetscReal *TMe,PetscReal *TFe,
+PetscErrorCode AssembleA_Thermal3d(Mat TA,DM thermal_da,PetscReal *TKe,PetscReal *TMe,PetscReal *TFe,
+								 DM veloc_da, Vec Veloc_total);								 
+
+PetscErrorCode AssembleF_Thermal2d(Vec F,DM thermal_da,PetscReal *TKe,PetscReal *TMe,PetscReal *TFe,
+								 DM veloc_da, Vec Veloc_total);
+
+PetscErrorCode AssembleF_Thermal3d(Vec F,DM thermal_da,PetscReal *TKe,PetscReal *TMe,PetscReal *TFe,
 								 DM veloc_da, Vec Veloc_total);
 
 PetscErrorCode Thermal_init(Vec F,DM thermal_da);
@@ -158,12 +165,14 @@ PetscErrorCode create_thermal_2d_3d(PetscInt mx,PetscInt my,PetscInt mz,PetscInt
 	
 	ierr = PetscCalloc1(V_GT,&v_vec_aux_ele); CHKERRQ(ierr);
 	
-	montaKeThermal_general(TKe,TMe,TFe);
+	
 	
 	if (DIMEN==2){
+		montaKeThermal_general(TKe,TMe,TFe);
 		ierr = DMDASetUniformCoordinates(da_Thermal,0.0,Lx,-depth,0.0,0.0,0.0);CHKERRQ(ierr);
 	}
 	else {
+		montaKeThermal_general3d(TKe,TMe,TFe);
 		ierr = DMDASetUniformCoordinates(da_Thermal,0.0,Lx,0.0,Ly,-depth,0.0);CHKERRQ(ierr);
 	}
 		
@@ -330,10 +339,16 @@ PetscErrorCode build_thermal_3d()
 	ierr = MatZeroEntries(TB);CHKERRQ(ierr);
 	ierr = VecZeroEntries(Tf);CHKERRQ(ierr);
 	
+	if (DIMEN==2){
+		ierr = AssembleA_Thermal2d(TA,da_Thermal,TKe,TMe,TFe,da_Veloc,Veloc_fut);CHKERRQ(ierr);
 	
-	ierr = AssembleA_Thermal(TA,da_Thermal,TKe,TMe,TFe,da_Veloc,Veloc_fut);CHKERRQ(ierr);
+		ierr = AssembleF_Thermal2d(Tf,da_Thermal,TKe,TMe,TFe,da_Veloc,Veloc);CHKERRQ(ierr);
+	}
+	else{
+		ierr = AssembleA_Thermal3d(TA,da_Thermal,TKe,TMe,TFe,da_Veloc,Veloc_fut);CHKERRQ(ierr);
 	
-	ierr = AssembleF_Thermal(Tf,da_Thermal,TKe,TMe,TFe,da_Veloc,Veloc);CHKERRQ(ierr);
+		ierr = AssembleF_Thermal3d(Tf,da_Thermal,TKe,TMe,TFe,da_Veloc,Veloc);CHKERRQ(ierr);
+	}
 
 	
 	PetscTime(&Tempo2p);
