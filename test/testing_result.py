@@ -1,5 +1,5 @@
 """
-Compare the Mandyoc output data with the expected data using the Crameri model 
+Compare the Mandyoc output data with the expected data using the Crameri model
 """
 import os
 import pytest
