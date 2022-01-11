@@ -24,8 +24,7 @@ Attach as much as possible of the following information to your issue:
 - a minimal parameter file that reproduces the issue,
 - the log.txt file that was created during the model run,
 - the error message you saw on your screen,
-- any information that helps us understand why you think this is a bug, and
-  how to reproduce it.
+- any information that helps us understand why you think this is a bug, and how to reproduce it.
 
 ## Making MANDYOC Better
 
@@ -75,6 +74,7 @@ General guidelines for pull requests (PRs):
 
   git commit
   ```
+
   After that **push up your changes** to your fork:
 
   ```bash
@@ -85,12 +85,11 @@ General guidelines for pull requests (PRs):
   Ensure the PR description clearly describes the problem and solution.
   Include the relevant issue number.
 
-**Remember to test your changes**. We have a regression test to check that the 
-Mandyoc output result for the Crameri model is equal to the expected result.
+**Remember to test your changes**. We have a regression test to check that the Mandyoc output result for the Crameri model is equal to the expected result.
 To make this test you need to install `pytest` and run:
 
 ```bash
-make test
+make test_mandyoc
 ```
 
 ## Do you have questions about MANDYOC code?
