@@ -207,17 +207,27 @@ PetscErrorCode SwarmViewGP(DM dms,const char prefix[])
 
 	if (!fp) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Cannot open file %s",name);
 	ierr = DMSwarmGetLocalSize(dms,&npoints);CHKERRQ(ierr);
-	//printf("npoints = %d\n",npoints);
+	printf("npoints = %d\n",npoints);
 	ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"itag",NULL,NULL,(void**)&iarray);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"layer",NULL,NULL,(void**)&layer_array);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	if (binary_output==0){
-		for (p=0; p<npoints; p++) {
-			if (iarray[p]>9999 || (PETSC_TRUE == plot_sediment && layer_array[p] == n_interfaces - 1))
-				fprintf(fp,"%+1.5e %+1.5e %d %d %1.4e\n",
-						array[2*p],array[2*p+1],
-						iarray[p],layer_array[p],(double)strain_fac[p]);
+		if (DIMEN==2){
+			for (p=0; p<npoints; p++) {
+				if (iarray[p]>9999 || (PETSC_TRUE == plot_sediment && layer_array[p] == n_interfaces - 1))
+					fprintf(fp,"%+1.5e %+1.5e %d %d %1.4e\n",
+							array[2*p],array[2*p+1],
+							iarray[p],layer_array[p],(double)strain_fac[p]);
+			}
+		}
+		else {
+			for (p=0; p<npoints; p++) {
+				if (iarray[p]>9999 || (PETSC_TRUE == plot_sediment && layer_array[p] == n_interfaces - 1))
+					fprintf(fp,"%+1.5e %+1.5e %+1.5e %d %d %1.4e\n",
+							array[3*p],array[3*p+1],array[3*p+2],
+							iarray[p],layer_array[p],(double)strain_fac[p]);
+			}
 		}
 	}
 	else{

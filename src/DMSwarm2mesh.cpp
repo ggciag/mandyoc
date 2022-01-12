@@ -101,7 +101,7 @@ PetscErrorCode Swarm2Mesh2d(){
 	ierr = DMSwarmGetField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_rate_fac",NULL,NULL,(void**)&strain_rate_fac);CHKERRQ(ierr);
-
+	//printf("nlocal: %d\n",nlocal);
 	PetscReal epsilon_x = 1.0E-7;
 	for (p=0; p<nlocal; p++) {
 		PetscReal cx,cz;
@@ -531,7 +531,8 @@ PetscErrorCode Swarm2Mesh3d(){
 	ierr = DMSwarmGetField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_rate_fac",NULL,NULL,(void**)&strain_rate_fac);CHKERRQ(ierr);
-
+	//PetscPrintf(PETSC_COMM_WORLD,"here2\n");
+	//printf("nlocal: %d\n",nlocal);
 	PetscReal epsilon_x = 1.0E-7;
 	for (p=0; p<nlocal; p++) {
 		PetscReal cx,cy,cz;
@@ -650,7 +651,7 @@ PetscErrorCode Swarm2Mesh3d(){
 		qq_cont	[k+1][j+1][i+1] += rfac;
 
 	}
-	/**/
+
 
 
 	if (visc_const_per_element==0){

@@ -23,6 +23,8 @@ typedef struct {
 double calc_visco_ponto(double T, double P, double x, double z,double geoq_ponto,double e2_inva,double strain_cumulate,
 						double A, double n_exp, double QE, double VE);
 
+PetscErrorCode SwarmViewGP(DM dms,const char prefix[]);
+
 extern DM dms;
 
 extern DM da_Veloc;
@@ -426,6 +428,7 @@ PetscErrorCode moveSwarm3d(PetscReal dt)
 	PetscReal *array;
 	
 	ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
+	printf("In moveSwarm3D: nlocal: %d\n",nlocal);
 	
 	ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 	
@@ -578,7 +581,7 @@ PetscErrorCode moveSwarm3d(PetscReal dt)
 			}
 		}
 		
-		/**/
+		
 		PetscReal strain_mean = (strain[0] + strain[1] + strain[2])/3.0;
 		strain[0]-=strain_mean;
 		strain[1]-=strain_mean;
@@ -601,34 +604,6 @@ PetscErrorCode moveSwarm3d(PetscReal dt)
 									 inter_A[layer_array[p]], inter_n[layer_array[p]], inter_Q[layer_array[p]], inter_V[layer_array[p]]);
 		
 		
-		/**/
-		
-		/*
-		
-		E2_invariant = (strain[0]-strain[1])*(strain[0]-strain[1]);
-		E2_invariant+= (strain[1]-strain[2])*(strain[1]-strain[2]);
-		E2_invariant+= (strain[2]-strain[0])*(strain[2]-strain[0]);
-		E2_invariant/=6.0;
-		E2_invariant+= strain[3]*strain[3];
-		E2_invariant+= strain[4]*strain[4];
-		E2_invariant+= strain[5]*strain[5];
-		
-		
-		
-		
-		strain_fac[p]+= dt*PetscSqrtReal(E2_invariant);//original!!!!
-		//strain_fac[p]= PetscSqrtReal(E2_invariant);//!!!! não é o cumulativo! apenas o instantaneo.
-		
-		
-
-		rarray[p] = calc_visco_ponto(tp,Pp,cx,cz,inter_geoq[layer_array[p]],E2_invariant,strain_fac[p],
-									 inter_A[layer_array[p]], inter_n[layer_array[p]], inter_Q[layer_array[p]], inter_V[layer_array[p]]);
-		
-		*/
-		//dt=0.01;
-		//vx = 0;
-		//vy = -cz;
-		//vz = cy;
 		
 		array[3*p  ] += dt * vx;
 		array[3*p+1] += dt * vy;
@@ -647,14 +622,22 @@ PetscErrorCode moveSwarm3d(PetscReal dt)
 	 
 	ierr = DMSwarmRestoreField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 	
+	ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
+	printf("In moveSwarm3D: nlocal in: %d\n",nlocal);
+	ierr = SwarmViewGP(dms,"step_t1");CHKERRQ(ierr);
+
 	ierr = DMSwarmMigrate(dms,PETSC_TRUE);CHKERRQ(ierr);
-	
+
+	ierr = SwarmViewGP(dms,"step_t2");CHKERRQ(ierr);
 	
 	ierr = DMDAVecRestoreArray(da_Veloc,local_V,&VV);CHKERRQ(ierr);
 
 	ierr = DMDAVecRestoreArray(da_Thermal,local_Temper,&tt);CHKERRQ(ierr);
 
 	ierr = DMDAVecRestoreArray(da_Thermal,local_P_aux,&pp_aux);CHKERRQ(ierr);
+
+	ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
+	printf("In moveSwarm3D: nlocal post: %d\n",nlocal);
 	
 	
 	PetscFunctionReturn(0);
