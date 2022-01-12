@@ -44,7 +44,8 @@ Additionally, the code allows variations of boundary condition for the velocity 
 
 Although `Mandyoc` is the acronym for `MANtle DYnamics simulatOr Code`, it is designed to simulate Stokes flow type thermochemical convection taking different compositional layers into account, and it is also appropriate to simulate Earth's lithospheric dynamics in the geological timescale.
 
-`Mandyoc` allows the user to specify spatial and temporal velocity boundary conditions, and the current version incorporates surface processes, imposing rates of erosion and sedimentation on the top of the free surface.
+One advantage of `Mandyoc` is the possibility to create scenarios with velocity boundary conditions variable in space and time, allowing the user to simulate different tectonic pulses in the same model run.
+Additionally, the current version incorporates surface processes, imposing rates of erosion and sedimentation on the top of the free surface.
 
 Previous versions of the code were used to study the evolution of continental margins, showing the interaction of the continental lithosphere with the asthenospheric mantle [@sacek2017post;@salazar2021lateral].
 
@@ -92,7 +93,7 @@ Additionally, deformations in the lower crust and at the base of the lithospheri
 
 # Acknowledgements
 
-We acknowledge contributions from Dave May for the correct implementation of the multigrid algorithm.
+We acknowledge contributions from Dave May for the help with the implementation of the multigrid algorithm.
 This project was sponsored by FAPESP (Processes 2017/24870-5 and 2019/23246-1) and Petrobras (Process 2017/00461-9).
 
 # References
