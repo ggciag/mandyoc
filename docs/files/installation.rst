@@ -109,6 +109,10 @@ Next, **build and install** *Mandyoc* by running::
 
 	make test_mandyoc
 
+.. note::
+
+	If you have any errors with the `MPIEXEC` variable, you must set it manually in the Makefile.
+
 Examples
 --------
 
