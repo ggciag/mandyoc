@@ -26,8 +26,6 @@ SOURCEC = $(SRC)/main.cpp \
 	$(SRC)/sp.cpp
 OBJECTS = $(SOURCEC:%.cpp=%.o)
 
-MPIEXEC = ${PETSC_DIR}/${PETSC_ARCH}/bin/mpirun
-
 help:
 	@echo ""
 	@echo "Commands:"
@@ -38,7 +36,6 @@ help:
 
 # Run test
 test_mandyoc:
-
 	@echo "Run MANDYOC test may take several minutes.."
 	cd test/testing_data/ ; ${MPIEXEC} -n 2 ../../mandyoc
 	pytest -v test/testing_result.py
