@@ -315,7 +315,7 @@ Additionally, the rheology can also be considered to follow a power law, as a fu
 
     \eta_{visc} = C A^{\frac{-1}{n}} \dot{\varepsilon}^{\frac{1-n}{n}} \exp{\frac{Q+V P}{nRT}}
 
-where :math:`A` is a pre-exponential scale factor, :math:`n` is the power law exponent, :math:`\dot{\varepsilon}` is the second invariant of the strain rate tensor, :math:`Q` is the activation energy, and :math:`V` is the activation volume. The values of :math:`A`, :math:`n`, :math:`Q`, and :math:`V` are measured under laboratory conditions :cite:`karato1993,gleason1995`.
+where :math:`A` is a pre-exponential scale factor, :math:`n` is the power law exponent, :math:`\dot{\varepsilon}` is the square root of the second invariant of the strain rate tensor, :math:`Q` is the activation energy, and :math:`V` is the activation volume. The values of :math:`A`, :math:`n`, :math:`Q`, and :math:`V` are measured under laboratory conditions :cite:`karato1993,gleason1995`.
 
 
 
