@@ -92,6 +92,8 @@ To make this test you need to install `pytest` and run:
 make test_mandyoc
 ```
 
+*NOTE*: you might need to manually set the `MPIREXEC` in the Makefile.
+
 ## Do you have questions about MANDYOC code?
 
 Ask any question you have by **opening up an Issue**, and labeling it as
