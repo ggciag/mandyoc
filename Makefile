@@ -1,9 +1,3 @@
-# Define PETSC_DIR to ~/petsc if it's not defined
-ifdef PETSC_DIR
-else
-PETSC_DIR = $(HOME)/petsc
-endif
-
 include ${PETSC_DIR}/lib/petsc/conf/variables
 include ${PETSC_DIR}/lib/petsc/conf/rules
 
