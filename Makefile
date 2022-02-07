@@ -25,25 +25,44 @@ SOURCEC = $(SRC)/main.cpp \
 	$(SRC)/veloc_total.cpp \
 	$(SRC)/sp.cpp
 OBJECTS = $(SOURCEC:%.cpp=%.o)
+BIN_DIR = bin
+MANDYOC = $(BIN_DIR)/mandyoc
+LOCAL_BIN = $(HOME)/.local/bin
+
+.PHONY: help all insatall clear test
 
 help:
 	@echo ""
 	@echo "Commands:"
 	@echo ""
-	@echo "  all		Build and install Mandyoc by running"
-	@echo "  test_mandyoc	Run the Mandyoc test using 2 cores. It takes several munutes"
+	@echo "  all		Build Mandyoc"
+	@echo "  install	Install MANDYOC in ~/.local/bin/"
+	@echo "  test		Run the MANDYOC test using 1 cores. It takes several munutes"
+	@echo "  clear		Removes the files produced when building MANDYOC"
 	@echo ""
 
-# Run test
-test_mandyoc:
-	@echo "Run MANDYOC test may take several minutes.."
-	cd test/testing_data/ ; ${MPIEXEC} -n 2 ../../mandyoc
+all: $(MANDYOC)
+	@echo ""
+	@echo "Mandyoc built in bin/"
+
+install: $(MANDYOC)
+	@echo ""
+	install $< $(LOCAL_BIN)
+
+test:
+	@echo "Run MANDYOC test may take several minutes..."
+	cd test/testing_data/ ; mpirun -n 1 mandyoc
 	pytest -v test/testing_result.py
 
-# Build Mandyoc
-all: ${OBJECTS} chkopts
-	-${CLINKER} -o mandyoc ${OBJECTS} ${PETSC_LIB}
+clear:
 	rm $(SRC)/*.o
+	rm -rf $(BIN_DIR)
 
 %.o: %.cpp
 	${PCC} -Wall -fdiagnostics-color -c $< -o $@ ${INCFLAGS}
+
+$(BIN_DIR):
+	mkdir $@
+
+$(MANDYOC): ${OBJECTS} | $(BIN_DIR)
+	-${CLINKER} -o $@ ${OBJECTS} ${PETSC_LIB}
