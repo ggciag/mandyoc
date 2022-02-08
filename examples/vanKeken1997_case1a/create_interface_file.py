@@ -44,10 +44,10 @@ with open("interfaces.txt", "w") as f:
 ##############################################################################
 params = f"""
 # Geometry
-nx                                  = {Nx}          # N. of elements in the longitudinal direction
-nz                                  = {Nz}          # N. of elements in the vertical direction
-lx                                  = 91420.0       # Extent in the longitudinal direction
-lz                                  = 100000.       # Extent in the vertical direction
+nx                                  = {Nx}          # n. of nodes in the longitudinal direction
+nz                                  = {Nz}          # n. of nodes in the vertical direction
+lx                                  = 91420.0       # extent in the longitudinal direction
+lz                                  = 100000.       # extent in the vertical direction
 particles_per_element_x             = 0             # default is 0
 particles_per_element_z             = 0             # default is 0
 
@@ -82,25 +82,25 @@ free_surface_stab                   = True          # default is True [True/Fals
 theta_FSSA                          = 0.5           # default is 0.5 (only relevant when free_surface_stab = True)
 
 # Time constrains
-step_max                            = 4000          # Maximum time-step of the simulation
-time_max                            = 140000.0e6    # Maximum time of the simulation [s]
-dt_max                              = 1000.0e6      # Maximum time between steps of the simulation [s]
-step_print                          = 20            # Make file every <step_print>
+step_max                            = 4000          # maximum time-step of the simulation
+time_max                            = 140000.0e6    # maximum time of the simulation [years]
+dt_max                              = 1000.0e6      # maximum time between steps of the simulation [years]
+step_print                          = 20            # make file every <step_print>
 sub_division_time_step              = 1.0           # default is 1.0
 initial_print_step                  = 0             # default is 0
 initial_print_max_time              = 1.0e6         # default is 1.0e6 [years]
 
 # Viscosity
-viscosity_reference                 = 1.0e21        # Reference viscosity [Pa.s]
-viscosity_max                       = 1.0e25        # Maximum viscosity [Pa.s]
-viscosity_min                       = 1.0e17        # Minimum viscosity [Pa.s]
+viscosity_reference                 = 1.0e21        # reference viscosity [Pa.s]
+viscosity_max                       = 1.0e25        # maximum viscosity [Pa.s]
+viscosity_min                       = 1.0e17        # minimum viscosity [Pa.s]
 viscosity_per_element               = constant      # default is variable [constant/variable]
 viscosity_mean_method               = harmonic      # default is harmonic [harmonic/arithmetic]
 viscosity_dependence                = pressure      # default is depth [pressure/depth]
 
 # External ASCII inputs/outputs
 interfaces_from_ascii               = True          # default is False [True/False]
-n_interfaces                        = 1             # Number of interfaces int the interfaces.txt file
+n_interfaces                        = 1             # n. of interfaces in the interfaces.txt file
 variable_bcv                        = False         # default is False [True/False]
 temperature_from_ascii              = False         # default is False [True/False]
 velocity_from_ascii                 = False         # default is False [True/False]
@@ -111,7 +111,7 @@ climate_change_from_ascii           = False         # default is False [True/Fal
 
 
 print_step_files                    = True          # default is True [True/False]
-checkered                           = False         # Print one element in the print_step_filesdefault is False [True/False]
+checkered                           = False         # print one element in the print_step_filesdefault is False [True/False]
 
 sp_mode                             = 1             # default is 1 [0/1/2]
 

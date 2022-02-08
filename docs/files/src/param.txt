@@ -1,82 +1,111 @@
+
 # Geometry
-nx                        = 281        # N. of elements in the longitudinal direction
-nz                        = 85         # N. of elements in the vertical direction
-lx                        = 2800000.0  # Extent in the longitudinal direction
-lz                        = 850000.0   # Extent in the vertical direction
+nx                                  = 81            # n. of nodes in the longitudinal direction
+nz                                  = 81            # n. of nodes in the vertical direction
+lx                                  = 91420.0       # extent in the longitudinal direction
+lz                                  = 100000.       # extent in the vertical direction
+particles_per_element_x             = 0             # default is 0
+particles_per_element_z             = 0             # default is 0
 
 # Simulation options
-# solver                  = direct     # [direct/iterative]
-use_multigrid             = 1          # Enable multigrid
-# residual_norm_iter      = 1.0e-5
-# residual_norm_uzawa     = 1.0e-4
+multigrid                           = 1             # ok -> soon to be on the command line only
+solver                              = direct        # default is direct [direct/iterative]
+denok                               = 1.0e-15       # default is 1.0e-4
+particles_per_element               = 1100          # default is 81
+particles_perturb_factor            = 0.0           # default is 0.5 [values are between 0 and 1]
+rtol                                = 1.0e-5        # the absolute size of the residual norm (relevant only for iterative methods), default is 1.0E-5
+RK4                                 = Euler         # default is Euler [Euler/Runge-Kutta]
+Xi_min                              = 1.0e-14       # default is 1.0e-14
+random_initial_strain               = 0.0           # default is 0.0
+pressure_const                      = -1.0          # default is -1.0 (not used)
+initial_dynamic_range               = False         # default is False [True/False]
+periodic_boundary                   = False         # default is False [True/False]
+high_kappa_in_asthenosphere         = False         # default is False [True/False]
+K_fluvial                           = 2.0e-7        # default is 2.0e-7
+m_fluvial                           = 1.0           # default is 1.0
+sea_level                           = 0.0           # default is 0.0
+basal_heat                          = -1.0          # default is -1.0
 
-# Time constrains for the simulation
-step_maxkjdfd             = 7000       # Maximum time-step of the simulation
-step_print                = 10         # Make file every <step_print>
-time_max                  = 14e9       # Maximum time of the simulation [s]
-dt_max                    = 10.0e3     # Maximum time between steps of the simulation [s]
+# Surface processes
+sp_surface_tracking                 = False         # default is False [True/False]
+sp_surface_processes                = False         # default is False [True/False]
+sp_dt                               = 0             # default is 0
+sp_d_c                              = 0             # default is 0
+plot_sediment                       = False         # default is False [True/False]
+a2l                                 = True          # default is True [True/False]
 
-# Values for the viscosity
-visc_ref                  = 1.0e+21    # Reference viscosity [Pa.s]
-visc_max                  = 1.0e+23    # Maximum viscosity [Pa.s]
-visc_min                  = 1.0e+19    # Minimum viscosity [Pa.s]
+free_surface_stab                   = True          # default is True [True/False]
+theta_FSSA                          = 0.5           # default is 0.5 (only relevant when free_surface_stab = True)
 
-# External ASCII inputs
-interfaces_from_ascii     = True       # Use 'interfaces.txt' ASCII file
-# temperature_from_ascii  = True       # Use 'input_temperature_0.txt' ASCII file
-velocity_from_ascii       = False      # Use 'input_velocity_0.txt' ASCII file
+# Time constrains
+step_max                            = 4000          # maximum time-step of the simulation
+time_max                            = 140000.0e6    # maximum time of the simulation [s]
+dt_max                              = 1000.0e6      # maximum time between steps of the simulation [s]
+step_print                          = 20            # make file every <step_print>
+sub_division_time_step              = 1.0           # default is 1.0
+initial_print_step                  = 0             # default is 0
+initial_print_max_time              = 1.0e6         # default is 1.0e6 [years]
 
-geo=on#kdjfkdjf
-geoq_fac                  = 100.0
-surf_veloc                = 0.0e-2.
+# Viscosity
+viscosity_reference                 = 1.0e21        # reference viscosity [Pa.s]
+viscosity_max                       = 1.0e25        # maximum viscosity [Pa.s]
+viscosity_min                       = 1.0e17        # minimum viscosity [Pa.s]
+viscosity_per_element               = constant      # default is variable [constant/variable]
+viscosity_mean_method               = harmonic      # default is harmonic [harmonic/arithmetic]
+viscosity_dependence                = pressure      # default is depth [pressure/depth]
 
-temp_diff                 = 0
+# External ASCII inputs/outputs
+interfaces_from_ascii               = True          # default is False [True/False]
+n_interfaces                        = 1             # n. of interfaces in the interfaces.txt file
+variable_bcv                        = False         # default is False [True/False]
+temperature_from_ascii              = False         # default is False [True/False]
+velocity_from_ascii                 = False         # default is False [True/False]
+binary_output                       = False         # default is False [True/False]
+sticky_blanket_air                  = False         # default is False [True/False]
+precipitation_profile_from_ascii    = False         # default is False [True/False]
+climate_change_from_ascii           = False         # default is False [True/False]
 
+
+print_step_files                    = True          # default is True [True/False]
+checkered                           = False         # print one element in the print_step_filesdefault is False [True/False]
+
+sp_mode                             = 1             # default is 1 [0/1/2]
+
+geoq                                = on            # ok
+geoq_fac                            = 1.0           # ok
 
 # Physical parameters
-heat_capacity             = 1250.0     # Heat capacity [J/K]
-gravity                   = 10.0       # Gravity acceleration [m/s^2]
-kappa                     = 1.0E-6     # Coefficient of thermal conductivity [W/(m.K)]
-alpha                     = 3.28E-5    # Coefficient of thermal expansion [1/K]
-rho_mantle                = 3300.      # Mantle's reference density [kg/m^3]
+temperature_difference              = 0.            # ok
+thermal_expansion_coefficient       = 3.28e-5       # ok
+thermal_diffusivity_coefficient     = 1.0e-6        # ok
+gravity_acceleration                = 10.0          # ok
+density_mantle                      = 3300.         # ok
+external_heat                       = 0.0e-12       # ok
+heat_capacity                       = 1250.         # ok
 
-# External heat per mass unit
-external_heat             = 0.0
-
-non_linear_method         = off
-adiabatic_component       = off
-radiogenic_component      = off
+non_linear_method                   = off           # ok
+adiabatic_component                 = off           # ok
+radiogenic_component                = off           # ok
 
 # Velocity boundary conditions
-# Normal velocity
-top_normal_velocity       = fixed
-bot_normal_velocity       = fixed
-left_normal_velocity      = fixed
-right_normal_velocity     = fixed
-# Tangential velocity
-top_tangential_velocity   = free
-bot_tangential_velocity   = fixed
-left_tangential_velocity  = free
-right_tangential_velocity = free
+top_normal_velocity                 = fixed         # ok
+top_tangential_velocity             = fixed         # ok
+bot_normal_velocity                 = fixed         # ok
+bot_tangential_velocity             = fixed         # ok
+left_normal_velocity                = fixed         # ok
+left_tangential_velocity            = free          # ok
+right_normal_velocity               = fixed         # ok
+right_tangential_velocity           = free          # ok
+
+surface_velocity                    = 0.0e-2        # ok
+multi_velocity                      = False         # default is False [True/False]
 
 # Temperature boundary conditions
-top_temperature           = fixed
-bot_temperature           = fixed
-left_temperature          = fixed
-right_temperature         = fixed
+top_temperature                     = fixed         # ok
+bot_temperature                     = fixed         # ok
+left_temperature                    = free          # ok
+right_temperature                   = free          # ok
 
-# Rheology model
-rheology_model            = 0          # Number of the rheology model for the simulation
-initial_temperature       = 9          # Number of the temperature model for the simulation
-
-
-# Initial model
-# lithosphere_thickness   = 80.0e4
-# air_layer_thickness     = 0.0
-# beta_max                = 3.0
-# ramp_begin              = 2000.0e3
-# ramp_end                = 2200.0e3
-
-
-
+rheology_model                      = 0             # ok
+T_initial                           = 0             # ok
 
