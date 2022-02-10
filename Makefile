@@ -23,7 +23,7 @@ BIN_DIR = bin
 MANDYOC = $(BIN_DIR)/mandyoc
 LOCAL_BIN = $(HOME)/.local/bin
 
-.PHONY: help all insatall clear test
+.PHONY: help all install clear test
 
 help:
 	@echo ""
