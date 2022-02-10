@@ -31,7 +31,7 @@ help:
 	@echo ""
 	@echo "  all		Build Mandyoc"
 	@echo "  install	Install MANDYOC in ~/.local/bin/"
-	@echo "  test		Run the MANDYOC test using 1 cores. It takes several munutes"
+	@echo "  test		Run the MANDYOC tests using 1 core. It takes several minutes."
 	@echo "  clear		Removes the files produced when building MANDYOC"
 	@echo ""
 
