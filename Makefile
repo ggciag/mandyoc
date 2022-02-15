@@ -1,3 +1,7 @@
+ifndef PETSC_DIR
+$(error PETSC_DIR environment variable is not set. Please, set/export it before continue.)
+endif
+
 include ${PETSC_DIR}/lib/petsc/conf/variables
 include ${PETSC_DIR}/lib/petsc/conf/rules
 
@@ -19,9 +23,11 @@ SOURCEC = $(SRC)/main.cpp \
 	$(SRC)/veloc_total.cpp \
 	$(SRC)/sp.cpp
 OBJECTS = $(SOURCEC:%.cpp=%.o)
-BIN_DIR = bin
-MANDYOC = $(BIN_DIR)/mandyoc
-LOCAL_BIN = $(HOME)/.local/bin
+PREFIX = $(HOME)/.local
+BINDIR = $(PREFIX)/bin
+BUILDDIR = bin
+MANDYOC = $(BUILDDIR)/mandyoc
+
 
 .PHONY: help all install clear test
 
@@ -29,19 +35,16 @@ help:
 	@echo ""
 	@echo "Commands:"
 	@echo ""
-	@echo "  all		Build Mandyoc"
+	@echo "  all		Build Mandyoc."
 	@echo "  install	Install MANDYOC in ~/.local/bin/"
 	@echo "  test		Run the MANDYOC tests using 1 core. It takes several minutes."
-	@echo "  clear		Removes the files produced when building MANDYOC"
+	@echo "  clear		Removes the files produced when building MANDYOC."
 	@echo ""
 
 all: $(MANDYOC)
-	@echo ""
-	@echo "Mandyoc built in bin/"
 
-install: $(MANDYOC)
-	@echo ""
-	install $< $(LOCAL_BIN)
+install: $(MANDYOC) | $(BINDIR)
+	install $< $(BINDIR)/mandyoc
 
 test:
 	@echo "Run MANDYOC test may take several minutes..."
@@ -49,14 +52,16 @@ test:
 	pytest -v test/testing_result.py
 
 clear:
-	rm $(SRC)/*.o
-	rm -rf $(BIN_DIR)
+	rm -f $(SRC)/*.o
+	rm -rf $(BUILDDIR)
+
+clean:: clear
 
 %.o: %.cpp
 	${PCC} -Wall -fdiagnostics-color -c $< -o $@ ${INCFLAGS}
 
-$(BIN_DIR):
+$(BUILDDIR):
 	mkdir $@
 
-$(MANDYOC): ${OBJECTS} | $(BIN_DIR)
+$(MANDYOC): ${OBJECTS} | $(BUILDDIR)
 	-${CLINKER} -o $@ ${OBJECTS} ${PETSC_LIB}
