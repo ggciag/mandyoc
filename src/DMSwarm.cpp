@@ -671,6 +671,12 @@ PetscErrorCode createSwarm()
 		ierr = SwarmViewGP(dms,"step_0");CHKERRQ(ierr);
 	}
 
+	MPI_Barrier(PETSC_COMM_WORLD);
+	ierr = DMSwarmMigrate(dms,PETSC_TRUE); CHKERRQ(ierr);
+	PetscPrintf(PETSC_COMM_WORLD,"After migration...\n");
+	ierr = DMSwarmGetLocalSize(dms,&nlocal); CHKERRQ(ierr);
+	
+	ierr = SwarmViewGP(dms,"step_o1");  CHKERRQ(ierr);
 
 	MPI_Barrier(PETSC_COMM_WORLD);
 
