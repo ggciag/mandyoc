@@ -46,7 +46,7 @@ params = f"""
 # Geometry
 nx                                  = {Nx}          # n. of nodes in the horizontal direction
 nz                                  = {Nz}          # n. of nodes in the vertical direction
-lx                                  = 91420.0       # extent in the longitudinal direction
+lx                                  = 91420.0       # extent in the horizontal direction
 lz                                  = 100000.       # extent in the vertical direction
 particles_per_element_x             = 0             # default is 0
 particles_per_element_z             = 0             # default is 0
