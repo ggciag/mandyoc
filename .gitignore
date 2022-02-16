@@ -1,4 +1,4 @@
-mandyoc
+/mandyoc
 test/__pycache__/
 
 # Ignore the documentation building folder
