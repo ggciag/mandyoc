@@ -8,7 +8,6 @@ particles_per_element_x             = 0             # default is 0
 particles_per_element_z             = 0             # default is 0
 
 # Simulation options
-multigrid                           = 1             # ok -> soon to be on the command line only
 solver                              = direct        # default is direct [direct/iterative]
 denok                               = 1.0e-15       # default is 1.0e-4
 particles_per_element               = 1100          # default is 81
