@@ -111,7 +111,7 @@ climate_change_from_ascii           = False         # default is False [True/Fal
 
 
 print_step_files                    = True          # default is True [True/False]
-checkered                           = False         # print one element in the print_step_filesdefault is False [True/False]
+checkered                           = False         # print only one particle per element when 'False'  [True/False]
 
 sp_mode                             = 1             # default is 1 [0/1/2]
 
