@@ -43,7 +43,7 @@ help:
 
 all: $(MANDYOC)
 
-install: $(MANDYOC) | $(BINDIR)
+install: $(MANDYOC)
 	install $< $(BINDIR)/mandyoc
 
 test:
