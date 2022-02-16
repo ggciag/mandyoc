@@ -44,7 +44,7 @@ with open("interfaces.txt", "w") as f:
 ##############################################################################
 params = f"""
 # Geometry
-nx                                  = {Nx}          # n. of nodes in the longitudinal direction
+nx                                  = {Nx}          # n. of nodes in the horizontal direction
 nz                                  = {Nz}          # n. of nodes in the vertical direction
 lx                                  = 91420.0       # extent in the longitudinal direction
 lz                                  = 100000.       # extent in the vertical direction
