@@ -105,9 +105,17 @@ Before to install Mandyoc, you mast *set an env variable* which indicates the pa
 
 	export PETSC_DIR=/path/to/petsc
 
-Next, *build and install Mandyoc* by running::
+*Build Mandyoc* by running:
+
+.. code-block::
 
 	make all
+
+Next, *install Mandyoc* in `~/.local/bin` with:
+
+.. code-block::
+
+	make install
 
 .. note::
 
