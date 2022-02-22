@@ -12,15 +12,13 @@ RK4                                 = Euler         # particles advection method
 Xi_min                              = 1.0e-14       # tolerance criterion for the convergence of the non-linear flow, default is 1.0e-14
 random_initial_strain               = 0.0           # non-dimensional value for the initial strain perturbation for the entire domain, default is 0.0 
 pressure_const                      = -1.0          # set constant pressure value for the domain (relevant only when 2D is plain view), default is -1.0 (i.e. not used) [Pa]
-initial_dynamic_range               = False         # method to smoothen convergence of the velocity field in scenarios with wide viscosity range, default is False [True/False]
+initial_dynamic_range               = False         # method to smoothen convergence of the velocity field in scenarios with wide viscosity range, default is False [True/False], Gerya (2019)
 periodic_boundary                   = False         # allows simulation with periodic boundary in the horizontal direction, default is False [True/False]
 high_kappa_in_asthenosphere         = False         # mimics high heat transport in the asthenosphere increasing its thermal diffusivity coefficient, default is False [True/False]
-
-
-basal_heat                          = -1.0          # default is -1.0
+basal_heat                          = -1.0          # set basal heat flux value, default is -1.0 (i.e. not used) [W/m^2]
 
 # Particles options
-particles_per_element               = 1100          # default is 81
+particles_per_element               = 1100          # n. of Lagrangian particles in each element, default is 81
 particles_per_element_x             = 0             # n. of Lagrangian particles in the horizontal direction, default is 0 for automatic calculation
 particles_per_element_z             = 0             # n. of Lagrangian particles in the vertical direction, default is 0 for automatic calculation
 particles_perturb_factor            = 0.0           # default is 0.5 [values are between 0 and 1]
@@ -32,8 +30,8 @@ sp_surface_processes                = False         # allows erosion and sedimen
 sp_dt                               = 0             # time step for surface processes simulation, default is 0 [years]
 a2l                                 = True          # allows the conversion of air particles to land particles during sedimentation, default is True [True/False]
 sp_mode                             = 1             # specify the surface processes method, default is 1
-free_surface_stab                   = True          # set if the free surface stabilization algorithm (FSSA) is used, default is True [True/False]
-theta_FSSA                          = 0.5           # weight of the influence of the FSSA method, default is 0.5 (only relevant when free_surface_stab = True)
+free_surface_stab                   = True          # set if the free surface stabilization algorithm (FSSA) is used, default is True [True/False], Kaus et al. (2010)
+theta_FSSA                          = 0.5           # weight of the influence of the FSSA method, default is 0.5 (only relevant when <free_surface_stab> is True)
 sticky_blanket_air                  = False         # allows the increase of viscosity for the first air layer of particles, default is False [True/False]
 precipitation_profile_from_ascii    = False         # set if precipitation profile along the horizontal axis is read from an ASCII file, default is False [True/False]
 climate_change_from_ascii           = False         # if True, re-scales through time the precipitation profile using an ASCII file, default is False [True/False]
@@ -56,26 +54,26 @@ viscosity_mean_method               = harmonic      # defines method do calculat
 viscosity_dependence                = pressure      # defines if viscosity depends on pressure or depth, default is depth [pressure/depth]
 
 # External ASCII inputs/outputs
-interfaces_from_ascii               = True          # set if interfaces between lithologies are read from an ASCII file, default is False [True/False]
-n_interfaces                        = 1             # set the number of interfaces to be read from the interfaces ASCII file
-variable_bcv                        = False         # set if velocity boundary condition changes according to an ASCII file, default is False [True/False]
-temperature_from_ascii              = False         # set if initial temperature is read from an ASCII file, default is False [True/False]
-velocity_from_ascii                 = False         # set if initial velocity field is read from an ASCII file, default is False [True/False]
+interfaces_from_ascii               = True          # set if interfaces between lithologies are read from an ASCII file (interfaces.txt), default is False [True/False]
+n_interfaces                        = 1             # set the number of interfaces to be read from the interfaces ASCII file (interfaces.txt) 
+temperature_from_ascii              = False         # set if initial temperature is read from an ASCII file (input_temperature_0.txt), default is False [True/False]
+velocity_from_ascii                 = False         # set if initial velocity field is read from an ASCII file (input_velocity_0.txt), default is False [True/False]
+variable_bcv                        = False         # allows velocity field re-scaling through time according to an ASCII file (scale_bcv.txt), default is False [True/False]
+multi_velocity                      = False         # set if boundary velocities can change with time from ASCII file(s) (multi_veloc.txt and additional input_velocity_[X].txt files), default is False [True/False]
 binary_output                       = False         # set if output is in binary format, default is False [True/False]
-print_step_files                    = True          # set if the particles position are printed, default is True [True/False]
+print_step_files                    = True          # set if the particles position are printed to an output file, default is True [True/False]
 
 # Physical parameters
-temperature_difference              = 0.            # temperature difference between the top and bottom of the model during simulation [ºC/K] ??????????????????
+temperature_difference              = 0.            # temperature difference between the top and bottom of the model (relevant if <temperature_from_ascii> is False) [K]
 thermal_expansion_coefficient       = 3.28e-5       # value for the coefficient of thermal expansion [1/K]
-thermal_diffusivity_coefficient     = 1.0e-6        # value for the coefficient of thermal diffusivity [m^2/s/K]
-gravity_acceleration                = 10.0          # valeu for the gravity acceleration [m/s^2]
+thermal_diffusivity_coefficient     = 1.0e-6        # value for the coefficient of thermal diffusivity [m^2/s]
+gravity_acceleration                = 10.0          # value for the gravity acceleration [m/s^2]
 density_mantle                      = 3300.         # value for the mantle reference density [kg/m^3]
-external_heat                       = 0.0e-12       # ok
 heat_capacity                       = 1250.         # value for the heat capacity [J/K]
 
-non_linear_method                   = off           # ok
-adiabatic_component                 = off           # ok
-radiogenic_component                = off           # ok
+non_linear_method                   = off           # set if non linear method is used for the momentum equation [on/off]
+adiabatic_component                 = off           # set if adiabatic heating/cooling is active [on/off]
+radiogenic_component                = off           # set if radiogenic heating is active [on/off]
 
 # Velocity boundary conditions
 top_normal_velocity                 = fixed         # set the normal velocity on the top side of the model to be fixed or free [fixed/free] 
@@ -87,15 +85,12 @@ left_tangential_velocity            = free          # set the tangential velocit
 right_normal_velocity               = fixed         # set the normal velocity on the right side of the model to be fixed or free [fixed/free]
 right_tangential_velocity           = free          # set the tangential velocity on the right side of the model to be fixed or free [fixed/free]
 
-surface_velocity                    = 0.0e-2        # fixed tangential surface velocity during simulation [m/s] ?????????????????
-multi_velocity                      = False         # default is False [True/False]
-
 # Temperature boundary conditions
 top_temperature                     = fixed         # set temperature on the top side of the model to be fixed or free [fixed/free]
 bot_temperature                     = fixed         # set temperature on the bottom side of the model to be fixed or free [fixed/free]
 left_temperature                    = free          # set temperature on the left side of the model to be fixed or free [fixed/free]
 right_temperature                   = free          # set temperature on the right side of the model to be fixed or free [fixed/free]
 
-rheology_model                      = 0             # number of the Mandyoc's pre-made rheology model to use during simulation
-T_initial                           = 0             # number of the Mandyoc's pre-made temperature model to use during simulation
+rheology_model                      = 0             # flag n. of a pre-defined rheology model to use during simulation
+T_initial                           = 0             # flag n. of a pre-defined temperature model to use during simulation (relevant when <temperature_from_ascii> is False)
 
