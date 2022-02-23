@@ -118,6 +118,8 @@ Next, *install Mandyoc* in `~/.local/bin` with:
 	make install
 
 .. note::
+	Make sure the direrectory `~/.local/bin` exists, otherwise the command will fail.
+.. note::
 
 	To print *Mandyoc* runtime options, run mandyoc with `-flags` command line
 	argument.
