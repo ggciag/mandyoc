@@ -111,14 +111,23 @@ Before to install Mandyoc, you mast *set an env variable* which indicates the pa
 
 	make all
 
-Next, *install Mandyoc* in `~/.local/bin` with:
+Next, *install Mandyoc* with:
 
 .. code-block::
 
 	make install
 
+By default, it will be installed in `~/.local/bin`.
+
 .. note::
-	Make sure the direrectory `~/.local/bin` exists, otherwise the command will fail.
+
+	Make sure the directory `~/.local/bin` exists, otherwise the command will fail.
+	You can set the installation location by running:
+
+	.. code-block::
+
+		make INSTALL_PATH=~/install_path install
+
 .. note::
 
 	To print *Mandyoc* runtime options, run mandyoc with `-flags` command line
