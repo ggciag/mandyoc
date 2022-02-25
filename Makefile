@@ -25,7 +25,7 @@ SOURCEC = $(SRC)/main.cpp \
 OBJECTS = $(SOURCEC:%.cpp=%.o)
 PREFIX = $(HOME)/.local
 BINDIR = $(PREFIX)/bin
-BUILDDIR = bin
+INSTALL_PATH = bin
 MANDYOC = $(BUILDDIR)/mandyoc
 
 
@@ -44,7 +44,7 @@ help:
 all: $(MANDYOC)
 
 install: $(MANDYOC)
-	install $< $(BINDIR)/mandyoc
+	install $< $(INSTALL_PATH)/mandyoc
 
 test:
 	@echo "Run MANDYOC test may take several minutes..."
