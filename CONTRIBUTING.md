@@ -89,10 +89,10 @@ General guidelines for pull requests (PRs):
 To make this test you need to install `pytest` and run:
 
 ```bash
-make test_mandyoc
+make test
 ```
 
-*NOTE*: you might need to manually set the `MPIREXEC` in the Makefile.
+_NOTE_: you might need to manually set the `MPIREXEC` in the Makefile.
 
 ## Do you have questions about MANDYOC code?
 

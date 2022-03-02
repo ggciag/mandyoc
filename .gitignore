@@ -1,13 +1,11 @@
 mandyoc
 test/__pycache__/
 
-# Ignore _build folder
-_build
 # Ignore the documentation building folder
 docs/_build
 
-# Ignore output when run the test 
-test/testing_data/density_* 
+# Ignore output when run the test
+test/testing_data/density_*
 test/testing_data/heat_*
 test/testing_data/pressure_*
 test/testing_data/strain_*
@@ -33,3 +31,5 @@ examples/*/interfaces.txt
 examples/continental_rift/*.png
 examples/Crameri2012_case2/interfaces.png
 
+# Ignore build files:
+src/*.o

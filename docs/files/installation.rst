@@ -28,20 +28,20 @@ PETSc Installation
 
 *Mandyoc* requires the `PETSc`_ library to run.
 The first step is to **download** the latest release of PETSc from `PETSc website`_
-or **clone** the repository into your machine::
+or **clone** the repository into your machine.
 
+Choose the path to your PETSC installation and clone the repository::
+
+	cd /path/to/petsc
 	git clone -b release https://gitlab.com/petsc/petsc.git $HOME/petsc
 
-By default, we will download/clone in ``~/petsc``.
-
 Second, **configure the PETSc build** and set up the installation directory.
-By default, we will install PETSc in ``~/petsc``.
 
 .. code-block:: bash
 
-	cd $HOME/petsc
+	cd path/to/petsc
 	./configure \
-	  PETSC_DIR=$HOME/petsc \
+	  PETSC_DIR=/path/to/petsc \
 	  PETSC_ARCH=arch-label-optimized \
 	  --with-debugging=0 \
 	  --with-cc=gcc \
@@ -82,21 +82,51 @@ Or follow the instructions that pop up on the terminal.
 
 For further information about the PETSc library, check the `PETSc website`_.
 
+Finally, *add a symlinks* of `mpirun` to `~/.local/bin`
+
+.. code-block::
+
+	ln -s /path/to/pets/arch-label-optimized/bin/mpirun ~/.local/bin/mpirun
+
+
 *Mandyoc* Installation
 ----------------------
 
-To install the *Mandyoc* in your machine,  you need to **clone or download  the latest release** of the
-code from the `Mandyoc repository page`_.
-
+To install the *Mandyoc* in your machine, you need to **clone or download the latest release** of the code from the `Mandyoc repository page`_.
 To clone the repository, navigate to the directory you wish to install *Mandyoc* and type:
 
 .. code-block:: bash
 
    git clone https://github.com/ggciag/mandyoc
 
-Next, **build and install** *Mandyoc* by running::
+Before to install Mandyoc, you mast *set an env variable* which indicates the path to PETSc installation folder:
+
+.. code-block:: bash
+
+	export PETSC_DIR=/path/to/petsc
+
+*Build Mandyoc* by running:
+
+.. code-block::
 
 	make all
+
+Next, *install Mandyoc* with:
+
+.. code-block::
+
+	make install
+
+By default, it will be installed in `~/.local/bin`.
+
+.. note::
+
+	Make sure the directory `~/.local/bin` exists, otherwise the command will fail.
+	You can set the installation location by running:
+
+	.. code-block::
+
+		make INSTALL_PATH=~/install_path install
 
 .. note::
 
@@ -107,11 +137,7 @@ Next, **build and install** *Mandyoc* by running::
 
 .. code-block::
 
-	make test_mandyoc
-
-.. note::
-
-	If you have any errors with the `MPIEXEC` variable, you must set it manually in the Makefile.
+	make test
 
 Examples
 --------
