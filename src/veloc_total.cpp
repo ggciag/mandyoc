@@ -22,6 +22,8 @@ extern PetscReal Xi_min;
 PetscErrorCode veloc_total()
 {
 	PetscErrorCode ierr;
+
+	PetscPrintf(PETSC_COMM_WORLD,"Solving Stokes system:\n");
 	
 	PetscInt n;
 	
