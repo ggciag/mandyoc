@@ -305,6 +305,7 @@ int main(int argc,char **args)
 		}
 
 		if (tcont%print_step==0){
+			PetscPrintf(PETSC_COMM_WORLD,"\nWriting output files:\n");
 			sprintf(variable_name,"temperature");
 			ierr = write_all_(tcont,Temper,variable_name,binary_output);
 			ierr = write_geoq_(tcont,binary_output);
