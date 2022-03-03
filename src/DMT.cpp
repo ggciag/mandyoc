@@ -434,7 +434,7 @@ PetscErrorCode write_all_(int cont,Vec u, char *variable_name, PetscInt binary_o
 	PetscViewerDestroy(&viewer);
 	
 	PetscTime(&Tempo2);
-	if (rank==0) printf("%s (writing): %lf s\n",variable_name,Tempo2-Tempo1);
+	if (rank==0 && cont>=0) printf("%s (writing): %lf s\n",variable_name,Tempo2-Tempo1);
 	
 	PetscFunctionReturn(0);	
 }

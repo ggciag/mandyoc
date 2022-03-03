@@ -219,6 +219,7 @@ int main(int argc,char **args)
 
 	PetscPrintf(PETSC_COMM_WORLD,"Solution of the pressure and velocity fields: done\n");
 
+	PetscPrintf(PETSC_COMM_WORLD,"\nWriting output files:\n");
 	ierr = write_veloc_3d(tcont,binary_output);
 	ierr = write_veloc_cond(tcont,binary_output);
 	

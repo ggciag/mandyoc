@@ -23,7 +23,7 @@ PetscErrorCode veloc_total()
 {
 	PetscErrorCode ierr;
 
-	PetscPrintf(PETSC_COMM_WORLD,"Solving Stokes system:\n");
+	PetscPrintf(PETSC_COMM_WORLD,"\nSolving Stokes system:\n");
 	
 	PetscInt n;
 	
