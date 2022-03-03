@@ -24,8 +24,8 @@ SOURCEC = $(SRC)/main.cpp \
 	$(SRC)/sp.cpp
 OBJECTS = $(SOURCEC:%.cpp=%.o)
 PREFIX = $(HOME)/.local
-BINDIR = $(PREFIX)/bin
-INSTALL_PATH = bin
+INSTALL_PATH = $(PREFIX)/bin
+BUILDDIR = bin
 MANDYOC = $(BUILDDIR)/mandyoc
 
 
