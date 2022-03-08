@@ -77,7 +77,16 @@ Second, **configure the PETSc build** and set up the installation directory.
 	  --with-cxx=g++ \
 	  --download-fblaslapack \
 	  --download-mpich \
-	  --download-mumps
+	  --download-mumps \
+	  --download-scalapack \
+	  --download-parmetis \
+	  --download-metis
+
+.. note::
+
+	By default, *Mandyoc* uses direct solvers (LU and Cholesky) provided by `MUMPS`_.
+	This requires additional external packages. Refer to `PETSc documentation`_
+	for further information.
 
 .. note::
 
@@ -175,4 +184,6 @@ Then, you may execute `mandyoc` directly from a terminal command or update the b
 .. _PETSc: https://petsc.org/release/
 .. _PETSc installation: https://petsc.org/release/install/
 .. _PETSc website: https://petsc.org/release/download/
+.. _PETSc documentation: https://petsc.org/main/docs/manualpages/Mat/MATSOLVERMUMPS.html
 .. _Mandyoc repository: https://github.com/ggciag/mandyoc
+.. _MUMPS: http://mumps.enseeiht.fr/
