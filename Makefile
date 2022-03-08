@@ -1,7 +1,5 @@
-# Define PETSC_DIR to ~/petsc if it's not defined
-ifdef PETSC_DIR
-else
-PETSC_DIR = $(HOME)/petsc
+ifndef PETSC_DIR
+$(error PETSC_DIR environment variable is not set. Please, set/export it before continue.)
 endif
 
 include ${PETSC_DIR}/lib/petsc/conf/variables
@@ -25,25 +23,45 @@ SOURCEC = $(SRC)/main.cpp \
 	$(SRC)/veloc_total.cpp \
 	$(SRC)/sp.cpp
 OBJECTS = $(SOURCEC:%.cpp=%.o)
+PREFIX = $(HOME)/.local
+INSTALL_PATH = $(PREFIX)/bin
+BUILDDIR = bin
+MANDYOC = $(BUILDDIR)/mandyoc
+
+
+.PHONY: help all install clear test
 
 help:
 	@echo ""
 	@echo "Commands:"
 	@echo ""
-	@echo "  all		Build and install Mandyoc by running"
-	@echo "  test_mandyoc	Run the Mandyoc test using 2 cores. It takes several munutes"
+	@echo "  all		Build Mandyoc."
+	@echo "  install	Install MANDYOC in ~/.local/bin/"
+	@echo "  test		Run the MANDYOC tests using 1 core. It takes several minutes."
+	@echo "  clear		Removes the files produced when building MANDYOC."
 	@echo ""
 
-# Run test
-test_mandyoc:
-	@echo "Run MANDYOC test may take several minutes.."
-	cd test/testing_data/ ; ${MPIEXEC} -n 2 ../../mandyoc
+all: $(MANDYOC)
+
+install: $(MANDYOC)
+	install $< $(INSTALL_PATH)/mandyoc
+
+test:
+	@echo "Run MANDYOC test may take several minutes..."
+	cd test/testing_data/ ; mpirun -n 1 mandyoc
 	pytest -v test/testing_result.py
 
-# Build Mandyoc
-all: ${OBJECTS} chkopts
-	-${CLINKER} -o mandyoc ${OBJECTS} ${PETSC_LIB}
-	rm $(SRC)/*.o
+clear:
+	rm -f $(SRC)/*.o
+	rm -rf $(BUILDDIR)
+
+clean:: clear
 
 %.o: %.cpp
 	${PCC} -Wall -fdiagnostics-color -c $< -o $@ ${INCFLAGS}
+
+$(BUILDDIR):
+	mkdir $@
+
+$(MANDYOC): ${OBJECTS} | $(BUILDDIR)
+	-${CLINKER} -o $@ ${OBJECTS} ${PETSC_LIB}

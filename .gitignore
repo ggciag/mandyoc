@@ -1,8 +1,6 @@
-mandyoc
+/mandyoc
 test/__pycache__/
 
-# Ignore _build folder
-_build
 # Ignore the documentation building folder
 docs/_build
 
@@ -47,13 +45,11 @@ examples/*/interfaces.txt
 examples/continental_rift/*.png
 examples/Crameri2012_case2/interfaces.png
 
-
 .vscode/
 .DS_store
 
-src/*.o
-
 examples/*/.ipynb_*
 
-
+# Ignore build files:
+src/*.o
 
