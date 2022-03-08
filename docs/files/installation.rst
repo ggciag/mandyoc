@@ -8,32 +8,61 @@ and *Mandyoc*.
 	The following installation steps work for both Linux and macOS machines
 	**only** and no tests were made to install *Mandyoc* on Windows machines yet.
 
+.. _Dependencies:
+
 Dependencies
 ------------
 
-* PETSc_
+To build *Mandyoc*, the following requirements are needed:
+
+* PETSc_ (currently tested on version v3.15.5)
 * gcc
 * make
-* git
+* git (recommended, but not extrictly needded)
 
-**Optional** dependencies:
+If you do not already have a PETSc installation, you will also need:
 
 * gfortran
-* pytest
+
+Additionally, the following additional software is needed to run the examples
+that come with *Mandyoc*:
+
+* Python 3.5+
+
+With required python packages:
+
 * numpy
-* os
+* matplotlib
+* pandas
+
+To run the tests, some additional python packages are required:
+
+* pytest
+
+To build the documentation, further python packages are necessary:
+
+* sphinx
+* sphinx_rtd_theme
 
 PETSc Installation
 ------------------
 
-*Mandyoc* requires the `PETSc`_ library to run.
-The first step is to **download** the latest release of PETSc from `PETSc website`_
+*Mandyoc* requires the PETSc library to run.
+Check out the `PETSc installation`_ for details.
+
+.. note::
+
+	The following steps its a example installation with minimum requirements
+	to run *Mandyoc*.
+
+The first step is to **download** PETSc (v3.15.5) release from `PETSc website`_
 or **clone** the repository into your machine.
+*Mandyoc* might work with latest release of PETSc, but this is not guaranteed
+since new verions might introduce breaking changes.
 
-Choose the path to your PETSC installation and clone the repository::
+Clone the repository to your desired location::
 
-	cd /path/to/petsc
-	git clone -b release https://gitlab.com/petsc/petsc.git $HOME/petsc
+	git clone -b v3.15.5 https://gitlab.com/petsc/petsc.git
 
 Second, **configure the PETSc build** and set up the installation directory.
 
@@ -48,29 +77,27 @@ Second, **configure the PETSc build** and set up the installation directory.
 	  --with-cxx=g++ \
 	  --download-fblaslapack \
 	  --download-mpich \
-	  --download-hdf5 \
-	  --download-superlu_dist \
-	  --download-metis \
-	  --download-parmetis \
 	  --download-mumps \
 	  --download-scalapack \
-	  --download-cmake \
-	  COPTFLAGS='-O3 -march=native -mtune=native' \
-	  CXXOPTFLAGS='-O3 -march=native -mtune=native'
-
+	  --download-parmetis \
+	  --download-metis
 
 .. note::
 
-	If using ``gfortran`` optional dependency add the options
-	``--with-fc=gfortran`` and ``FOPTFLAGS='-O3 -march=native -mtune=native'``
-	to the PETSc build configuration above.
+	By default, *Mandyoc* uses direct solvers (LU and Cholesky) provided by `MUMPS`_.
+	This requires additional external packages. Refer to `PETSc documentation`_
+	for further information.
 
 .. note::
 
-	If you are build a development version of *Mandyoc* you can build
-	a **debug version** of PETSc by setting ``--with-debugging=1`` and removing
-	the ``COPTFLAGS``, ``CXXOPTFLAGS`` (and ``FOPTFLAGS``) flags.
+	If you want to build a development version of *Mandyoc*
+	its recommended to build a **debug version** of PETSc
+	by setting ``--with-debugging=1``.
 	In this case, you may set ``PETSC_ARCH=arch-label-debug``.
+
+.. note::
+
+	If you prefer *openmpi*, you need to swith ``--download-mpich`` to ``--download-openmpi``.
 
 **Check** the installation with:
 
@@ -80,7 +107,7 @@ Second, **configure the PETSc build** and set up the installation directory.
 
 Or follow the instructions that pop up on the terminal.
 
-For further information about the PETSc library, check the `PETSc website`_.
+For further information about the PETSc library, check out the `PETSc website`_.
 
 Finally, *add a symlinks* of `mpirun` to `~/.local/bin`
 
@@ -92,14 +119,14 @@ Finally, *add a symlinks* of `mpirun` to `~/.local/bin`
 *Mandyoc* Installation
 ----------------------
 
-To install the *Mandyoc* in your machine, you need to **clone or download the latest release** of the code from the `Mandyoc repository page`_.
+To install the *Mandyoc* in your machine, you need to **clone or download the latest release** of the code from the `Mandyoc repository`_.
 To clone the repository, navigate to the directory you wish to install *Mandyoc* and type:
 
 .. code-block:: bash
 
    git clone https://github.com/ggciag/mandyoc
 
-Before to install Mandyoc, you mast *set an env variable* which indicates the path to PETSc installation folder:
+Before to install Mandyoc, you mast *set an environment variable* which indicates the path to PETSc installation folder:
 
 .. code-block:: bash
 
@@ -117,20 +144,20 @@ Next, *install Mandyoc* with:
 
 	make install
 
-By default, it will be installed in `~/.local/bin`.
+By default, it will be installed in ``~/.local/bin``.
 
 .. note::
 
-	Make sure the directory `~/.local/bin` exists, otherwise the command will fail.
-	You can set the installation location by running:
+	Make sure the directory ``~/.local/bin`` exists, otherwise the above command will fail.
+	You can change the installation location setting ``INSTALL_PATH`` variable by running:
 
 	.. code-block::
 
-		make INSTALL_PATH=~/install_path install
+		make INSTALL_PATH=/path/to/install/mandyoc install
 
 .. note::
 
-	To print *Mandyoc* runtime options, run mandyoc with `-flags` command line
+	To print *Mandyoc* runtime options, run mandyoc with ``-flags`` command line
 	argument.
 
 **Check** Mandyoc installation with:
@@ -138,6 +165,11 @@ By default, it will be installed in `~/.local/bin`.
 .. code-block::
 
 	make test
+
+.. note::
+
+	You need python and some python packages to run the last commmand succesfully.
+	Check out requirements in `Dependencies`_ section.
 
 Examples
 --------
@@ -149,7 +181,9 @@ First, you need to run the python script file named ``generate_input_files.py`` 
 Then, you may execute `mandyoc` directly from a terminal command or update the bash script ``run.sh`` accordingly to your setup and execute it to run the experiment.
 
 
-.. _PETSc: https://www.mcs.anl.gov/petsc/
-.. _PETSc website: https://www.mcs.anl.gov/petsc/download/index.html
-.. _PETSc repository: https://bitbucket.org/petsc/petsc/src/maint/
-.. _Mandyoc repository page: https://github.com/ggciag/mandyoc
+.. _PETSc: https://petsc.org/release/
+.. _PETSc installation: https://petsc.org/release/install/
+.. _PETSc website: https://petsc.org/release/download/
+.. _PETSc documentation: https://petsc.org/main/docs/manualpages/Mat/MATSOLVERMUMPS.html
+.. _Mandyoc repository: https://github.com/ggciag/mandyoc
+.. _MUMPS: http://mumps.enseeiht.fr/
