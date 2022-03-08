@@ -131,6 +131,20 @@ For the *case 1c* where :math:`\eta_0/\eta_r=0.01`, :numref:`vankekenCase1cEvolu
 
   Evolution of the :math:`v_{rms}` for :math:`\eta_0/\eta_r=0.01`. The van Keken et al. (1997) :cite:`vankeken1997` result is shown in black and the *Mandyoc* code result is shown in gray.
 
+Basic scaling
+*************
+
+Below, :numref:`vankekenCase1aScalingGraph` shows the results of a basic scaling test for Mandyoc (v.0.1.4) running on Intel(R) Core(TM) i7-10700 CPU @ 2.90GHz.
+
+.. _vankekenCase1aScalingGraph:
+
+.. figure:: figs/scaling_vanKeken1997_case1a.png
+  :align: center
+  :width: 85%
+  :alt: Scaling results for vanKeken1997_case1a
+
+  Results of scaling test for vanKeken1997_case1a.
+
 Crameri et al. (2012) :cite:`crameri2012`
 -----------------------------------------
 
@@ -167,3 +181,17 @@ The models used for comparison are: UNDERWORLD :cite:`moresi2003`, STAGYY :cite:
    :alt: Comparison of MANDYOC results
 
    Comparison of the maximum topography with time for the *Case 2* (:numref:`crameri_setup`) model setup from Crameri et al. (2012) :cite:`crameri2012`.
+
+Basic scaling
+*************
+
+Below, :numref:`crameriScalingGraph` shows the results of a basic scaling test for Mandyoc (v.0.1.4) running on Intel(R) Core(TM) i7-10700 CPU @ 2.90GHz.
+
+.. _crameriScalingGraph:
+
+.. figure:: figs/scaling_Crameri2012_case2.png
+  :align: center
+  :width: 85%
+  :alt: Scaling results for Crameri2012_case2
+
+  Results of scaling test for Crameri2012_case2.
