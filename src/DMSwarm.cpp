@@ -326,7 +326,11 @@ PetscErrorCode createSwarm()
 		ierr = DMSwarmSetLocalSizes(dms,milocal*mklocal*(particles_per_ele),4);CHKERRQ(ierr);
 		ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
 
-		particles_add_remove = milocal*mklocal;
+		if (particles_per_ele > 50) {
+			particles_add_remove = milocal*mklocal * (PetscInt)(particles_per_ele/50);
+		} else {
+			particles_add_remove = milocal*mklocal;
+		}
 
 		ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 
