@@ -11,6 +11,10 @@ Inside each example folder, you find a ``README.md`` file with detailed explanat
 van Keken et al. (1997) :cite:`vankeken1997`
 --------------------------------------------
 
+.. note::
+
+  Mandyoc version used for this benchmark: v0.1.4.
+
 The set of simulations proposed by van Keken et al. (1997) :cite:`vankeken1997` compares several methods of studying two dimensional thermochemical convection, where the Boussinesq approximation and infinite Prandtl number are used.
 
 For this benchmark, the first case is presented with the three distinct variations, as proposed by the article. The simulation consists of two layers, where a buoyant thin layer is under a denser thicker package. The problem can be interpreted as a salt layer under a sediment package, and the interface between the layers is defined by the :eq:`interfacerayleigh` below.
@@ -147,6 +151,10 @@ Below, :numref:`vankekenCase1aScalingGraph` shows the results of a basic scaling
 
 Crameri et al. (2012) :cite:`crameri2012`
 -----------------------------------------
+
+.. note::
+
+  Mandyoc version used for this benchmark: v0.1.4.
 
 The *Case 2* experiment presented by Crameri et al. (2012) :cite:`crameri2012` evaluates the *sticky air* method to obtain a numerical surface topography in geodynamic modelling.
 
