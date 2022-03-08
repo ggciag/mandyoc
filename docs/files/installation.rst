@@ -29,17 +29,17 @@ that come with *Mandyoc*:
 
 * Python 3.5+
 
-With required python libraries:
+With required python packages:
 
 * numpy
 * matplotlib
 * pandas
 
-To run the tests, some additional python libraries are required:
+To run the tests, some additional python packages are required:
 
 * pytest
 
-To build the documentation, further python libraries are necessary:
+To build the documentation, further python packages are necessary:
 
 * sphinx
 * sphinx_rtd_theme
@@ -159,7 +159,7 @@ By default, it will be installed in ``~/.local/bin``.
 
 .. note::
 
-	You need python and some python libraries to run the last commmand succesfully.
+	You need python and some python packages to run the last commmand succesfully.
 	Check out requirements in `Dependencies`_ section.
 
 Examples
