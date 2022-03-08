@@ -134,6 +134,10 @@ For the *case 1c* where :math:`\eta_0/\eta_r=0.01`, :numref:`vankekenCase1cEvolu
 Crameri et al. (2012) :cite:`crameri2012`
 -----------------------------------------
 
+.. note::
+
+  Mandyoc version used for this benchmark: v0.1.4.
+
 The *Case 2* experiment presented by Crameri et al. (2012) :cite:`crameri2012` evaluates the *sticky air* method to obtain a numerical surface topography in geodynamic modelling.
 
 The experiment analyses the change in topography due to the rising of a mantle plume.
