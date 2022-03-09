@@ -171,6 +171,22 @@ By default, it will be installed in ``~/.local/bin``.
 	You need python and some python packages to run the last commmand succesfully.
 	Check out requirements in `Dependencies`_ section.
 
+Docker Container
+----------------
+
+We provide a `Docker container`_ image for *Mandyoc*.
+Docker is an implementation of container virtualization.
+Citing their documentation "it is a lightweight, standalone, executable package of software
+that includes everything needed to run an application:
+code, runtime, system tools, system libraries and settings".
+
+Visit the `Dockerhub Mandyoc repository`_ to find out more on how to use the container to run *Mandyoc*.
+
+.. note::
+
+	To use the *Mandyoc* docker image, it is required to install the Docker Engine.
+	Find out more on `Install Docker Engine`_ page.
+
 Examples
 --------
 
@@ -187,3 +203,6 @@ Then, you may execute `mandyoc` directly from a terminal command or update the b
 .. _PETSc documentation: https://petsc.org/main/docs/manualpages/Mat/MATSOLVERMUMPS.html
 .. _Mandyoc repository: https://github.com/ggciag/mandyoc
 .. _MUMPS: http://mumps.enseeiht.fr/
+.. _Docker container: https://www.docker.com/resources/what-container
+.. _Dockerhub Mandyoc repository: https://hub.docker.com/r/ggciag/mandyoc
+.. _Install Docker Engine: https://docs.docker.com/engine/install/
