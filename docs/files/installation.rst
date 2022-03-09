@@ -144,9 +144,7 @@ Examples
 
 The benchmarks and other experiments are located in the `examples <https://github.com/ggciag/mandyoc/tree/main/examples>`_ folder of the Mandyoc repository.
 
-Inside each example folder, you find a ``README.md`` file with detailed explanation and instrutions on how to run the experiment.
-First, you need to run the python script file named ``generate_input_files.py`` to generate the :ref:`input files<inputfiles>` needed by Mandyoc.
-Then, you may execute `mandyoc` directly from a terminal command or update the bash script ``run.sh`` accordingly to your setup and execute it to run the experiment.
+Inside each example folder, you find a Jupyter notebook with detailed explanation and instructions on how to run the experiment.
 
 
 .. _PETSc: https://www.mcs.anl.gov/petsc/
