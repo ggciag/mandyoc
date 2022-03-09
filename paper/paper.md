@@ -42,11 +42,10 @@ Additionally, the code allows variations of boundary condition for the velocity 
 
 # Statement of need
 
-`Mandyoc`, the acronym for `MANtle DYnamics simulatOr Code`, is designed to simulate Stokes flow type thermochemical convection taking different compositional layers into account, and it is also appropriate to simulate Earth's lithospheric dynamics in the geological timescale. Similar codes are available for geodynamic problems, like `ASPECT` [@KHB12;@aspect2017;@Bangerth2021;@wolfgang_bangerth_2021_5131909] and `Underworld` [@moresi2007computational;@beucher2019uwgeodynamics].
+`Mandyoc`, the acronym for `MANtle DYnamics simulatOr Code`, is designed to simulate Stokes flow type thermochemical convection taking different compositional layers into account, and it is also appropriate to simulate Earth's lithospheric dynamics in the geological timescale. Similar codes are available for geodynamic problems, like `ASPECT` [@KHB12;@aspect2017;@Bangerth2021;@wolfgang_bangerth_2021_5131909] and `Underworld` [@moresi2007computational;@beucher2019uwgeodynamics]. Therefore, `Mandyoc` is an alternative to preexistent softwares.
 
 One advantage of `Mandyoc` is the possibility to create scenarios with velocity boundary conditions variable in space and time, allowing the user to simulate different tectonic pulses in the same model run.
 Additionally, the current version incorporates surface processes, imposing rates of erosion and sedimentation on the top of the free surface [@silva2022influence]. Recently, other thermomechanical codes available for the scientific community incorporated the interaction with surface processes [e.g. @beucher2020morphotectonic; @neuharth2022evolution] taking into account the simulation of fluvial and hillslope processes. In the present version of `Mandyoc`, only predefined erosion/sedimentation rate (variable in space and time) is possible. 
-
 
 Previous versions of the code were used to study the evolution of continental margins, showing the interaction of the continental lithosphere with the asthenospheric mantle [@sacek2017post;@salazar2021lateral].
 
