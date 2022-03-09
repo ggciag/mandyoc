@@ -1,82 +1,96 @@
 # Geometry
-nx                        = 281        # N. of elements in the longitudinal direction
-nz                        = 85         # N. of elements in the vertical direction
-lx                        = 2800000.0  # Extent in the longitudinal direction
-lz                        = 850000.0   # Extent in the vertical direction
+nx                                  = 81            # n. of nodes in the horizontal direction
+nz                                  = 81            # n. of nodes in the vertical direction
+lx                                  = 91420.0       # extent in the horizontal direction
+lz                                  = 100000.       # extent in the vertical direction
 
 # Simulation options
-# solver                  = direct     # [direct/iterative]
-use_multigrid             = 1          # Enable multigrid
-# residual_norm_iter      = 1.0e-5
-# residual_norm_uzawa     = 1.0e-4
+solver                              = direct        # set the solver to be direct or iterative, default is direct [direct/iterative]
+denok                               = 1.0e-15       # tolerance criterion for the Uzawa's scheme, default is 1.0e-4
+rtol                                = 1.0e-5        # the absolute size of the residual norm (relevant only for iterative methods), default is 1.0e-5
+RK4                                 = Euler         # particles advection method, default is Euler [Euler/Runge-Kutta]
+Xi_min                              = 1.0e-14       # tolerance criterion for the convergence of the non-linear flow, default is 1.0e-14
+random_initial_strain               = 0.0           # non-dimensional value for the initial strain perturbation for the entire domain, default is 0.0 
+pressure_const                      = -1.0          # set constant pressure value for the domain (relevant only when 2D is plain view), default is -1.0 (i.e. not used) [Pa]
+initial_dynamic_range               = False         # method to smoothen convergence of the velocity field in scenarios with wide viscosity range, default is False [True/False], Gerya (2019)
+periodic_boundary                   = False         # allows simulation with periodic boundary in the horizontal direction, default is False [True/False]
+high_kappa_in_asthenosphere         = False         # mimics high heat transport in the asthenosphere increasing its thermal diffusivity coefficient, default is False [True/False]
+basal_heat                          = -1.0          # set basal heat flux value, default is -1.0 (i.e. not used) [W/m^2]
 
-# Time constrains for the simulation
-step_maxkjdfd             = 7000       # Maximum time-step of the simulation
-step_print                = 10         # Make file every <step_print>
-time_max                  = 14e9       # Maximum time of the simulation [s]
-dt_max                    = 10.0e3     # Maximum time between steps of the simulation [s]
+# Particles options
+particles_per_element               = 1100          # n. of Lagrangian particles in each element, default is 81
+particles_per_element_x             = 0             # n. of Lagrangian particles in the horizontal direction, default is 0 for automatic calculation
+particles_per_element_z             = 0             # n. of Lagrangian particles in the vertical direction, default is 0 for automatic calculation
+particles_perturb_factor            = 0.0           # indicates the amount of perturbation of the initial location of the particles relative to a regular grid distribution. Default is 0.5 [values are between 0 and 1]
 
-# Values for the viscosity
-visc_ref                  = 1.0e+21    # Reference viscosity [Pa.s]
-visc_max                  = 1.0e+23    # Maximum viscosity [Pa.s]
-visc_min                  = 1.0e+19    # Minimum viscosity [Pa.s]
+# Surface processes
+sp_surface_tracking                 = False         # allows free surface tracking across time and outputs it, default is False [True/False]
+sea_level                           = 0.0           # sea level used to limit the influence of the surface process, default is 0.0 [m]
+sp_surface_processes                = False         # allows erosion and sedimentation simulation, default is False [True/False]
+sp_dt                               = 0             # time step for surface processes simulation, default is 0 [years]
+a2l                                 = True          # allows the conversion of air particles to land particles during sedimentation, default is True [True/False]
+sp_mode                             = 1             # specify the surface processes method, default is 1
+free_surface_stab                   = True          # set if the free surface stabilization algorithm (FSSA) is used, default is True [True/False], Kaus et al. (2010)
+theta_FSSA                          = 0.5           # weight of the influence of the FSSA method, default is 0.5 (only relevant when <free_surface_stab> is True)
+sticky_blanket_air                  = False         # allows the increase of viscosity for the first air layer of particles, default is False [True/False]
+precipitation_profile_from_ascii    = False         # set if precipitation profile along the horizontal axis is read from an ASCII file, default is False [True/False]
+climate_change_from_ascii           = False         # if True, re-scales through time the precipitation profile using an ASCII file, default is False [True/False]
 
-# External ASCII inputs
-interfaces_from_ascii     = True       # Use 'interfaces.txt' ASCII file
-# temperature_from_ascii  = True       # Use 'input_temperature_0.txt' ASCII file
-velocity_from_ascii       = False      # Use 'input_velocity_0.txt' ASCII file
+# Time constrains
+step_max                            = 4000          # maximum time-step of the simulation [steps]
+time_max                            = 140000.0e6    # maximum time of the simulation [years]
+dt_max                              = 1000.0e6      # maximum time between steps of the simulation [years]
+step_print                          = 20            # make output files every <step_print>
+sub_division_time_step              = 1.0           # re-scale value for the calculated time-step, default is 1.0
+initial_print_step                  = 0             # <step_print> used until <initial_print_max_time>, default is 0 (i.e. not used)
+initial_print_max_time              = 1.0e6         # maximum time to make output files every <initial_print_step>, default is 1.0e6 [years]
 
-geo=on#kdjfkdjf
-geoq_fac                  = 100.0
-surf_veloc                = 0.0e-2.
+# Viscosity
+viscosity_reference                 = 1.0e21        # reference mantle viscosity [Pa.s]
+viscosity_max                       = 1.0e25        # maximum viscosity during simulation [Pa.s]
+viscosity_min                       = 1.0e17        # minimum viscosity during simulation [Pa.s]
+viscosity_per_element               = constant      # sets if viscosity is constant or linearly variable for every element, default is variable [constant/variable]
+viscosity_mean_method               = harmonic      # defines method do calculate the viscosity for each element, default is harmonic [harmonic/arithmetic]
+viscosity_dependence                = pressure      # defines if viscosity depends on pressure or depth, default is depth [pressure/depth]
 
-temp_diff                 = 0
-
+# External ASCII inputs/outputs
+interfaces_from_ascii               = True          # set if interfaces between lithologies are read from an ASCII file (interfaces.txt), default is False [True/False]
+n_interfaces                        = 1             # set the number of interfaces to be read from the interfaces ASCII file (interfaces.txt) 
+temperature_from_ascii              = False         # set if initial temperature is read from an ASCII file (input_temperature_0.txt), default is False [True/False]
+velocity_from_ascii                 = False         # set if initial velocity field is read from an ASCII file (input_velocity_0.txt), default is False [True/False]
+variable_bcv                        = False         # allows velocity field re-scaling through time according to an ASCII file (scale_bcv.txt), default is False [True/False]
+multi_velocity                      = False         # set if boundary velocities can change with time from ASCII file(s) (multi_veloc.txt and additional input_velocity_[X].txt files), default is False [True/False]
+binary_output                       = False         # set if output is in binary format, default is False [True/False]
+print_step_files                    = True          # set if the particles position are printed to an output file, default is True [True/False]
 
 # Physical parameters
-heat_capacity             = 1250.0     # Heat capacity [J/K]
-gravity                   = 10.0       # Gravity acceleration [m/s^2]
-kappa                     = 1.0E-6     # Coefficient of thermal conductivity [W/(m.K)]
-alpha                     = 3.28E-5    # Coefficient of thermal expansion [1/K]
-rho_mantle                = 3300.      # Mantle's reference density [kg/m^3]
+temperature_difference              = 0.            # temperature difference between the top and bottom of the model (relevant if <temperature_from_ascii> is False) [K]
+thermal_expansion_coefficient       = 3.28e-5       # value for the coefficient of thermal expansion [1/K]
+thermal_diffusivity_coefficient     = 1.0e-6        # value for the coefficient of thermal diffusivity [m^2/s]
+gravity_acceleration                = 10.0          # value for the gravity acceleration [m/s^2]
+density_mantle                      = 3300.         # value for the mantle reference density [kg/m^3]
+heat_capacity                       = 1250.         # value for the heat capacity [J/K]
 
-# External heat per mass unit
-external_heat             = 0.0
-
-non_linear_method         = off
-adiabatic_component       = off
-radiogenic_component      = off
+non_linear_method                   = off           # set if non linear method is used for the momentum equation [on/off]
+adiabatic_component                 = off           # set if adiabatic heating/cooling is active [on/off]
+radiogenic_component                = off           # set if radiogenic heating is active [on/off]
 
 # Velocity boundary conditions
-# Normal velocity
-top_normal_velocity       = fixed
-bot_normal_velocity       = fixed
-left_normal_velocity      = fixed
-right_normal_velocity     = fixed
-# Tangential velocity
-top_tangential_velocity   = free
-bot_tangential_velocity   = fixed
-left_tangential_velocity  = free
-right_tangential_velocity = free
+top_normal_velocity                 = fixed         # set the normal velocity on the top side of the model to be fixed or free [fixed/free] 
+top_tangential_velocity             = fixed         # set the tangential velocity on the top side of the model to be fixed or free [fixed/free]
+bot_normal_velocity                 = fixed         # set the normal velocity on the bottom side of the model to be fixed or free [fixed/free]
+bot_tangential_velocity             = fixed         # set the tangential velocity on the bot side of the model to be fixed or free [fixed/free]
+left_normal_velocity                = fixed         # set the normal velocity on the left side of the model to be fixed or free [fixed/free]
+left_tangential_velocity            = free          # set the tangential velocity on the left side of the model to be fixed or free [fixed/free]
+right_normal_velocity               = fixed         # set the normal velocity on the right side of the model to be fixed or free [fixed/free]
+right_tangential_velocity           = free          # set the tangential velocity on the right side of the model to be fixed or free [fixed/free]
 
 # Temperature boundary conditions
-top_temperature           = fixed
-bot_temperature           = fixed
-left_temperature          = fixed
-right_temperature         = fixed
+top_temperature                     = fixed         # set temperature on the top side of the model to be fixed or free [fixed/free]
+bot_temperature                     = fixed         # set temperature on the bottom side of the model to be fixed or free [fixed/free]
+left_temperature                    = free          # set temperature on the left side of the model to be fixed or free [fixed/free]
+right_temperature                   = free          # set temperature on the right side of the model to be fixed or free [fixed/free]
 
-# Rheology model
-rheology_model            = 0          # Number of the rheology model for the simulation
-initial_temperature       = 9          # Number of the temperature model for the simulation
-
-
-# Initial model
-# lithosphere_thickness   = 80.0e4
-# air_layer_thickness     = 0.0
-# beta_max                = 3.0
-# ramp_begin              = 2000.0e3
-# ramp_end                = 2200.0e3
-
-
-
+rheology_model                      = 0             # flag n. of a pre-defined rheology model to use during simulation
+T_initial                           = 0             # flag n. of a pre-defined temperature model to use during simulation (relevant when <temperature_from_ascii> is False)
 

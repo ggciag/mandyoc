@@ -82,7 +82,7 @@ The ``interfaces.txt`` file, for a 2-D grid, starts with seven lines of variable
 Below, the example corresponds to a 2-D grid with two interfaces and, therefore, three lithological units. The first column contains the vertical positions **in meters** of every grid node :math:`y_m` that corresponds to the  **deepest** interface boundary, starting at :math:`x=x_0` on line 8, and ending at :math:`x=x_{nx-1}` on line :math:`nx+7`. The second column contains the vertical position of every :math:`y_m` that corresponds to the second interface boundary. When defining the interfaces, it is rather common for them to "touch". Because of that, all the interfaces must be provided in a "tetris" manner, where interfaces that are collinear in parts fit the interface below.
 
 .. note::
-   Because the interfaces are defined linearly between the nodes, it is important to define them properly, so every point inside the grid can be attributed a lithological unit.
+   Because the interfaces are defined linearly between the nodes, it is important to define them properly, so every point inside the grid can be attributed to a lithological unit.
 
 .. literalinclude:: src/initial-interfaces-2d.txt
    :language: text
@@ -107,8 +107,6 @@ ASCII velocities files
 ..
    For both 2-D and 3-D grids, the ``input_velocity.txt`` file possesses four lines of headers followed by the velocity data for each node of the model.
 
-For a 2-D grid, the ``input_velocity_0.txt`` file possesses four lines of headers followed by the velocity data for each node of the model.
-
 An initial velocity file allows an initial velocity field to be established so the simulated fluid presents an initial momentum. Respecting the conservation of mass equation when designing the initial velocity field is fundamental so the simulation can run properly.
 
 Additionally, the velocity boundary conditions defined in the ``param.txt`` (see the :doc:`parameter file section<parameter-file>`) will be used to define the normal and tangential velocities on the faces of the model during the simulation.
@@ -116,11 +114,35 @@ Additionally, the velocity boundary conditions defined in the ``param.txt`` (see
 2-D initial velocity
 ********************
 
-For a 2-D grid, the velocity must be defined for both :math:`x` and :math:`y` directions. Taking the example in the file below, the ``input_velocity_0.txt`` file must be written in such a way that the values for the velocity in the :math:`x` direction :math:`v_x` and the velocity in the :math:`y` direction :math:`v_y` for the node :math:`(x_0,y_0)` corresponds to lines 5 and 6, respectively, the velocity values for the :math:`(x_1,y_0)` corresponds to lines 7 and 8, and so on until :math:`(x_{nx-1},y_0)`. Once all the nodes in the :math:`y_0` are written, the values for all :math:`x_n` are inserted for :math:`y_1`, and so on until :math:`y_{ny-1}`.
+When ``velocity_from_ascii = True`` is set in the ``param.txt`` file, an initial velocity field must be provided in an ASCII file called ``input_velocity_0.txt``.
+
+For a 2-D grid, the ``input_velocity_0.txt`` file possesses four lines of headers followed by the velocity data for each node of the model. The velocity must be defined for both :math:`x` and :math:`y` directions. Taking the example in the file below, the ``input_velocity_0.txt`` file must be written in such a way that the values for the velocity in the :math:`x` direction :math:`v_x` and the velocity in the :math:`y` direction :math:`v_y` for the node :math:`(x_0,y_0)` corresponds to lines 5 and 6, respectively, the velocity values for the :math:`(x_1,y_0)` corresponds to lines 7 and 8, and so on until :math:`(x_{nx-1},y_0)`. Once all the nodes in the :math:`y_0` are written, the values for all :math:`x_n` are inserted for :math:`y_1`, and so on until :math:`y_{ny-1}`.
 
 .. literalinclude:: src/initial-velocity-2d.txt
    :language: text
    :linenos:
+
+2-D multiple initial velocities
+*******************************
+
+The user can provide multiple velocity fields to be set in different instants of the simulation. By setting ``multi_velocity = True`` in the ``param.txt`` file, an ASCII file called ``multi_veloc.txt`` must be provided following the structure shown in the example file below. The first line of the file contains the amount of instants where a different velocity field will be used and the other lines contain the time, in millions of years, that each velocity field will be adopted. In the example below, a different velocity field will be used at three instants, the files must follow the structure presented in the last section and should be named in sequence: ``input_velocity_1.txt``, ``input_velocity_2.txt`` and ``input_velocity_3.txt``. The names of the files are labeled after the three different instants set in the first line of the ``multi_veloc.txt`` file.
+
+.. literalinclude:: src/multi_veloc.txt
+   :language: text
+   :linenos:
+
+.. note::
+   The ``input_velocity_0.txt`` is used for the beginning of the simulation. The multiple initial velocities that can be set during the simulation start at ``input_velocity_1.txt`` and end at ``input_velocity_X.txt``, where :math:`X` is the number of different instants that the velocity field will be changed. 
+
+2-D re-scalable boundary condition
+**********************************
+
+When ``variable_bcv = True`` is set in the ``param.txt``file, an ASCII file called ``scale_bcv.txt`` is used to define a sequence of re-scaling steps for the velocity boundary conditions. The example file below is an example of how such file can be written. In the example file, the first line corresponds to the number of instants during the simulation that the velocity field will be re-scaled. The first column contains the time, in millions of years, that the velocity field will be changed and the second column contains the scale value. For the example below, in the instant :math:`10.0` Myr the velocity field will be multiplied by :math:`0.5`, effectively halving it; at :math:`25.0` Myr the current velocity field will have its direction changed, hence multiplied by :math:`-1.0`; and finally at :math:`50` My the velocity field will have its direction changed again and doubled by multiplying it by :math:`-2.0`.
+
+.. literalinclude:: src/scale_bcv.txt
+   :language: text
+   :linenos:
+
 
 ..
    3-D initial velocity
