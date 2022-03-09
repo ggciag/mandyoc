@@ -82,7 +82,7 @@ The ``interfaces.txt`` file, for a 2-D grid, starts with seven lines of variable
 Below, the example corresponds to a 2-D grid with two interfaces and, therefore, three lithological units. The first column contains the vertical positions **in meters** of every grid node :math:`y_m` that corresponds to the  **deepest** interface boundary, starting at :math:`x=x_0` on line 8, and ending at :math:`x=x_{nx-1}` on line :math:`nx+7`. The second column contains the vertical position of every :math:`y_m` that corresponds to the second interface boundary. When defining the interfaces, it is rather common for them to "touch". Because of that, all the interfaces must be provided in a "tetris" manner, where interfaces that are collinear in parts fit the interface below.
 
 .. note::
-   Because the interfaces are defined linearly between the nodes, it is important to define them properly, so every point inside the grid can be attributed a lithological unit.
+   Because the interfaces are defined linearly between the nodes, it is important to define them properly, so every point inside the grid can be attributed to a lithological unit.
 
 .. literalinclude:: src/initial-interfaces-2d.txt
    :language: text
