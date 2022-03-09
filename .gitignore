@@ -18,8 +18,22 @@ test/testing_data/time_*
 test/testing_data/bc_*
 test/testing_data/velocity_*
 
-.vscode/
-.DS_store
+# Ignore output when run the examples
+examples/*/density_*
+examples/*/heat_*
+examples/*/pressure_*
+examples/*/strain_*
+examples/*/strain_rate_*
+examples/*/temperature_*
+examples/*/sp_surface_global_*
+examples/*/viscosity_*
+examples/*/step_*
+examples/*/time_*
+examples/*/bc_*
+examples/*/velocity_*
+examples/*/*_init.bin
+examples/*/*_init.bin.info
+
 
 # Ignore the input file due to they can be generated using the script
 examples/*/input_temperature_0.txt
@@ -31,5 +45,11 @@ examples/*/interfaces.txt
 examples/continental_rift/*.png
 examples/Crameri2012_case2/interfaces.png
 
+.vscode/
+.DS_store
+
+examples/*/.ipynb_*
+
 # Ignore build files:
 src/*.o
+
