@@ -21,7 +21,7 @@ basal_heat                          = -1.0          # set basal heat flux value,
 particles_per_element               = 1100          # n. of Lagrangian particles in each element, default is 81
 particles_per_element_x             = 0             # n. of Lagrangian particles in the horizontal direction, default is 0 for automatic calculation
 particles_per_element_z             = 0             # n. of Lagrangian particles in the vertical direction, default is 0 for automatic calculation
-particles_perturb_factor            = 0.0           # default is 0.5 [values are between 0 and 1]
+particles_perturb_factor            = 0.0           # indicates the amount of perturbation of the initial location of the particles relative to a regular grid distribution. Default is 0.5 [values are between 0 and 1]
 
 # Surface processes
 sp_surface_tracking                 = False         # allows free surface tracking across time and outputs it, default is False [True/False]
