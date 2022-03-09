@@ -110,7 +110,7 @@ The parameter file ``param.txt`` contains the information that is necessary for 
         default: 0.5  :raw-html:`<br />`
         type: real number between 0 and 1 :raw-html:`<br />`
         unit: :raw-html:`<br />`
-        definition: default is 0.5 
+        definition: indicates the amount of perturbation of the initial location of the particles relative to a regular grid distribution. 
 
 #. Surface processes
 
