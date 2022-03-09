@@ -79,7 +79,7 @@ The composition and strain history is tracked by particles present in the interi
 The exchange of particles among the subdomains of the model is efficiently parallelized in PETSc using DMSwarm [@may2017dmswarm].
 
 The free surface of the Earth can be simulated and is numerically stabilized using the Free Surface Stabilization Algorithm [@kaus2010stabilization].
-Surface processes of erosion and sedimentation can also be incorporated in the thermo-mechanical model.
+Surface processes of erosion and sedimentation can also be incorporated in the thermo-mechanical model, allowing the coupling between the Earth's interior dynamics and the processes occurring at its surface.
 Complex boundary conditions for the velocity field, variable both in space and time, can be adopted by the user to simulate different episodes of tectonism.
 Different benchmarks are available in the repository and can be reproduced by the user (e.g. thermochemical convection – @van1997comparison; plume-lithosphere interaction – @crameri2012comparison).
 
