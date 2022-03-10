@@ -17,8 +17,13 @@ for scenario in "${scenarios[@]}"
 do
     echo -e "/n==> Running scenario: ${scenario} <===/n"
 
+    # Remove old output
+    rm -rf "${SCRIPT_DIR}/data/${scenario}/output"
+
+    # Copy input files
     cp -r "${SCRIPT_DIR}/data/${scenario}/input" "${SCRIPT_DIR}/data/${scenario}/output"
 
+    # Run the simulation
     cd "${SCRIPT_DIR}/data/${scenario}/output" && \
         MANDYOC=${MANDYOC} bash run.sh
 done
@@ -26,9 +31,3 @@ done
 # Run tests
 cd "${SCRIPT_DIR}" && \
     pytest -v testing_results.py
-
-# Clean up
-for scenario in "${scenarios[@]}"
-do
-    rm -rf "${SCRIPT_DIR}/data/${scenario}/output"
-done
