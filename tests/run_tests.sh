@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# exit when any command fails
+set -e
+
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # scenarios to test
@@ -9,15 +12,23 @@ declare -a scenarios=(
     "continental_rift"
 )
 
+# Run scenarios
 for scenario in "${scenarios[@]}"
 do
-    echo -e "\nRunning ${scenario}\n"
+    echo -e "/n==> Running scenario: ${scenario} <===/n"
 
     cp -r "${SCRIPT_DIR}/data/${scenario}/input" "${SCRIPT_DIR}/data/${scenario}/output"
 
     cd "${SCRIPT_DIR}/data/${scenario}/output" && \
-        bash run.sh &&
+        MANDYOC=${MANDYOC} bash run.sh
+done
 
-    cd "${SCRIPT_DIR}/data/${scenario}/" && \
-        pytest -v testing_results.py
+# Run tests
+cd "${SCRIPT_DIR}" && \
+    pytest -v testing_results.py
+
+# Clean up
+for scenario in "${scenarios[@]}"
+do
+    rm -rf "${SCRIPT_DIR}/data/${scenario}/output"
 done

@@ -38,7 +38,7 @@ free_surface_stab                   = True          # default is True [True/Fals
 theta_FSSA                          = 0.5           # default is 0.5 (only relevant when free_surface_stab = True)
 
 # Time constrains
-step_max                            = 1             # Maximum time-step of the simulation
+step_max                            = 0             # Maximum time-step of the simulation
 time_max                            = 140000.0e6    # Maximum time of the simulation [s]
 dt_max                              = 1000.0e6      # Maximum time between steps of the simulation [s]
 step_print                          = 1             # Make file every <step_print>
@@ -108,4 +108,3 @@ right_temperature                   = free          # ok
 
 rheology_model                      = 0             # ok
 T_initial                           = 0             # ok
-
