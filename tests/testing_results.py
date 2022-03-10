@@ -33,7 +33,7 @@ fields = [
 ]
 
 # steps to compare
-steps = [0]
+steps = [0, 1]
 
 
 def read(filename):
