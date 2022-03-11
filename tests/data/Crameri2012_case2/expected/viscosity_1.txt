@@ -1,6 +1,5 @@
-Vec Object: Vec_0x84000004_4 2 MPI processes
-  type: mpi
-Process [0]
+Vec Object: Vec_0x84000000_4 1 MPI processes
+  type: seq
 1e+21
 1e+21
 1e+21
@@ -23830,7 +23829,6 @@ Process [0]
 1e+21
 1e+21
 1e+21
-Process [1]
 1e+21
 1e+21
 1e+21

@@ -3,4 +3,4 @@
 # exit when any command fails
 set -e
 
-${MPIEXEC} -n 2 ${MANDYOC}
+${MPIEXEC} -n 1 ${MANDYOC}

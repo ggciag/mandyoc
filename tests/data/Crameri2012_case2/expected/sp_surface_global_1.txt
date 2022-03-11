@@ -1,4 +1,4 @@
-Vec Object: 2 MPI processes
+Vec Object: 1 MPI processes
   type: mpi
 Process [0]
 -150031.
@@ -142,7 +142,6 @@ Process [0]
 -149954.
 -149954.
 -149954.
-Process [1]
 -149954.
 -149954.
 -149954.
