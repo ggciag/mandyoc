@@ -62,6 +62,6 @@ def test_result(scenario, field, step):
         output = read(test_path / filename)
         expected = read(expected_path / filename)
 
-        npt.assert_allclose(output, expected, rtol=2e-4)
+        npt.assert_allclose(output, expected, rtol=2e-4, atol=1.0e-18)
     except OSError:
         pass
