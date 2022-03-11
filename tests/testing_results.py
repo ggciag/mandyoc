@@ -54,14 +54,17 @@ def read(filename):
 def test_result(scenario, field, step):
     """Run tests"""
 
+    if scenario != 'Crameri2012_case2' and field == 'sp_surface_global':
+        pytest.skip('No sp_surface_global for this scenario')
+
+    if scenario == 'Crameri2012_case2' and step == 1:
+        pytest.skip('Tested with only one processor')
+
     test_path = base_path / "data" / scenario/ "output"
     expected_path = base_path / "data" / scenario/ "expected"
 
-    try:
-        filename = f"{field}_{step}" + ".txt"
-        output = read(test_path / filename)
-        expected = read(expected_path / filename)
+    filename = f"{field}_{step}" + ".txt"
+    output = read(test_path / filename)
+    expected = read(expected_path / filename)
 
-        npt.assert_allclose(output, expected, rtol=2e-4, atol=1.0e-18)
-    except OSError:
-        pass
+    npt.assert_allclose(output, expected, rtol=2e-4, atol=1.0e-18)
