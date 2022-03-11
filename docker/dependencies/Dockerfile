@@ -75,14 +75,12 @@ RUN mkdir -p ${HOME}/petsc-${PETSC_VERSION} && \
         --with-debugging=0 \
         --with-cc=gcc \
         --with-cxx=g++ \
-        --with-fc=gfortran \
         --download-fblaslapack \
         --download-mpich \
-        --download-superlu_dist \
-        --download-metis \
-        --download-parmetis \
         --download-mumps \
-        --download-scalapack && \
+        --download-scalapack \
+        --download-parmetis \
+        --download-metis && \
     make && \
     make install
 
