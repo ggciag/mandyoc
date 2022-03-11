@@ -85,14 +85,14 @@ General guidelines for pull requests (PRs):
   Ensure the PR description clearly describes the problem and solution.
   Include the relevant issue number.
 
-**Remember to test your changes**. We have a regression test to check that the Mandyoc output result for the Crameri model is equal to the expected result.
+**Remember to test your changes**. We have a regression test to check that the Mandyoc output results are equal to the expected result.
 To make this test you need to install `pytest` and run:
 
 ```bash
 make test
 ```
 
-_NOTE_: you might need to manually set the `MPIREXEC` in the Makefile.
+_NOTE_: you might need to manually set the environment variables `PETSC_DIR` (and `PETSC_ARCH', if you are not using the prefix installation).
 
 ## Do you have questions about MANDYOC code?
 
