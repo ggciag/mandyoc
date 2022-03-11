@@ -46,10 +46,9 @@ all: $(MANDYOC)
 install: $(MANDYOC)
 	install $< $(INSTALL_PATH)/mandyoc
 
-test:
-	@echo "Run MANDYOC test may take several minutes..."
-	cd test/testing_data/ ; mpirun -n 1 mandyoc
-	pytest -v test/testing_result.py
+test: all
+	@echo -e "/nRunning MANDYOC tests./nIt will take several minutes to complete all tests./n"
+	MANDYOC=$(shell pwd)/${MANDYOC} MPIEXEC=${MPIEXEC} bash ./tests/run_tests.sh
 
 clear:
 	rm -f $(SRC)/*.o

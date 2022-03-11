@@ -1,22 +1,12 @@
 /mandyoc
-test/__pycache__/
+__pycache__
+.pytest_cache
 
 # Ignore the documentation building folder
 docs/_build
 
 # Ignore output when run the test
-test/testing_data/density_*
-test/testing_data/heat_*
-test/testing_data/pressure_*
-test/testing_data/strain_*
-test/testing_data/strain_rate_*
-test/testing_data/temperature_*
-test/testing_data/sp_surface_global_*
-test/testing_data/viscosity_*
-test/testing_data/step_*
-test/testing_data/time_*
-test/testing_data/bc_*
-test/testing_data/velocity_*
+tests/**/output
 
 # Ignore output when run the examples
 examples/*/density_*
