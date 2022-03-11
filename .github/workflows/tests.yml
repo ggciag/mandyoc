@@ -33,4 +33,4 @@ jobs:
 
       - name: Tests
         run: |
-          docker run --rm ${{ env.TEST_TAG }} bash -c 'make test'
+          docker run --rm ${{ env.TEST_TAG }} bash -c 'cd mandyoc && make test'
