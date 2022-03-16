@@ -20,9 +20,7 @@ To build *Mandyoc*, the following requirements are needed:
 * make
 * git (recommended, but not extrictly needded)
 
-If you do not already have a PETSc installation, you will also need:
-
-* gfortran
+If you do not already have a PETSc installation, you may need a Fortran compiler.
 
 Additionally, the following additional software is needed to run the examples
 that come with *Mandyoc*:
@@ -76,12 +74,19 @@ Second, **configure the PETSc build** and set up the installation directory.
 	  --with-debugging=0 \
 	  --with-cc=gcc \
 	  --with-cxx=g++ \
+	  --with-fc=gfortran \
 	  --download-fblaslapack \
 	  --download-mpich \
 	  --download-mumps \
 	  --download-scalapack \
 	  --download-parmetis \
 	  --download-metis
+
+.. note::
+	This example installation uses the ``gfortran`` compiler.
+	You may use another Fortran compiler changing the ``--with-fc`` flag.
+	It is also possible to configure PETSc without Fortran by using ``--with-fc=0``
+	and changing ``--download-fblaslapack`` to ``--download-f2cblaslapack``.
 
 .. note::
 
