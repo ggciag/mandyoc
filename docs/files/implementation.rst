@@ -318,6 +318,18 @@ Additionally, the rheology can also be considered to follow a power law, as a fu
 where :math:`A` is a pre-exponential scale factor, :math:`n` is the power law exponent, :math:`\dot{\varepsilon}` is the square root of the second invariant of the strain rate tensor, :math:`Q` is the activation energy, and :math:`V` is the activation volume. The values of :math:`A`, :math:`n`, :math:`Q`, and :math:`V` are measured under laboratory conditions :cite:`karato1993,gleason1995`.
 
 
+Non-linear iterations
+*********************
+
+When the non-linear option is chosen by the user, the effective viscosity is dependent on the velocity field, which is iteratively updated following the algorithm described by Thieulot (2014) :cite:`thieulot2014`. In this algorithm, the velocity and effective viscosity field are iteratively updated until the following convergence criterion is satisfied:
+
+.. math::
+    :label: non-linear
+
+    \chi_f = 1 - \frac{\langle (f^i-\langle f^i\rangle) \cdot (f^{i+1}-\langle f^{i+1}\rangle) \rangle}{|f^i-\langle f^i\rangle| \ |f^{i+1}-\langle f^{i+1}\rangle|} \le tol 
+
+where :math:`f` represents an array with all the nodal values of the velocity components, :math:`tol` is a tolerance factor, and :math:`\langle f\rangle` is the mean value of :math:`f`. The superscript :math:`i` and :math:`i+1` indicate two consecutive iterations in the same time step.  In each iteration, the momentum and mass equations are calculated with an updated effective viscosity field.
+
 
 
 
