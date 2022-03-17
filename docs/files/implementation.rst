@@ -328,7 +328,7 @@ When the non-linear option is chosen by the user, the effective viscosity is dep
 
     \chi_f = 1 - \frac{\langle (f^i-\langle f^i\rangle) \cdot (f^{i+1}-\langle f^{i+1}\rangle) \rangle}{|f^i-\langle f^i\rangle| \ |f^{i+1}-\langle f^{i+1}\rangle|} \le tol 
 
-where :math:`f` represents a array with all the nodal values of the velocity components, :math:`tol` is a tolerance factor, and :math:`\langle f\rangle` is the mean value of :math:`f`. The superscript :math:`i` and :math:`i+1` indicate two consecutive iterations in the same time step.  In each iteration, the momentum and mass equations are calculated with an updated effective viscosity field.
+where :math:`f` represents an array with all the nodal values of the velocity components, :math:`tol` is a tolerance factor, and :math:`\langle f\rangle` is the mean value of :math:`f`. The superscript :math:`i` and :math:`i+1` indicate two consecutive iterations in the same time step.  In each iteration, the momentum and mass equations are calculated with an updated effective viscosity field.
 
 
 
