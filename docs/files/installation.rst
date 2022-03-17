@@ -18,7 +18,7 @@ To build *Mandyoc*, the following requirements are needed:
 * PETSc_ (currently tested on version v3.15.5)
 * gcc
 * make
-* git (recommended, but not extrictly needded)
+* git (recommended, but not strictly needed)
 
 If you do not already have a PETSc installation, you will also need:
 
@@ -110,7 +110,7 @@ Or follow the instructions that pop up on the terminal.
 
 For further information about the PETSc library, check out the `PETSc website`_.
 
-Finally, *add a symlinks* of `mpirun` to `~/.local/bin`
+Finally, add a symlink of `mpirun` to `~/.local/bin`:
 
 .. code-block::
 
