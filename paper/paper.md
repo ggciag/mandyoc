@@ -36,7 +36,7 @@ bibliography: paper.bib
 
 # Summary
 
-`Mandyoc` is a finite element code written in C dedicated to simulate thermochemical convection in the interior of terrestrial planets.
+`Mandyoc` is a 2-D finite element code written in C dedicated to simulate thermochemical convection in the interior of terrestrial planets.
 Different linear and non-linear rheologies can be adopted, appropriately simulating the strain and stress pattern in the Earth's crust and mantle, both in extensional or collisional tectonics.
 Additionally, the code allows variations of boundary condition for the velocity field in space and time, simulating different pulses of tectonism in the same numerical scenario.
 
