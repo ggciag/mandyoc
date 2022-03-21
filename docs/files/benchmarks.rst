@@ -180,6 +180,8 @@ There is no temperature difference, and the geodynamic evolution is guided solel
 
 From the results of this experiment reproduced in MANDYOC we obtain the maximum topography with time, similar to Fig. 6a of Crameri et al. (2012) :cite:`crameri2012`, presented in :numref:`maximum_topography`.
 The models used for comparison are: UNDERWORLD :cite:`moresi2003`, STAGYY :cite:`tackley1993` and I2VIS :cite:`gerya2003`.
+The data used for comparison was extract from Crameri et al. (2012), which used UNDERWORLD v1.5.0.
+No version information for STAGYY and I2VIS codes was reported.
 
 .. _maximum_topography:
 
