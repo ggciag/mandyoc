@@ -36,16 +36,16 @@ bibliography: paper.bib
 
 # Summary
 
-`Mandyoc` is a 2-D finite element code written in C dedicated to simulate thermochemical convection in the interior of terrestrial planets.
-Different linear and non-linear rheologies can be adopted, appropriately simulating the strain and stress pattern in the Earth's crust and mantle, both in extensional or collisional tectonics.
+`Mandyoc` is a 2-D finite element code written in C dedicated to simulating thermochemical convection in the interior of terrestrial planets.
+Different linear and non-linear rheologies can be adopted, appropriately simulating the strain and stress pattern in the Earth's crust and mantle, both in extensional and collisional tectonics.
 Additionally, the code allows variations of boundary condition for the velocity field in space and time, simulating different pulses of tectonism in the same numerical scenario.
 
 # Statement of need
 
-`Mandyoc`, the acronym for `MANtle DYnamics simulatOr Code`, is designed to simulate Stokes flow type thermochemical convection taking different compositional layers into account, and it is also appropriate to simulate Earth's lithospheric dynamics in the geological timescale. Similar codes are available for geodynamic problems, like `ASPECT` [@KHB12;@aspect2017;@Bangerth2021;@wolfgang_bangerth_2021_5131909] and `Underworld` [@moresi2007computational;@beucher2019uwgeodynamics]. Therefore, `Mandyoc` is an alternative to preexistent softwares.
+`Mandyoc`, the acronym for `MANtle DYnamics simulatOr Code`, is designed to simulate Stokes flow type thermochemical convection taking different compositional layers into account, and it is also appropriate to simulate Earth's lithospheric dynamics on geological timescales. Similar codes are available for geodynamic problems, like `ASPECT` [@KHB12;@aspect2017;@Bangerth2021;@wolfgang_bangerth_2021_5131909] and `Underworld` [@moresi2007computational;@beucher2019uwgeodynamics]. Therefore, `Mandyoc` is an alternative to preexistent softwares.
 
 One advantage of `Mandyoc` is the possibility to create scenarios with velocity boundary conditions variable in space and time, allowing the user to simulate different tectonic pulses in the same model run.
-Additionally, the current version incorporates surface processes, imposing rates of erosion and sedimentation on the top of the free surface [@silva2022influence]. Recently, other thermomechanical codes available for the scientific community incorporated the interaction with surface processes [e.g. @beucher2020morphotectonic; @neuharth2022evolution] taking into account the simulation of fluvial and hillslope processes. In the present version of `Mandyoc`, only predefined erosion/sedimentation rate (variable in space and time) is possible. 
+Additionally, the current version incorporates surface processes, imposing rates of erosion and sedimentation on the top of the free surface [@silva2022influence]. Recently, other thermomechanical codes available for the scientific community incorporated the interaction with surface processes [e.g., @beucher2020morphotectonic; @neuharth2022evolution] taking into account the simulation of fluvial and hillslope processes. In the present version of `Mandyoc`, only predefined erosion/sedimentation rate (variable in space and time) is possible. 
 
 Previous versions of the code were used to study the evolution of continental margins, showing the interaction of the continental lithosphere with the asthenospheric mantle [@sacek2017post;@salazar2021lateral].
 
@@ -53,20 +53,19 @@ Previous versions of the code were used to study the evolution of continental ma
 
 `Mandyoc` solves the equations for conservation of mass, momentum and energy using the Finite Element Method assuming the extended Boussinesq approximation, respectively:
 
-$$ u_{i,i} = 0 $$
-
-$$ \sigma_{ij,j} + g_i \rho = 0 $$
-
-$$
-  \frac{\partial T}{\partial t} + u_i T_{,i} =
+\begin{align*}
+u_{i,i} &= 0 \\
+\sigma_{ij,j} + g_i \rho &= 0 \\
+  \frac{\partial T}{\partial t} + u_i T_{,i} &=
   \kappa T_{,ii} + \frac{H}{c_p \rho} + \frac{u_i g_i \alpha T}{c_p}
-$$
+\end{align*}
 
 where
 
-$$ \sigma_{ij} = -P \delta_{ij} + \eta \left( u_{i,j} + u_{j,i} \right) $$
-
-$$ \rho = \rho_0 \left( 1 - \alpha (T - T_0) \right) $$
+\begin{align*}
+\sigma_{ij} &= -P \delta_{ij} + \eta \left( u_{i,j} + u_{j,i} \right), \\
+\rho &= \rho_0 \left( 1 - \alpha (T - T_0) \right),
+\end{align*}
 
 $u_i$ is the component $i$ of the velocity field, $T$ is temperature, $t$ is time, $\kappa$ is the thermal diffusivity, $H$ is the volumetric heat production, $c_p$ is the specific heat capacity, $g$ is gravity, $\rho$ is the effective rock density dependent on temperature and composition, $\rho_0$ is the reference rock density at temperature $T_0$, $\alpha$ is the coefficient of thermal expansion, $P$ is the dynamic pressure, $\eta$ is the effective viscosity, and $\delta_{ij}$ is the Kronecker delta.
 
@@ -81,13 +80,11 @@ The exchange of particles among the subdomains of the model is efficiently paral
 The free surface of the Earth can be simulated and is numerically stabilized using the Free Surface Stabilization Algorithm [@kaus2010stabilization].
 Surface processes of erosion and sedimentation can also be incorporated in the thermo-mechanical model, allowing the coupling between the Earth's interior dynamics and the processes occurring at its surface.
 Complex boundary conditions for the velocity field, variable both in space and time, can be adopted by the user to simulate different episodes of tectonism.
-Different benchmarks are available in the repository and can be reproduced by the user (e.g. thermochemical convection – @van1997comparison; plume-lithosphere interaction – @crameri2012comparison).
+Different benchmarks are available in the repository and can be reproduced by the user, including thermochemical convection [@van1997comparison] and plume-lithosphere interaction [@crameri2012comparison].
 
-As an example of application of `Mandyoc`, \autoref{fig:rift} presents snapshots of one numerical scenario of lithospheric stretching imposing a divergent flow direction, resulting in rifting and break-up.
+As an example application of `Mandyoc`, \autoref{fig:rift} presents snapshots of one numerical scenario of lithospheric stretching imposing a divergent flow direction, resulting in rifting and break-up.
 In this example, the upper crust, lower crust, lithospheric mantle and asthenosphere present different rheology and density, resulting in faulting mainly in the upper crust and part of the lithospheric mantle.
 Additionally, deformations in the lower crust and at the base of the lithospheric mantle are accommodated by ductile creep flow. This example can be reproduced from the repository.
-
-# Figures
 
 ![`Mandyoc` example of application of the thermo-mechanical model to simulate the stretching of the lithosphere, assuming different rheologies. The scales of gray represent cumulative strain in the different materials. Details can be found in the repository.\label{fig:rift}](JOSS_figure.png)
 
