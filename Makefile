@@ -48,7 +48,7 @@ install: $(MANDYOC)
 
 test: all
 	@echo -e "/nRunning MANDYOC tests./nIt will take several minutes to complete all tests./n"
-	MANDYOC=$(shell pwd)/${MANDYOC} MPIEXEC=${MPIEXEC} bash ./tests/run_tests.sh
+	MANDYOC="$(shell pwd)/${MANDYOC}" MPIEXEC="${MPIEXEC}" bash ./tests/run_tests.sh
 
 clear:
 	rm -f $(SRC)/*.o
