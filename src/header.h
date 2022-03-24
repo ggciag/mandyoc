@@ -143,6 +143,7 @@ double comp_alpha_thermal = 1.0 - alpha_thermal;
 PetscInt i_veloc=0;
 
 double dx_const;
+double dy_const;
 double dz_const;
 
 

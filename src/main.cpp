@@ -97,6 +97,7 @@ int main(int argc,char **args)
 	char variable_name[100];
 
 	dx_const = Lx/(Nx-1);
+	dy_const = Ly/(Ny-1);
 	dz_const = depth/(Nz-1);
 
 	//if (rank==0) printf("dx=%lf dz=%lf\n",dx_const,dz_const);
@@ -304,14 +305,21 @@ double Calc_dt_calor(int rank) {
 		max_mod_v = fabs(min_v);
 		ind_v_mod = ind_v_min;
 	}
-	dh_v_mod = dx_const; //check: only in 2d
-	if (ind_v_mod%2==1) dh_v_mod = dz_const; //check: only in 2d
-	//if (rank==0) printf("dt = %g",(dh_v_mod/max_mod_v)/seg_per_ano);
-	dt_calor = 0.1*(dh_v_mod/max_mod_v)/(seg_per_ano*sub_division_time_step);
+
+	if (dimensions == 2) {
+		dh_v_mod = dx_const; //check: only in 2d
+		if (ind_v_mod%2==1) dh_v_mod = dz_const; //check: only in 2d
+		dt_calor = 0.1*(dh_v_mod/max_mod_v)/(seg_per_ano*sub_division_time_step);
+	} else {
+		if (ind_v_mod%3==0) dh_v_mod = dx_const;
+		if (ind_v_mod%3==1) dh_v_mod = dy_const;
+		if (ind_v_mod%3==2) dh_v_mod = dz_const;
+		if (rank==0) printf("dt = %g",(dh_v_mod/max_mod_v)/seg_per_ano);
+		dt_calor = 0.2*(dh_v_mod/max_mod_v)/seg_per_ano;
+	}
+
 	if (dt_calor>dt_MAX) dt_calor=dt_MAX;
-
 	dt_calor_sec = dt_calor*seg_per_ano;
-
 
 	return dt_calor_sec;
 }
