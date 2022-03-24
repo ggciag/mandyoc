@@ -56,10 +56,12 @@ PetscBool set_sp_d_c = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
 PetscBool plot_sediment = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
 PetscBool a2l = PETSC_TRUE; // PETSC_TRUE/PETSC_FALSE
 // Parameter file native C variables
+int dimensions = -1;
 long Nx = -1;
+long Ny = -1;
 long Nz = -1;
 long layers;
-double Lx, depth;
+double Lx, Ly, depth;
 int n_interfaces = 0;
 int ContMult;
 long stepMAX;
@@ -96,6 +98,7 @@ int bcT_right;
 // End of parameter file variables
 
 PetscInt Px = PETSC_DECIDE;
+PetscInt Py = PETSC_DECIDE;
 PetscInt Pz = PETSC_DECIDE;
 
 double visc_MAX_comp;
