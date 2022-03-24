@@ -45,7 +45,7 @@ PetscErrorCode calc_drho();
 
 PetscErrorCode calc_pressure();
 
-PetscErrorCode write_veloc_3d(int cont, PetscInt binary_out);
+PetscErrorCode write_veloc(int cont, PetscInt binary_out);
 
 PetscErrorCode write_veloc_cond(int cont, PetscInt binary_out);
 
@@ -145,7 +145,7 @@ extern int n_interfaces;
 
 extern PetscInt binary_output;
 
-PetscErrorCode create_veloc_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
+PetscErrorCode create_veloc(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 {
 
 	PetscInt       dof,stencil_width;
@@ -397,7 +397,7 @@ PetscErrorCode create_veloc_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
 
 }
 
-PetscErrorCode build_veloc_3d()
+PetscErrorCode build_veloc()
 {
 
 	PetscErrorCode ierr;
@@ -450,7 +450,7 @@ PetscErrorCode build_veloc_3d()
 
 
 
-PetscErrorCode solve_veloc_3d()
+PetscErrorCode solve_veloc()
 {
 	PetscErrorCode ierr;
 	PetscLogDouble Tempo1,Tempo2;
@@ -498,7 +498,7 @@ PetscErrorCode solve_veloc_3d()
 	VecPointwiseMult(Veloc_fut,Veloc_fut,Veloc_Cond); ///check: zero values at the b.c.
 	VecAXPY(Veloc_fut,1.0,Veloc_0); ///check: applying Veloc_0 in Veloc at the b.c.
 
-	//write_veloc_3d(101);
+	//write_veloc(101);
 
 
 	ierr = MatMultTranspose(VG,Veloc_fut,rk_vec2);CHKERRQ(ierr); /// r0 = G^T V0
@@ -571,7 +571,7 @@ PetscErrorCode solve_veloc_3d()
 }
 
 
-PetscErrorCode destroy_veloc_3d()
+PetscErrorCode destroy_veloc()
 {
 
 	int rank;
@@ -598,7 +598,7 @@ PetscErrorCode destroy_veloc_3d()
 	PetscFunctionReturn(0);
 }
 
-PetscErrorCode write_veloc_3d(int cont, PetscInt binary_out)
+PetscErrorCode write_veloc(int cont, PetscInt binary_out)
 {
 	char variable_name[100];
 

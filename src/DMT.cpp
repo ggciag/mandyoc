@@ -94,21 +94,21 @@ extern double kappa;
 extern double RHOM;
 extern double c_heat_capacity;
 
-PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
+PetscErrorCode create_thermal(PetscInt mx, PetscInt mz, PetscInt Px, PetscInt Pz)
 {
 
 	PetscInt       dof,stencil_width;
 	PetscErrorCode ierr;
-	
-	
-	
+
+
+
 	int rank;
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
-	
+
 	PetscLogDouble Tempo1p,Tempo2p;
-	
+
 	PetscTime(&Tempo1p);
-	
+
 	dof           = 1;
 	if (periodic_boundary==0)	{
 		stencil_width = 1;
@@ -123,36 +123,36 @@ PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz
 
 	ierr = DMSetFromOptions(da_Thermal);CHKERRQ(ierr);
 	ierr = DMSetUp(da_Thermal);CHKERRQ(ierr);
-	
+
 	ierr = DMDASetFieldName(da_Thermal,0,"T");CHKERRQ(ierr);
 
-	
-	
-	
+
+
+
 	ierr = PetscCalloc1(GaussQuad*T_NE,&NT); CHKERRQ(ierr);
 	ierr = PetscCalloc1(GaussQuad*T_NE,&NT_x); CHKERRQ(ierr);
 	ierr = PetscCalloc1(GaussQuad*T_NE,&NT_z); CHKERRQ(ierr);
-	
+
 	ierr = PetscCalloc1(T_NE*T_NE,&TKe); CHKERRQ(ierr);
 	ierr = PetscCalloc1(T_NE*T_NE,&TCe); CHKERRQ(ierr);
 	ierr = PetscCalloc1(T_NE*T_NE,&TCe_fut); CHKERRQ(ierr);
 	ierr = PetscCalloc1(T_NE*T_NE,&TMe); CHKERRQ(ierr);
 	ierr = PetscCalloc1(T_NE*T_NE,&Ttotal); CHKERRQ(ierr);
 	ierr = PetscCalloc1(T_NE*T_NE,&Ttotal_b); CHKERRQ(ierr);
-	
+
 	ierr = PetscCalloc1(T_NE,&TFe); CHKERRQ(ierr);
-	
+
 	ierr = PetscCalloc1(T_NE,&T_vec_aux_ele); CHKERRQ(ierr);
 	ierr = PetscCalloc1(T_NE,&T_vec_aux_ele_final); CHKERRQ(ierr);
-	
+
 	ierr = PetscCalloc1(V_GT,&v_vec_aux_ele); CHKERRQ(ierr);
-	
+
 	montaKeThermal_general(TKe,TMe,TFe);
-	
-	
+
+
 	ierr = DMDASetUniformCoordinates(da_Thermal,0.0,Lx,-depth,0.0,0.0,0.0);CHKERRQ(ierr);
-	
-		
+
+
 	/* Generate a matrix with the correct non-zero pattern of type AIJ. This will work in parallel and serial */
 	ierr = DMSetMatType(da_Thermal,MATAIJ);CHKERRQ(ierr);
 	ierr = DMCreateMatrix(da_Thermal,&TA);CHKERRQ(ierr);
@@ -163,19 +163,19 @@ PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz
 
 	ierr = DMCreateGlobalVector(da_Thermal,&Pressure_aux);CHKERRQ(ierr);
 
-	
-	
+
+
 	ierr = DMCreateGlobalVector(da_Thermal,&geoq);CHKERRQ(ierr);
 	ierr = DMCreateGlobalVector(da_Thermal,&geoq_rho);CHKERRQ(ierr);
 	ierr = DMCreateGlobalVector(da_Thermal,&geoq_H);CHKERRQ(ierr);
 	ierr = DMCreateGlobalVector(da_Thermal,&geoq_strain);CHKERRQ(ierr);
 	ierr = DMCreateGlobalVector(da_Thermal,&geoq_strain_rate);CHKERRQ(ierr);
 	ierr = DMCreateGlobalVector(da_Thermal,&geoq_cont);CHKERRQ(ierr);
-	
+
 	ierr = DMCreateGlobalVector(da_Thermal,&dRho);CHKERRQ(ierr);
-	
+
 	ierr = Thermal_init(Temper,da_Thermal);
-	
+
 	ierr = DMCreateLocalVector(da_Thermal,&local_FT);
 	ierr = DMCreateLocalVector(da_Thermal,&local_Temper);
 	ierr = DMCreateLocalVector(da_Thermal,&local_TC);
@@ -188,124 +188,124 @@ PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz
 	ierr = DMCreateLocalVector(da_Thermal,&local_geoq_strain);
 	ierr = DMCreateLocalVector(da_Thermal,&local_geoq_strain_rate);
 	ierr = DMCreateLocalVector(da_Thermal,&local_geoq_cont);
-	
+
 	ierr = DMCreateLocalVector(da_Thermal,&local_dRho);
-	
-	
+
+
 	ierr = DMCreateGlobalVector(da_Thermal,&Temper_Cond);CHKERRQ(ierr);
-	
-	
+
+
 	PetscScalar					**ff;
 	PetscInt               M,P;
-	
+
 	ierr = DMDAGetInfo(da_Thermal,0,&M,&P,NULL,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
-	
-	
+
+
 	ierr = VecZeroEntries(local_FT);CHKERRQ(ierr);
 	ierr = DMDAVecGetArray(da_Thermal,local_FT,&ff);CHKERRQ(ierr);
-	
+
 	PetscInt       sx,sz,mmx,mmz;
 	PetscInt i,k;
-	
+
 	ierr = DMDAGetCorners(da_Thermal,&sx,&sz,NULL,&mmx,&mmz,NULL);CHKERRQ(ierr);
-	
+
 	for (k=sz; k<sz+mmz; k++) {
 		for (i=sx; i<sx+mmx; i++) {
 			ff[k][i] = 1.0;
-			
+
 			if (periodic_boundary==0){
 				if (i==0   && bcT_left==1) ff[k][i] = 0.0;
-				
+
 				if (i==M-1 && bcT_right==1)ff[k][i] = 0.0;
 			}
-			
-			
+
+
 			if (k==0   && bcT_bot==1) ff[k][i] = 0.0;
-			
-			
+
+
 			if (k==P-1 && bcT_top==1) ff[k][i] = 0.0;
 		}
 	}
-	
+
 	ierr = DMDAVecRestoreArray(da_Thermal,local_FT,&ff);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalBegin(da_Thermal,local_FT,INSERT_VALUES,Temper_Cond);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalEnd(da_Thermal,local_FT,INSERT_VALUES,Temper_Cond);CHKERRQ(ierr);
-	
-	
+
+
 	///////
 
 
 	VecCopy(Temper,Temper_0);
 
 	VecScale(Temper_Cond, -1.0);
-	VecShift(Temper_Cond,  1.0); 
+	VecShift(Temper_Cond,  1.0);
 	VecPointwiseMult(Temper_0,Temper_0,Temper_Cond);
 	VecScale(Temper_Cond, -1.0);
-	VecShift(Temper_Cond,  1.0); 
-	
-	
-	
+	VecShift(Temper_Cond,  1.0);
+
+
+
 	ierr = KSPCreate(PETSC_COMM_WORLD,&T_ksp);CHKERRQ(ierr);
 	ierr = KSPSetOptionsPrefix(T_ksp,"thermal_"); /* stokes */ CHKERRQ(ierr);
-	
+
 	PetscTime(&Tempo2p);
 	if (rank==0) printf("temperature (creation): %lf s\n",Tempo2p-Tempo1p);
-	
-	
+
+
 	PetscFunctionReturn(0);
 }
 
 
-PetscErrorCode build_thermal_3d()
+PetscErrorCode build_thermal()
 {
 
 	PetscErrorCode ierr;
-	
+
 	int rank;
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
-	
+
 	PetscLogDouble Tempo1p,Tempo2p;
-	
+
 	PetscTime(&Tempo1p);
-	
+
 	ierr = MatZeroEntries(TA);CHKERRQ(ierr);
-	
+
 	ierr = MatZeroEntries(TB);CHKERRQ(ierr);
 	ierr = VecZeroEntries(Tf);CHKERRQ(ierr);
-	
-	
+
+
 	ierr = AssembleA_Thermal(TA,da_Thermal,TKe,TMe,TFe,da_Veloc,Veloc_fut);CHKERRQ(ierr);
-	
+
 	ierr = AssembleF_Thermal(Tf,da_Thermal,TKe,TMe,TFe,da_Veloc,Veloc);CHKERRQ(ierr);
 
-	
+
 	PetscTime(&Tempo2p);
 	if (rank==0) printf("Thermal (building): %lf s\n",Tempo2p-Tempo1p);
-	
+
 	PetscFunctionReturn(0);
-		
+
 }
 
-PetscErrorCode solve_thermal_3d()
+PetscErrorCode solve_thermal()
 {
 	PetscErrorCode ierr;
 	PetscLogDouble Tempo1,Tempo2;
-	
+
 	int rank;
-	
+
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
-	
+
 	PetscTime(&Tempo1);
-	
+
 	/* SOLVE */
-	
+
 	ierr = KSPSetOperators(T_ksp,TA,TA);CHKERRQ(ierr);
-	
+
 	ierr = KSPSetFromOptions(T_ksp);CHKERRQ(ierr);
-	
-	
+
+
 	ierr = KSPSetTolerances(T_ksp,rtol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
-	
+
 	ierr = KSPSolve(T_ksp,Tf,Temper);CHKERRQ(ierr);
 
 	VecPointwiseMult(Temper,Temper,Temper_Cond); ///zero at the b.c.
@@ -315,9 +315,9 @@ PetscErrorCode solve_thermal_3d()
 
 	PetscTime(&Tempo2);
 	if (rank==0) printf("Thermal (solution): %lf s\n",Tempo2-Tempo1);
-	
+
 	PetscFunctionReturn(0);
-	
+
 }
 
 
@@ -327,18 +327,18 @@ PetscErrorCode Heat_flow_at_the_base(){
 
 	ierr = DMGlobalToLocalBegin(da_Thermal,Temper,INSERT_VALUES,local_Temper);
 	ierr = DMGlobalToLocalEnd(  da_Thermal,Temper,INSERT_VALUES,local_Temper);
-	
+
 	ierr = DMDAVecGetArray(da_Thermal,local_Temper,&TT);CHKERRQ(ierr);
 
 	PetscInt       sx,sz,mmx,mmz;
-	
+
 	ierr = DMDAGetCorners(da_Thermal,&sx,&sz,NULL,&mmx,&mmz,NULL);CHKERRQ(ierr);
-	
+
 	int k,i;
 
 	PetscScalar condutivity = kappa*RHOM*c_heat_capacity;
 	PetscScalar delta_T_basal = basal_heat*dz_const/condutivity;
-	
+
 	for (k=sz; k<sz+mmz; k++) {
 		for (i=sx; i<sx+mmx; i++) {
 			if (k==0){
@@ -359,29 +359,29 @@ PetscErrorCode Heat_flow_at_the_base(){
 air_temperature()
 {
 	ierr = VecZeroEntries(local_Temper);CHKERRQ(ierr);
-	
+
 	ierr = DMGlobalToLocalBegin(thermal_da,Temper,INSERT_VALUES,local_Temper);
 	ierr = DMGlobalToLocalEnd(thermal_da,Temper,INSERT_VALUES,local_Temper);
-	
+
 	ierr = DMDAVecGetArray(thermal_da,local_Temper,&tt);CHKERRQ(ierr);
-	
+
 	PetscInt       sx,sz,mmx,mmz;
-	
+
 	ierr = DMDAGetCorners(thermal_da,&sx,&sz,NULL,&mmx,&mmz,NULL);CHKERRQ(ierr);
-	
+
 	PetscReal xx,zz,t_inic;
-	
+
 	for (k=sz; k<sz+mmz; k++) {
 		for (i=sx; i<sx+mmx; i++) {
-			
+
 		}
 	}
-	
+
 	ierr = DMDAVecRestoreArray(thermal_da,local_Temper,&tt);CHKERRQ(ierr);
-	
+
 	ierr = DMLocalToGlobalBegin(thermal_da,local_Temper,INSERT_VALUES,Temper);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalEnd(thermal_da,local_Temper,INSERT_VALUES,Temper);CHKERRQ(ierr);
-	
+
 }
 */
 
@@ -389,11 +389,11 @@ PetscErrorCode destroy_thermal_()
 {
 
 	int rank;
-	
+
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
 	PetscLogDouble Tempo1,Tempo2;
 	PetscTime(&Tempo1);
-	
+
 	PetscErrorCode ierr;
 	ierr = KSPDestroy(&T_ksp);CHKERRQ(ierr);
 	ierr = VecDestroy(&Temper);CHKERRQ(ierr);
@@ -401,26 +401,26 @@ PetscErrorCode destroy_thermal_()
 	ierr = MatDestroy(&TA);CHKERRQ(ierr);
 	ierr = MatDestroy(&TB);CHKERRQ(ierr);
 	ierr = DMDestroy(&da_Thermal);CHKERRQ(ierr);
-	
+
 	PetscTime(&Tempo2);
 	if (rank==0) printf("Thermal (destroying): %lf\n",Tempo2-Tempo1);
-	
-	
-	PetscFunctionReturn(0);	
+
+
+	PetscFunctionReturn(0);
 }
 
 PetscErrorCode write_all_(int cont,Vec u, char *variable_name, PetscInt binary_out)
 {
 	int rank;
-	
+
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
 	PetscLogDouble Tempo1,Tempo2;
 	PetscTime(&Tempo1);
-	
+
 	PetscViewer viewer;
-	
+
 	char nome[100];
-	
+
 	if (binary_out==0){
 		sprintf(nome,"%s_%d.txt",variable_name,cont);
 		PetscViewerASCIIOpen(PETSC_COMM_WORLD,nome,&viewer);
@@ -432,11 +432,11 @@ PetscErrorCode write_all_(int cont,Vec u, char *variable_name, PetscInt binary_o
 
 	VecView(u,viewer);
 	PetscViewerDestroy(&viewer);
-	
+
 	PetscTime(&Tempo2);
 	if (rank==0 && cont>=0) printf("%s (writing): %lf s\n",variable_name,Tempo2-Tempo1);
-	
-	PetscFunctionReturn(0);	
+
+	PetscFunctionReturn(0);
 }
 
 PetscErrorCode write_pressure(int cont, PetscInt binary_out)
@@ -445,7 +445,7 @@ PetscErrorCode write_pressure(int cont, PetscInt binary_out)
 
 	sprintf(variable_name,"pressure");
 	write_all_(cont,Pressure_aux,variable_name,binary_out);
-	
+
 	PetscFunctionReturn(0);
 }
 
@@ -456,7 +456,7 @@ PetscErrorCode write_geoq_(int cont, PetscInt binary_out)
 
 	sprintf(variable_name,"viscosity");
 	write_all_(cont,geoq,variable_name,binary_out);
-	
+
 	sprintf(variable_name,"density");
 	write_all_(cont,geoq_rho,variable_name,binary_out);
 
@@ -468,7 +468,6 @@ PetscErrorCode write_geoq_(int cont, PetscInt binary_out)
 
 	sprintf(variable_name,"strain_rate");
 	write_all_(cont,geoq_strain_rate,variable_name,binary_out);
-	
+
 	PetscFunctionReturn(0);
 }
-

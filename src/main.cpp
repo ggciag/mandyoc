@@ -21,23 +21,23 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 #include "header.h"
 
 // Petsc prototypes
-PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz);
-PetscErrorCode build_thermal_3d();
-PetscErrorCode solve_thermal_3d();
+PetscErrorCode create_thermal(PetscInt mx, PetscInt mz, PetscInt Px, PetscInt Pz);
+PetscErrorCode build_thermal();
+PetscErrorCode solve_thermal();
 PetscErrorCode destroy_thermal_();
 PetscErrorCode write_all_(int cont,Vec u, char *variable_name, PetscInt binary_out);
 PetscErrorCode write_pressure(int cont, PetscInt binary_out);
 PetscErrorCode write_geoq_(int cont, PetscInt binary_out);
-PetscErrorCode create_veloc_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz);
+PetscErrorCode create_veloc(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz);
 PetscErrorCode createSwarm();
 PetscErrorCode moveSwarm(PetscReal dt);
 PetscErrorCode Swarm_add_remove();
 PetscErrorCode SwarmViewGP(DM dms,const char prefix[]);
 PetscErrorCode Init_Veloc();
 PetscErrorCode reader(int rank, const char fName[]);
-PetscErrorCode write_veloc_3d(int cont, PetscInt binary_out);
+PetscErrorCode write_veloc(int cont, PetscInt binary_out);
 PetscErrorCode write_veloc_cond(int cont, PetscInt binary_out);
-PetscErrorCode destroy_veloc_3d();
+PetscErrorCode destroy_veloc();
 PetscErrorCode Calc_dt_calor();
 PetscErrorCode write_tempo(int cont);
 PetscErrorCode veloc_total();
@@ -101,12 +101,12 @@ int main(int argc,char **args)
 
 	//if (rank==0) printf("dx=%lf dz=%lf\n",dx_const,dz_const);
 
-	ierr = create_thermal_2d(Nx-1,Nz-1,Px,Pz);CHKERRQ(ierr);
+	ierr = create_thermal(Nx-1, Nz-1, Px, Pz);CHKERRQ(ierr);
 
 	sprintf(variable_name,"temperature");
 	ierr = write_all_(-1,Temper, variable_name, binary_output);
 
-	ierr = create_veloc_2d(Nx-1,Nz-1,Px,Pz);CHKERRQ(ierr);
+	ierr = create_veloc(Nx-1,Nz-1,Px,Pz);CHKERRQ(ierr);
 
 	if (geoq_on){
 		PetscPrintf(PETSC_COMM_WORLD,"\nSwarm (creating)\n");
@@ -165,7 +165,7 @@ int main(int argc,char **args)
 	PetscPrintf(PETSC_COMM_WORLD,"Solution of the pressure and velocity fields: done\n");
 
 	PetscPrintf(PETSC_COMM_WORLD,"\nWriting output files:\n");
-	ierr = write_veloc_3d(tcont,binary_output);
+	ierr = write_veloc(tcont,binary_output);
 	ierr = write_veloc_cond(tcont,binary_output);
 
 	sprintf(variable_name,"temperature");
@@ -210,9 +210,9 @@ int main(int argc,char **args)
 		ierr = rescaleVeloc(Veloc_fut,tempo);
 		ierr = multi_veloc_change(Veloc_fut,tempo);
 
-		ierr = build_thermal_3d();CHKERRQ(ierr);
+		ierr = build_thermal();CHKERRQ(ierr);
 
-		ierr = solve_thermal_3d();CHKERRQ(ierr);
+		ierr = solve_thermal();CHKERRQ(ierr);
 
 		ierr = veloc_total(); CHKERRQ(ierr);
 
@@ -255,7 +255,7 @@ int main(int argc,char **args)
 			sprintf(variable_name,"temperature");
 			ierr = write_all_(tcont,Temper,variable_name,binary_output);
 			ierr = write_geoq_(tcont,binary_output);
-			ierr = write_veloc_3d(tcont,binary_output);
+			ierr = write_veloc(tcont,binary_output);
 			ierr = write_pressure(tcont,binary_output);
 			ierr = write_tempo(tcont);
 			PetscSNPrintf(prefix,PETSC_MAX_PATH_LEN-1,"step_%d",tcont);
@@ -279,7 +279,7 @@ int main(int argc,char **args)
 
 	ierr = destroy_thermal_();CHKERRQ(ierr);
 
-	destroy_veloc_3d();
+	destroy_veloc();
 
 	if (geoq_on && n_interfaces>0 && interfaces_from_ascii==1)	sp_destroy();
 
