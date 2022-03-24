@@ -38,7 +38,7 @@ PetscErrorCode reader(int rank, const char fName[]);
 PetscErrorCode write_veloc(int cont, PetscInt binary_out);
 PetscErrorCode write_veloc_cond(int cont, PetscInt binary_out);
 PetscErrorCode destroy_veloc();
-PetscErrorCode Calc_dt_calor();
+double Calc_dt_calor(int rank);
 PetscErrorCode write_tempo(int cont);
 PetscErrorCode veloc_total();
 PetscErrorCode rescaleVeloc(Vec Veloc_fut, double tempo);
@@ -179,7 +179,7 @@ int main(int argc,char **args)
 	}
 
 	VecCopy(Veloc_fut,Veloc);
-	ierr = Calc_dt_calor();
+	dt_calor_sec = Calc_dt_calor(rank);
 
 	if (initial_print_step > 0) {
 		print_step_aux = print_step;
@@ -270,7 +270,7 @@ int main(int argc,char **args)
 			}
 		}
 
-		ierr = Calc_dt_calor();
+		dt_calor_sec = Calc_dt_calor(rank);
 
 	}
 	if (rank==0) printf("write\n");
@@ -291,11 +291,7 @@ int main(int argc,char **args)
 }
 
 
-PetscErrorCode Calc_dt_calor(){
-
-	int rank;
-	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
-
+double Calc_dt_calor(int rank) {
 	//////calc dt
 	PetscInt ind_v_max,ind_v_min,ind_v_mod;
 	PetscReal min_v,max_v,max_mod_v,dh_v_mod;
@@ -317,8 +313,7 @@ PetscErrorCode Calc_dt_calor(){
 	dt_calor_sec = dt_calor*seg_per_ano;
 
 
-	PetscFunctionReturn(0);
-
+	return dt_calor_sec;
 }
 
 
