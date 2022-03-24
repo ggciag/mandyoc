@@ -145,7 +145,7 @@ extern int n_interfaces;
 
 extern PetscInt binary_output;
 
-PetscErrorCode create_veloc(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz)
+PetscErrorCode create_veloc(PetscInt mx, PetscInt my, PetscInt mz, PetscInt Px, PetscInt Py, PetscInt Pz)
 {
 
 	PetscInt       dof,stencil_width;

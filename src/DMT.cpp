@@ -94,7 +94,7 @@ extern double kappa;
 extern double RHOM;
 extern double c_heat_capacity;
 
-PetscErrorCode create_thermal(PetscInt mx, PetscInt mz, PetscInt Px, PetscInt Pz)
+PetscErrorCode create_thermal(PetscInt mx, PetscInt my, PetscInt mz, PetscInt Px, PetscInt Py, PetscInt Pz)
 {
 
 	PetscInt       dof,stencil_width;

@@ -21,14 +21,14 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 #include "header.h"
 
 // Petsc prototypes
-PetscErrorCode create_thermal(PetscInt mx, PetscInt mz, PetscInt Px, PetscInt Pz);
+PetscErrorCode create_thermal(PetscInt mx, PetscInt my, PetscInt mz, PetscInt Px, PetscInt Py, PetscInt Pz);
 PetscErrorCode build_thermal();
 PetscErrorCode solve_thermal();
 PetscErrorCode destroy_thermal_();
 PetscErrorCode write_all_(int cont,Vec u, char *variable_name, PetscInt binary_out);
 PetscErrorCode write_pressure(int cont, PetscInt binary_out);
 PetscErrorCode write_geoq_(int cont, PetscInt binary_out);
-PetscErrorCode create_veloc(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz);
+PetscErrorCode create_veloc(PetscInt mx, PetscInt my, PetscInt mz, PetscInt Px, PetscInt Py, PetscInt Pz);
 PetscErrorCode createSwarm();
 PetscErrorCode moveSwarm(PetscReal dt);
 PetscErrorCode Swarm_add_remove();
@@ -101,12 +101,12 @@ int main(int argc,char **args)
 
 	//if (rank==0) printf("dx=%lf dz=%lf\n",dx_const,dz_const);
 
-	ierr = create_thermal(Nx-1, Nz-1, Px, Pz);CHKERRQ(ierr);
+	ierr = create_thermal(Nx-1, Ny-1, Nz-1, Px, Py, Pz);CHKERRQ(ierr);
 
 	sprintf(variable_name,"temperature");
 	ierr = write_all_(-1,Temper, variable_name, binary_output);
 
-	ierr = create_veloc(Nx-1,Nz-1,Px,Pz);CHKERRQ(ierr);
+	ierr = create_veloc(Nx-1, Ny-1, Nz-1, Px, Py, Pz);CHKERRQ(ierr);
 
 	if (geoq_on){
 		PetscPrintf(PETSC_COMM_WORLD,"\nSwarm (creating)\n");
