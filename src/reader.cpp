@@ -314,9 +314,12 @@ PetscErrorCode reader(int rank, const char fName[]){
 	}
 
 	// Broadcast every parameter from the parameter file.
+	MPI_Bcast(&dimensions,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&Nx,1,MPI_LONG,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&Ny,1,MPI_LONG,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&Nz,1,MPI_LONG,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&Lx,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&Ly,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&depth,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&ContMult,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&stepMAX,1,MPI_LONG,0,PETSC_COMM_WORLD);
