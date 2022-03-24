@@ -22,7 +22,7 @@ PetscScalar m_fluvial = 1.0;
 PetscScalar sea_level = 0.0;
 PetscScalar basal_heat = -1.0;
 PetscReal sp_dt = 0.0;
-PetscScalar sp_d_c = 0.0; 
+PetscScalar sp_d_c = 0.0;
 // Parameter file boolean variables
 PetscInt WITH_NON_LINEAR = 0; // 1=True, 0=False
 PetscInt WITH_ADIABATIC_H = 0; // 1=True, 0=False
@@ -94,6 +94,9 @@ int bcT_bot;
 int bcT_left;
 int bcT_right;
 // End of parameter file variables
+
+PetscInt Px = PETSC_DECIDE;
+PetscInt Pz = PETSC_DECIDE;
 
 double visc_MAX_comp;
 double visc_MIN_comp;

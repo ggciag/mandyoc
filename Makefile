@@ -9,6 +9,7 @@ INCFLAGS = -I${PETSC_DIR}/include -I${PETSC_DIR}/${PETSC_ARCH}/include
 
 SRC = src
 SOURCEC = $(SRC)/main.cpp \
+        $(SRC)/options.cpp \
 	$(SRC)/calc_drho.cpp \
 	$(SRC)/calc_visc.cpp \
 	$(SRC)/DM1.cpp \

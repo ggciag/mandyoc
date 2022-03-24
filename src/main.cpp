@@ -11,7 +11,7 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 /* Victor Sacek                           */
 /* Jamison F. Assuncao                    */
 /* Agustina Pesce                         */
-/* Rafael M. da Silva                     */ 
+/* Rafael M. da Silva                     */
 /* [Contributed by Dave May]              */
 
 #include <petscksp.h>
@@ -48,17 +48,16 @@ PetscErrorCode sp_interpolate_surface_particles_to_vec();
 PetscErrorCode evaluate_surface_processes();
 PetscErrorCode sp_write_surface_vec(PetscInt i);
 PetscErrorCode sp_destroy();
-PetscErrorCode load_topo_var(int rank);
 PetscErrorCode rescalePrecipitation(double tempo);
+PetscErrorCode parse_options(int rank);
 
 int main(int argc,char **args)
 {
 	PetscErrorCode ierr;
 	char prefix[PETSC_MAX_PATH_LEN];
-	PetscInt Px,Pz;
 
 	ierr = PetscInitialize(&argc,&args,(char*)0,help);CHKERRQ(ierr);
-	
+
 	PetscPrintf(PETSC_COMM_WORLD,"           __  __              _   _   _____   __     __   ____     _____ \n");
 	PetscPrintf(PETSC_COMM_WORLD,"          |  \\/  |     /\\     | \\ | | |  __ \\  \\ \\   / /  / __ \\   / ____|\n");
 	PetscPrintf(PETSC_COMM_WORLD,"          | \\  / |    /  \\    |  \\| | | |  | |  \\ \\_/ /  | |  | | | |     \n");
@@ -66,7 +65,7 @@ int main(int argc,char **args)
 	PetscPrintf(PETSC_COMM_WORLD,"          | |  | |  / ____ \\  | |\\  | | |__| |    | |    | |__| | | |____ \n");
 	PetscPrintf(PETSC_COMM_WORLD,"          |_|  |_| /_/    \\_\\ |_| \\_| |_____/     |_|     \\____/   \\_____|\n");
 	PetscPrintf(PETSC_COMM_WORLD,"                                                                          \n");
-																	
+
 	PetscPrintf(PETSC_COMM_WORLD,"===================================================================================\n");
 	PetscPrintf(PETSC_COMM_WORLD,"=   MANDYOC: MANtle DYnamics simulatOr Code.\n");
 	PetscPrintf(PETSC_COMM_WORLD,"===================================================================================\n");
@@ -86,71 +85,17 @@ int main(int argc,char **args)
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
 
 	seed = rank;
-	
+
 	// Read ASCII files
 	reader(rank, "param.txt");
+
+	// Parse command line options
+	parse_options(rank);
 
 	PetscLogDouble Tempo1,Tempo2;
 	PetscTime(&Tempo1);
 	char variable_name[100];
 
-	Px = Pz = PETSC_DECIDE;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-Px",&Px,NULL);CHKERRQ(ierr);
-	Pz = Px;
-	ierr = PetscOptionsGetInt(NULL,NULL,"-Pz",&Pz,NULL);CHKERRQ(ierr);
-
-	if (n_interfaces>0 && interfaces_from_ascii==1){
-		ierr = PetscCalloc1(n_interfaces, &seed_layer); CHKERRQ(ierr);
-		seed_layer_size = n_interfaces;
-		ierr = PetscOptionsGetIntArray(NULL,NULL,"-seed",seed_layer,&seed_layer_size,&seed_layer_set); CHKERRQ(ierr);
-
-		ierr = PetscCalloc1(n_interfaces, &strain_seed_layer); CHKERRQ(ierr);
-		strain_seed_layer_size = n_interfaces;
-		ierr = PetscOptionsGetRealArray(NULL,NULL,"-strain_seed",strain_seed_layer,&strain_seed_layer_size,&strain_seed_layer_set); CHKERRQ(ierr);
-		if (strain_seed_layer_set == PETSC_TRUE && seed_layer_set == PETSC_FALSE) {
-			PetscPrintf(PETSC_COMM_WORLD,"Specify the seed layer with the flag -seed (required by -strain_seed)\n");
-			exit(1);
-		}
-		if (strain_seed_layer_set == PETSC_TRUE && seed_layer_set == PETSC_TRUE && seed_layer_size != strain_seed_layer_size) {
-			PetscPrintf(PETSC_COMM_WORLD,"Specify the same number of values in the list for flags -seed and -strain_seed\n");
-			exit(1);
-		}
-		if (strain_seed_layer_set == PETSC_FALSE && seed_layer_set == PETSC_TRUE) {
-			PetscPrintf(PETSC_COMM_WORLD,"Using default value '2.0' for -strain_seed (for all seed layers)\n");
-			for (int k = 0; k < seed_layer_size; k++) {
-				strain_seed_layer[k] = 2.0;
-			}
-		}
-		PetscPrintf(PETSC_COMM_WORLD,"Number of seed layers: %d\n", seed_layer_size);
-		for (int k = 0; k < seed_layer_size; k++) {
-			PetscPrintf(PETSC_COMM_WORLD,"seed layer: %d - strain: %lf\n", seed_layer[k], strain_seed_layer[k]);
-		}
-		PetscPrintf(PETSC_COMM_WORLD,"\n");
-	}
-
-	h_air=-1.0;
-	ierr = PetscOptionsGetReal(NULL,NULL,"-h_air",&h_air,NULL);CHKERRQ(ierr);
-	if (pressure_in_rheol==0 && h_air<0.0){
-		PetscPrintf(PETSC_COMM_WORLD,"Specify the thickness of the air layer with the flag -h_air\n");
-		PetscPrintf(PETSC_COMM_WORLD,"(you adopted depth dependent rheology: -pressure_in_rheol 0)\n");
-		exit(1);
-	}
-	else h_air=0.0;
-
-
-	if (sp_surface_processes && sp_surface_tracking && sp_mode == 1) load_topo_var(rank);
-
-	
-	if (sp_mode == 2 && PETSC_FALSE == set_sp_d_c) {
-		ierr = PetscPrintf(PETSC_COMM_WORLD,"-sp_mode 2 (diffusion) using default value: sp_d_c %e\n", sp_d_c); CHKERRQ(ierr);
-	} else if (sp_mode == 2) {
-		ierr = PetscPrintf(PETSC_COMM_WORLD,"-sp_mode 2 (diffusion) using custom value: sp_d_c %e\n", sp_d_c); CHKERRQ(ierr);
-	} else if (sp_mode == 3) {
-		ierr = PetscPrintf(PETSC_COMM_WORLD,"-sp_mode 3 (fluvial erosion) using K_fluvial: %e and sea_level %e\n", K_fluvial,sea_level); CHKERRQ(ierr);
-	}else if (sp_mode == 4) {
-		ierr = PetscPrintf(PETSC_COMM_WORLD,"-sp_mode 4 (fluvial erosion mode 2) using K_fluvial: %e and sea_level %e\n", K_fluvial,sea_level); CHKERRQ(ierr);
-	}
-	
 	dx_const = Lx/(Nx-1);
 	dz_const = depth/(Nz-1);
 
@@ -168,10 +113,10 @@ int main(int argc,char **args)
 		ierr = createSwarm();CHKERRQ(ierr);
 		PetscPrintf(PETSC_COMM_WORLD,"Swarm: done\n");
 	}
-	
+
 //	PetscPrintf(PETSC_COMM_SELF,"********** <rank:%d> <particles_per_ele:%d>\n", rank, particles_per_ele); -> conversar com Victor sobre
 //	PetscPrintf(PETSC_COMM_SELF,"********** <rank:%d> <layers:%d>\n", rank, layers); -> conversar com Victor sobre
-	
+
 	// Surface Processes Swarm
 	if (geoq_on && sp_surface_tracking && n_interfaces>0 && interfaces_from_ascii==1) {
 		PetscPrintf(PETSC_COMM_WORLD, "\nSP Swarm (creating)\n");
@@ -179,7 +124,7 @@ int main(int argc,char **args)
 		PetscPrintf(PETSC_COMM_WORLD, "SP Swarm: done\n");
 		ierr = sp_interpolate_surface_particles_to_vec(); CHKERRQ(ierr);
 	}
-	
+
 	// Gerya p. 215
 	if (visc_MAX>visc_MIN && initial_dynamic_range>0){
 		double visc_contrast = PetscLog10Real(visc_MAX/visc_MIN);
@@ -222,7 +167,7 @@ int main(int argc,char **args)
 	PetscPrintf(PETSC_COMM_WORLD,"\nWriting output files:\n");
 	ierr = write_veloc_3d(tcont,binary_output);
 	ierr = write_veloc_cond(tcont,binary_output);
-	
+
 	sprintf(variable_name,"temperature");
 	ierr = write_all_(tcont,Temper,variable_name, binary_output);
 	ierr = write_pressure(tcont,binary_output);
@@ -370,7 +315,7 @@ PetscErrorCode Calc_dt_calor(){
 	if (dt_calor>dt_MAX) dt_calor=dt_MAX;
 
 	dt_calor_sec = dt_calor*seg_per_ano;
-	
+
 
 	PetscFunctionReturn(0);
 
