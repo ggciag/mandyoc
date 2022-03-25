@@ -21,7 +21,7 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 #include "header.h"
 
 // Petsc prototypes
-PetscErrorCode create_thermal(PetscInt mx, PetscInt my, PetscInt mz, PetscInt Px, PetscInt Py, PetscInt Pz);
+PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt mz, PetscInt Px, PetscInt Py, PetscInt Pz);
 PetscErrorCode build_thermal();
 PetscErrorCode solve_thermal();
 PetscErrorCode destroy_thermal_();
@@ -102,7 +102,7 @@ int main(int argc,char **args)
 
 	//if (rank==0) printf("dx=%lf dz=%lf\n",dx_const,dz_const);
 
-	ierr = create_thermal(Nx-1, Ny-1, Nz-1, Px, Py, Pz);CHKERRQ(ierr);
+	ierr = create_thermal(dimensions, Nx-1, Ny-1, Nz-1, Px, Py, Pz);CHKERRQ(ierr);
 
 	sprintf(variable_name,"temperature");
 	ierr = write_all_(-1,Temper, variable_name, binary_output);

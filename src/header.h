@@ -173,6 +173,7 @@ double r5p9 = 5.0/9.0;
 
 PetscReal *NT;
 PetscReal *NT_x;
+PetscReal *NT_y;
 PetscReal *NT_z;
 
 
