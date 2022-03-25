@@ -222,6 +222,12 @@ Vec local_geoq_strain;
 Vec geoq_strain_rate;
 Vec local_geoq_strain_rate;
 
+PetscReal *N_x_Gauss;
+PetscReal *N_y_Gauss;
+PetscReal *N_z_Gauss;
+
+PetscInt print_visc;
+
 Mat VA, VB, VG;
 Vec Vf, Veloc, Veloc_fut,Veloc_weight,Veloc_0;
 
@@ -295,6 +301,8 @@ PetscInt *p_i;
 
 PetscReal *p_add_coor;
 PetscReal *p_add_r;
+PetscReal *p_add_r_rho;
+PetscReal *p_add_r_H;
 PetscInt *p_add_i;
 PetscInt *p_add_layer;
 PetscReal *p_add_r_strain;

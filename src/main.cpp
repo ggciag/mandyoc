@@ -22,25 +22,27 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 
 // Petsc prototypes
 PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt mz, PetscInt Px, PetscInt Py, PetscInt Pz);
-PetscErrorCode build_thermal();
-PetscErrorCode solve_thermal();
+PetscErrorCode build_thermal(int dimensions);
+PetscErrorCode solve_thermal(int dimensions);
 PetscErrorCode destroy_thermal_();
 PetscErrorCode write_all_(int cont,Vec u, char *variable_name, PetscInt binary_out);
 PetscErrorCode write_pressure(int cont, PetscInt binary_out);
 PetscErrorCode write_geoq_(int cont, PetscInt binary_out);
-PetscErrorCode create_veloc(PetscInt mx, PetscInt my, PetscInt mz, PetscInt Px, PetscInt Py, PetscInt Pz);
-PetscErrorCode createSwarm();
+PetscErrorCode create_veloc(int dimensions, PetscInt mx, PetscInt my, PetscInt mz, PetscInt Px, PetscInt Py, PetscInt Pz);
+PetscErrorCode createSwarm_2d();
+PetscErrorCode createSwarm_3d();
 PetscErrorCode moveSwarm(PetscReal dt);
 PetscErrorCode Swarm_add_remove();
-PetscErrorCode SwarmViewGP(DM dms,const char prefix[]);
-PetscErrorCode Init_Veloc();
+PetscErrorCode SwarmViewGP_3d_2d(DM dms,const char prefix[]);
+PetscErrorCode Init_Veloc(int dimensions);
 PetscErrorCode reader(int rank, const char fName[]);
 PetscErrorCode write_veloc(int cont, PetscInt binary_out);
 PetscErrorCode write_veloc_cond(int cont, PetscInt binary_out);
 PetscErrorCode destroy_veloc();
 double Calc_dt_calor(int rank);
 PetscErrorCode write_tempo(int cont);
-PetscErrorCode veloc_total();
+PetscErrorCode calc_drho();
+PetscErrorCode veloc_total(int dimensions);
 PetscErrorCode rescaleVeloc(Vec Veloc_fut, double tempo);
 PetscErrorCode multi_veloc_change(Vec Veloc_fut,double tempo);
 PetscErrorCode sp_create_surface_vec();
@@ -100,18 +102,22 @@ int main(int argc,char **args)
 	dy_const = Ly/(Ny-1);
 	dz_const = depth/(Nz-1);
 
-	//if (rank==0) printf("dx=%lf dz=%lf\n",dx_const,dz_const);
+	//PetscPrintf(PETSC_COMM_WORLD, "dx=%lf dz=%lf\n",dx_const,dz_const);
 
 	ierr = create_thermal(dimensions, Nx-1, Ny-1, Nz-1, Px, Py, Pz);CHKERRQ(ierr);
 
 	sprintf(variable_name,"temperature");
 	ierr = write_all_(-1,Temper, variable_name, binary_output);
 
-	ierr = create_veloc(Nx-1, Ny-1, Nz-1, Px, Py, Pz);CHKERRQ(ierr);
+	ierr = create_veloc(dimensions, Nx-1, Ny-1, Nz-1, Px, Py, Pz);CHKERRQ(ierr);
 
 	if (geoq_on){
 		PetscPrintf(PETSC_COMM_WORLD,"\nSwarm (creating)\n");
-		ierr = createSwarm();CHKERRQ(ierr);
+		if (dimensions == 2) {
+			ierr = createSwarm_2d(); CHKERRQ(ierr);
+		} else {
+			ierr = createSwarm_3d(); CHKERRQ(ierr);
+		}
 		PetscPrintf(PETSC_COMM_WORLD,"Swarm: done\n");
 	}
 
@@ -119,11 +125,15 @@ int main(int argc,char **args)
 //	PetscPrintf(PETSC_COMM_SELF,"********** <rank:%d> <layers:%d>\n", rank, layers); -> conversar com Victor sobre
 
 	// Surface Processes Swarm
-	if (geoq_on && sp_surface_tracking && n_interfaces>0 && interfaces_from_ascii==1) {
+	if (dimensions == 2 && geoq_on && sp_surface_tracking && n_interfaces>0 && interfaces_from_ascii==1) {
 		PetscPrintf(PETSC_COMM_WORLD, "\nSP Swarm (creating)\n");
 		ierr = sp_create_surface_vec(); CHKERRQ(ierr);
 		PetscPrintf(PETSC_COMM_WORLD, "SP Swarm: done\n");
 		ierr = sp_interpolate_surface_particles_to_vec(); CHKERRQ(ierr);
+	}
+
+	if (dimensions == 3) {
+			calc_drho(); // CHECK: does need this call here?
 	}
 
 	// Gerya p. 215
@@ -139,7 +149,7 @@ int main(int argc,char **args)
 
 		PetscPrintf(PETSC_COMM_WORLD,"\n\nViscosity range: %.3lg %.3lg\n\n",visc_MIN_comp,visc_MAX_comp);
 
-		ierr = veloc_total(); CHKERRQ(ierr);
+		ierr = veloc_total(dimensions); CHKERRQ(ierr);
 
 		while ((visc_MIN_comp!=visc_MIN) && (visc_MAX_comp!=visc_MAX)){
 
@@ -151,7 +161,7 @@ int main(int argc,char **args)
 
 			PetscPrintf(PETSC_COMM_WORLD,"\n\nViscosity range: %.3lg %.3lg\n\n",visc_MIN_comp,visc_MAX_comp);
 
-			ierr = veloc_total(); CHKERRQ(ierr);
+			ierr = veloc_total(dimensions); CHKERRQ(ierr);
 
 			n_visc++;
 		}
@@ -160,7 +170,7 @@ int main(int argc,char **args)
 		if (visc_MAX==visc_MIN) visc_MAX = visc_MIN*1.0001;  //avoiding the problem to the f2 in the denominator (Gerya...)
 		visc_MIN_comp = visc_MIN;
 		visc_MAX_comp = visc_MAX;
-		ierr = veloc_total(); CHKERRQ(ierr);
+		ierr = veloc_total(dimensions); CHKERRQ(ierr);
 	}
 
 	PetscPrintf(PETSC_COMM_WORLD,"Solution of the pressure and velocity fields: done\n");
@@ -175,7 +185,7 @@ int main(int argc,char **args)
 	ierr = write_geoq_(tcont,binary_output);
 	ierr = write_tempo(tcont);
 
-	if (sp_surface_tracking && geoq_on && n_interfaces>0 && interfaces_from_ascii==1) {
+	if (dimensions == 2 && sp_surface_tracking && geoq_on && n_interfaces>0 && interfaces_from_ascii==1) {
 		sp_write_surface_vec(tcont);
 	}
 
@@ -189,7 +199,7 @@ int main(int argc,char **args)
 		PetscPrintf(PETSC_COMM_WORLD, "\n\n*** Using custom initial print_step = %d until %.3g Myr\n\n", print_step, initial_print_max_time);
 	}
 
-	if (sp_surface_processes && PETSC_FALSE == set_sp_dt) {
+	if (dimensions == 2 && sp_surface_processes && PETSC_FALSE == set_sp_dt) {
 		sp_dt = 10.0 * dt_calor;
 		PetscPrintf(PETSC_COMM_WORLD, "\n\n*** Using default sp_dt\n\n");
 	}
@@ -211,13 +221,13 @@ int main(int argc,char **args)
 		ierr = rescaleVeloc(Veloc_fut,tempo);
 		ierr = multi_veloc_change(Veloc_fut,tempo);
 
-		ierr = build_thermal();CHKERRQ(ierr);
+		ierr = build_thermal(dimensions);CHKERRQ(ierr);
 
-		ierr = solve_thermal();CHKERRQ(ierr);
+		ierr = solve_thermal(dimensions);CHKERRQ(ierr);
 
-		ierr = veloc_total(); CHKERRQ(ierr);
+		ierr = veloc_total(dimensions); CHKERRQ(ierr);
 
-		if (sp_surface_processes && geoq_on && n_interfaces>0 && interfaces_from_ascii==1 && (tempo > sp_eval_time || fabs(tempo-sp_eval_time) < 0.0001)) {
+		if (dimensions == 2 && sp_surface_processes && geoq_on && n_interfaces>0 && interfaces_from_ascii==1 && (tempo > sp_eval_time || fabs(tempo-sp_eval_time) < 0.0001)) {
 			PetscPrintf(PETSC_COMM_WORLD,"\nEvaluating sp...\n");
 
 			ierr = rescalePrecipitation(tempo);
@@ -247,7 +257,7 @@ int main(int argc,char **args)
 			Swarm_add_remove();
 		}
 
-		if (sp_surface_tracking && geoq_on && n_interfaces>0 && interfaces_from_ascii==1) {
+		if (dimensions == 2 && sp_surface_tracking && geoq_on && n_interfaces>0 && interfaces_from_ascii==1) {
 			ierr = sp_interpolate_surface_particles_to_vec(); CHKERRQ(ierr);
 		}
 
@@ -262,10 +272,10 @@ int main(int argc,char **args)
 			PetscSNPrintf(prefix,PETSC_MAX_PATH_LEN-1,"step_%d",tcont);
 			if (geoq_on){
 				if (print_step_files==1){
-					ierr = SwarmViewGP(dms,prefix);CHKERRQ(ierr);
+					ierr = SwarmViewGP_3d_2d(dms,prefix);CHKERRQ(ierr);
 				}
 
-				if (sp_surface_tracking && n_interfaces>0 && interfaces_from_ascii==1) {
+				if (dimensions == 2 && sp_surface_tracking && n_interfaces>0 && interfaces_from_ascii==1) {
 					ierr = sp_write_surface_vec(tcont); CHKERRQ(ierr);
 				}
 			}
@@ -274,7 +284,7 @@ int main(int argc,char **args)
 		dt_calor_sec = Calc_dt_calor(rank);
 
 	}
-	if (rank==0) printf("write\n");
+	PetscPrintf(PETSC_COMM_WORLD, "write\n");
 
 
 
@@ -314,7 +324,7 @@ double Calc_dt_calor(int rank) {
 		if (ind_v_mod%3==0) dh_v_mod = dx_const;
 		if (ind_v_mod%3==1) dh_v_mod = dy_const;
 		if (ind_v_mod%3==2) dh_v_mod = dz_const;
-		if (rank==0) printf("dt = %g",(dh_v_mod/max_mod_v)/seg_per_ano);
+		PetscPrintf(PETSC_COMM_WORLD, "dt = %g",(dh_v_mod/max_mod_v)/seg_per_ano);
 		dt_calor = 0.2*(dh_v_mod/max_mod_v)/seg_per_ano;
 	}
 
@@ -380,7 +390,7 @@ PetscErrorCode rescaleVeloc(Vec Veloc_fut,double tempo)
 
 				PetscPrintf(PETSC_COMM_WORLD,"\n\nViscosity range: %.3lg %.3lg\n\n",visc_MIN_comp,visc_MAX_comp);
 
-				ierr = veloc_total(); CHKERRQ(ierr);
+				ierr = veloc_total(dimensions); CHKERRQ(ierr);
 
 				while ((visc_MIN_comp!=visc_MIN) && (visc_MAX_comp!=visc_MAX)){
 
@@ -392,7 +402,7 @@ PetscErrorCode rescaleVeloc(Vec Veloc_fut,double tempo)
 
 					PetscPrintf(PETSC_COMM_WORLD,"\n\nViscosity range: %.3lg %.3lg\n\n",visc_MIN_comp,visc_MAX_comp);
 
-					ierr = veloc_total(); CHKERRQ(ierr);
+					ierr = veloc_total(dimensions); CHKERRQ(ierr);
 
 					n_visc++;
 				}
@@ -408,7 +418,7 @@ PetscErrorCode multi_veloc_change(Vec Veloc_fut,double tempo){
 	if (cont_mv<n_mv){
 		if (tempo>1.0E6*mv_time[cont_mv]){
 			cont_mv++;
-			Init_Veloc();
+			Init_Veloc(dimensions);
 			if (visc_MAX>visc_MIN && initial_dynamic_range>0){
 				double visc_contrast = PetscLog10Real(visc_MAX/visc_MIN);
 
@@ -421,7 +431,7 @@ PetscErrorCode multi_veloc_change(Vec Veloc_fut,double tempo){
 
 				PetscPrintf(PETSC_COMM_WORLD,"\n\nViscosity range: %.3lg %.3lg\n\n",visc_MIN_comp,visc_MAX_comp);
 
-				ierr = veloc_total(); CHKERRQ(ierr);
+				ierr = veloc_total(dimensions); CHKERRQ(ierr);
 
 				while ((visc_MIN_comp!=visc_MIN) && (visc_MAX_comp!=visc_MAX)){
 
@@ -433,7 +443,7 @@ PetscErrorCode multi_veloc_change(Vec Veloc_fut,double tempo){
 
 					PetscPrintf(PETSC_COMM_WORLD,"\n\nViscosity range: %.3lg %.3lg\n\n",visc_MIN_comp,visc_MAX_comp);
 
-					ierr = veloc_total(); CHKERRQ(ierr);
+					ierr = veloc_total(dimensions); CHKERRQ(ierr);
 
 					n_visc++;
 				}

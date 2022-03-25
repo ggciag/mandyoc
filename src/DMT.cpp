@@ -3,21 +3,24 @@
 
 #include <petsctime.h>
 
-PetscErrorCode montaKeThermal_general(PetscReal *Ke, PetscReal *Me, PetscReal *Fe);
+PetscErrorCode montaKeThermal_general_2d(PetscReal *Ke, PetscReal *Me, PetscReal *Fe);
+PetscErrorCode montaKeThermal_general_3d(PetscReal *Ke, PetscReal *Me, PetscReal *Fe);
 
-PetscErrorCode DMDAGetElementCorners(DM da,PetscInt *sx,PetscInt *sz,PetscInt *mx,PetscInt *mz);
+PetscErrorCode DMDAGetLocalElementSize_2d(DM da,PetscInt *mxl,PetscInt *mzl);
 
-PetscErrorCode DMDAGetLocalElementSize(DM da,PetscInt *mxl,PetscInt *mzl);
-
-PetscErrorCode DMDAGetElementCorners(DM da,PetscInt *sx,PetscInt *sz,PetscInt *mx,PetscInt *mz);
-
-PetscErrorCode AssembleA_Thermal(Mat TA,DM thermal_da,PetscReal *TKe,PetscReal *TMe,PetscReal *TFe,
+PetscErrorCode AssembleA_Thermal_2d(Mat TA,DM thermal_da,PetscReal *TKe,PetscReal *TMe,PetscReal *TFe,
 								 DM veloc_da, Vec Veloc_total);
 
-PetscErrorCode AssembleF_Thermal(Vec F,DM thermal_da,PetscReal *TKe,PetscReal *TMe,PetscReal *TFe,
+PetscErrorCode AssembleF_Thermal_2d(Vec F,DM thermal_da,PetscReal *TKe,PetscReal *TMe,PetscReal *TFe,
 								 DM veloc_da, Vec Veloc_total);
 
-PetscErrorCode Thermal_init(Vec F,DM thermal_da);
+PetscErrorCode AssembleA_Thermal_3d(Mat A,DM thermal_da,PetscReal *TKe,PetscReal *TMe,PetscReal *TFe,
+								 DM veloc_da, Vec Veloc_total);
+
+PetscErrorCode AssembleF_Thermal_3d(Vec F,DM thermal_da,PetscReal *TKe,PetscReal *TMe,PetscReal *TFe,
+								 DM veloc_da, Vec Veloc_total);
+
+PetscErrorCode Thermal_init_2d(Vec F,DM thermal_da);
 
 PetscErrorCode Heat_flow_at_the_base();
 
@@ -163,8 +166,11 @@ PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt
 
 	ierr = PetscCalloc1(V_GT,&v_vec_aux_ele); CHKERRQ(ierr);
 
-	montaKeThermal_general(TKe,TMe,TFe);
-
+	if (dimensions == 2) {
+		montaKeThermal_general_2d(TKe,TMe,TFe);
+	} else {
+		montaKeThermal_general_3d(TKe,TMe,TFe);
+	}
 
 	if (dimensions == 2) {
 		ierr = DMDASetUniformCoordinates(da_Thermal, 0.0, Lx, -depth, 0.0, 0.0, 0.0); CHKERRQ(ierr);
@@ -195,7 +201,7 @@ PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt
 
 	ierr = DMCreateGlobalVector(da_Thermal,&dRho);CHKERRQ(ierr);
 
-	ierr = Thermal_init(Temper,da_Thermal);
+	ierr = Thermal_init_2d(Temper,da_Thermal);
 
 	ierr = DMCreateLocalVector(da_Thermal,&local_FT);
 	ierr = DMCreateLocalVector(da_Thermal,&local_Temper);
@@ -292,14 +298,13 @@ PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt
 	ierr = KSPSetOptionsPrefix(T_ksp,"thermal_"); /* stokes */ CHKERRQ(ierr);
 
 	PetscTime(&Tempo2p);
-	if (rank==0) printf("temperature (creation): %lf s\n",Tempo2p-Tempo1p);
-
+	PetscPrintf(PETSC_COMM_WORLD, "temperature (creation): %lf s\n",Tempo2p-Tempo1p);
 
 	PetscFunctionReturn(0);
 }
 
 
-PetscErrorCode build_thermal()
+PetscErrorCode build_thermal(int dimensions)
 {
 
 	PetscErrorCode ierr;
@@ -316,20 +321,22 @@ PetscErrorCode build_thermal()
 	ierr = MatZeroEntries(TB);CHKERRQ(ierr);
 	ierr = VecZeroEntries(Tf);CHKERRQ(ierr);
 
-
-	ierr = AssembleA_Thermal(TA,da_Thermal,TKe,TMe,TFe,da_Veloc,Veloc_fut);CHKERRQ(ierr);
-
-	ierr = AssembleF_Thermal(Tf,da_Thermal,TKe,TMe,TFe,da_Veloc,Veloc);CHKERRQ(ierr);
-
+	if (dimensions == 2) {
+		ierr = AssembleA_Thermal_2d(TA,da_Thermal,TKe,TMe,TFe,da_Veloc,Veloc_fut);CHKERRQ(ierr);
+		ierr = AssembleF_Thermal_2d(Tf,da_Thermal,TKe,TMe,TFe,da_Veloc,Veloc);CHKERRQ(ierr);
+	} else {
+		ierr = AssembleA_Thermal_3d(TA,da_Thermal,TKe,TMe,TFe,da_Veloc,Veloc_fut);CHKERRQ(ierr);
+		ierr = AssembleF_Thermal_3d(Tf,da_Thermal,TKe,TMe,TFe,da_Veloc,Veloc);CHKERRQ(ierr);
+	}
 
 	PetscTime(&Tempo2p);
-	if (rank==0) printf("Thermal (building): %lf s\n",Tempo2p-Tempo1p);
+	PetscPrintf(PETSC_COMM_WORLD, "Thermal (building): %lf s\n",Tempo2p-Tempo1p);
 
 	PetscFunctionReturn(0);
 
 }
 
-PetscErrorCode solve_thermal()
+PetscErrorCode solve_thermal(int dimensions)
 {
 	PetscErrorCode ierr;
 	PetscLogDouble Tempo1,Tempo2;
@@ -351,16 +358,17 @@ PetscErrorCode solve_thermal()
 
 	ierr = KSPSolve(T_ksp,Tf,Temper);CHKERRQ(ierr);
 
-	VecPointwiseMult(Temper,Temper,Temper_Cond); ///zero at the b.c.
-	VecAXPY(Temper,1.0,Temper_0); ///applying Teloc_0 in Teloc at the b.c.
+	if (dimensions == 2) {
+		VecPointwiseMult(Temper,Temper,Temper_Cond); ///zero at the b.c.
+		VecAXPY(Temper,1.0,Temper_0); ///applying Teloc_0 in Teloc at the b.c.
 
-	if (basal_heat>0) Heat_flow_at_the_base();
+		if (basal_heat>0) Heat_flow_at_the_base();
+	}
 
 	PetscTime(&Tempo2);
-	if (rank==0) printf("Thermal (solution): %lf s\n",Tempo2-Tempo1);
+	PetscPrintf(PETSC_COMM_WORLD, "Thermal (solution): %lf s\n",Tempo2-Tempo1);
 
 	PetscFunctionReturn(0);
-
 }
 
 
@@ -446,7 +454,7 @@ PetscErrorCode destroy_thermal_()
 	ierr = DMDestroy(&da_Thermal);CHKERRQ(ierr);
 
 	PetscTime(&Tempo2);
-	if (rank==0) printf("Thermal (destroying): %lf\n",Tempo2-Tempo1);
+	PetscPrintf(PETSC_COMM_WORLD, "Thermal (destroying): %lf\n",Tempo2-Tempo1);
 
 
 	PetscFunctionReturn(0);

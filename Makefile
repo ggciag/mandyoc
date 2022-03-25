@@ -12,11 +12,13 @@ SOURCEC = $(SRC)/main.cpp \
         $(SRC)/options.cpp \
 	$(SRC)/calc_drho.cpp \
 	$(SRC)/calc_visc.cpp \
-	$(SRC)/DM1.cpp \
+	$(SRC)/DM1_2d.cpp \
+	$(SRC)/DM1_3d.cpp \
 	$(SRC)/DM1_v.cpp \
 	$(SRC)/DMT.cpp \
 	$(SRC)/DMv.cpp \
-	$(SRC)/DMSwarm.cpp \
+	$(SRC)/DMSwarm_2d.cpp \
+	$(SRC)/DMSwarm_3d.cpp \
 	$(SRC)/DMSwarm2mesh.cpp \
 	$(SRC)/DMSwarm_move.cpp \
 	$(SRC)/thermal_Ke.cpp \

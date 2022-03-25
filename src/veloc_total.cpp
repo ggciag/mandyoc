@@ -1,9 +1,9 @@
 #include <petscksp.h>
 #include <petscmath.h>
 
-PetscErrorCode build_veloc();
+PetscErrorCode build_veloc(int dimensions);
 
-PetscErrorCode solve_veloc();
+PetscErrorCode solve_veloc(int dimensions);
 
 extern Vec Veloc;
 extern Vec Veloc_fut;
@@ -19,7 +19,7 @@ extern double visc_MIN;
 extern PetscReal Xi_min;
 
 
-PetscErrorCode veloc_total()
+PetscErrorCode veloc_total(int dimensions)
 {
 	PetscErrorCode ierr;
 
@@ -30,9 +30,9 @@ PetscErrorCode veloc_total()
 	VecCopy(Veloc_fut,Veloc);
 
 	if (WITH_NON_LINEAR==0){
-		ierr = build_veloc();CHKERRQ(ierr);
+		ierr = build_veloc(dimensions);CHKERRQ(ierr);
 
-		ierr = solve_veloc();CHKERRQ(ierr);
+		ierr = solve_veloc(dimensions);CHKERRQ(ierr);
 	}
 	else {
 
@@ -47,9 +47,9 @@ PetscErrorCode veloc_total()
 
 		for (int step=0; step<700 && Xi>Xi_min; step++){
 
-			ierr = build_veloc();CHKERRQ(ierr);
+			ierr = build_veloc(dimensions);CHKERRQ(ierr);
 
-			ierr = solve_veloc();CHKERRQ(ierr);
+			ierr = solve_veloc(dimensions);CHKERRQ(ierr);
 
 			VecCopy(Veloc_fut,Veloc_step2);
 
