@@ -1,3 +1,6 @@
+.. image:: https://joss.theoj.org/papers/10.21105/joss.04070/status.svg
+   :target: https://doi.org/10.21105/joss.04070
+
 .. raw:: html
 
     <div class="banner">
