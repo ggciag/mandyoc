@@ -5,6 +5,9 @@ on:
     types:
       - published
 
+  # Allows run this workflow manually from the Actions tab
+  workflow_dispatch:
+
 jobs:
   docker:
     runs-on: ubuntu-latest
