@@ -189,10 +189,12 @@ PetscErrorCode create_veloc(int dimensions, PetscInt mx, PetscInt my, PetscInt m
 		ierr = DMDACreate2d(PETSC_COMM_WORLD, boundary_type, DM_BOUNDARY_NONE, DMDA_STENCIL_BOX,
 							mx+1, mz+1, Px, Pz, dof, stencil_width, NULL, NULL, &da_Veloc); CHKERRQ(ierr);
 	} else {
-		//
-		// NOTE: periodic_boundary is currently not used in 3D
-		//
-		ierr = PetscPrintf(PETSC_COMM_WORLD,"\n\nWARNING: periodic_boundary is currently not supported in 3D mode\n\n");
+		if (boundary_type == DM_BOUNDARY_PERIODIC) {
+			//
+			// NOTE: periodic_boundary is currently not used in 3D
+			//
+			ierr = PetscPrintf(PETSC_COMM_WORLD,"\n\nWARNING: periodic_boundary is currently not supported in 3D mode\n\n");
+		}
 
 		dof = 3;
 		ierr = DMDACreate3d(PETSC_COMM_WORLD, DM_BOUNDARY_NONE, DM_BOUNDARY_NONE, DM_BOUNDARY_NONE, DMDA_STENCIL_BOX,
