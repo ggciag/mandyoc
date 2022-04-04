@@ -31,9 +31,11 @@ PetscErrorCode write_geoq_(int cont, PetscInt binary_out);
 PetscErrorCode create_veloc(int dimensions, PetscInt mx, PetscInt my, PetscInt mz, PetscInt Px, PetscInt Py, PetscInt Pz);
 PetscErrorCode createSwarm_2d();
 PetscErrorCode createSwarm_3d();
-PetscErrorCode moveSwarm(PetscReal dt);
-PetscErrorCode Swarm_add_remove();
-PetscErrorCode SwarmViewGP_3d_2d(DM dms,const char prefix[]);
+PetscErrorCode moveSwarm(int dimensions, PetscReal dt);
+PetscErrorCode Swarm_add_remove_2d();
+PetscErrorCode Swarm_add_remove_3d();
+PetscErrorCode SwarmViewGP_2d(DM dms,const char prefix[]);
+PetscErrorCode SwarmViewGP_3d(DM dms,const char prefix[]);
 PetscErrorCode Init_Veloc(int dimensions);
 PetscErrorCode reader(int rank, const char fName[]);
 PetscErrorCode write_veloc(int cont, PetscInt binary_out);
@@ -218,8 +220,10 @@ int main(int argc,char **args)
 
 		//PetscPrintf(PETSC_COMM_WORLD,"next sp %.3g Myr\n\n", sp_eval_time);
 
-		ierr = rescaleVeloc(Veloc_fut,tempo);
-		ierr = multi_veloc_change(Veloc_fut,tempo);
+		if (dimensions == 2) {
+			ierr = rescaleVeloc(Veloc_fut,tempo);
+			ierr = multi_veloc_change(Veloc_fut,tempo);
+		}
 
 		ierr = build_thermal(dimensions);CHKERRQ(ierr);
 
@@ -241,7 +245,7 @@ int main(int argc,char **args)
 		if (geoq_on){
 			if (RK4==1){
 				VecCopy(Veloc_fut,Veloc_weight);
-				ierr = moveSwarm(dt_calor_sec);
+				ierr = moveSwarm(dimensions, dt_calor_sec);
 			}
 			else {
 				for (PetscInt cont=0, max_cont=4;cont<max_cont; cont++){
@@ -251,10 +255,15 @@ int main(int argc,char **args)
 					VecCopy(Veloc,Veloc_weight);
 					//			y			a		b		x
 					VecAXPBY(Veloc_weight, fac, (1.0-fac),Veloc_fut); //y = a*x + b*y
-					ierr = moveSwarm(dt_calor_sec/max_cont);
+					ierr = moveSwarm(dimensions, dt_calor_sec/max_cont);
 				}
 			}
-			Swarm_add_remove();
+
+			if (dimensions == 2) {
+				Swarm_add_remove_2d();
+			} else {
+				Swarm_add_remove_3d();
+			}
 		}
 
 		if (dimensions == 2 && sp_surface_tracking && geoq_on && n_interfaces>0 && interfaces_from_ascii==1) {
@@ -272,7 +281,11 @@ int main(int argc,char **args)
 			PetscSNPrintf(prefix,PETSC_MAX_PATH_LEN-1,"step_%d",tcont);
 			if (geoq_on){
 				if (print_step_files==1){
-					ierr = SwarmViewGP_3d_2d(dms,prefix);CHKERRQ(ierr);
+					if (dimensions == 2) {
+						ierr = SwarmViewGP_2d(dms,prefix);CHKERRQ(ierr);
+					} else {
+						ierr = SwarmViewGP_3d(dms,prefix);CHKERRQ(ierr);
+					}
 				}
 
 				if (dimensions == 2 && sp_surface_tracking && n_interfaces>0 && interfaces_from_ascii==1) {

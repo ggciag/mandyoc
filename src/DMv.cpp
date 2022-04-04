@@ -69,8 +69,9 @@ PetscErrorCode Init_Veloc(int dimensions);
 
 PetscErrorCode write_all_(int cont,Vec u, char *variable_name, PetscInt binary_out);
 
-PetscErrorCode moveSwarm(PetscReal dt);
-PetscErrorCode Swarm2Mesh();
+PetscErrorCode moveSwarm(int dimensions, PetscReal dt);
+PetscErrorCode Swarm2Mesh_2d();
+PetscErrorCode Swarm2Mesh_3d();
 
 extern double r06;
 extern double r8p9;
@@ -500,12 +501,15 @@ PetscErrorCode build_veloc(int dimensions)
 		write_pressure(-1,binary_output);
 	}
 
-	ierr = moveSwarm(0.0);
-	ierr = Swarm2Mesh();
+	ierr = moveSwarm(dimensions, 0.0);
 
 	if (dimensions == 2) {
+		ierr = Swarm2Mesh_2d();
+
 		ierr = AssembleA_Veloc_2d(VA,VG,da_Veloc,da_Thermal); CHKERRQ(ierr);
 	} else {
+		ierr = Swarm2Mesh_3d();
+
 		ierr = AssembleA_Veloc_3d(VA,VG,da_Veloc,da_Thermal); CHKERRQ(ierr);
 	}
 
