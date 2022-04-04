@@ -69,7 +69,7 @@ extern PetscInt strain_seed_layer_size;
 extern PetscBool strain_seed_layer_set;
 
 
-PetscErrorCode _DMLocatePoints_DMDARegular_3d_IS_3d(DM dm,Vec pos,IS *iscell)
+PetscErrorCode _DMLocatePoints_DMDARegular_IS_3d(DM dm,Vec pos,IS *iscell)
 {
 
 	PetscInt p,n,bs,npoints,si,sj,sk,milocal,mjlocal,mklocal,mx,my,mz;
@@ -144,7 +144,7 @@ PetscErrorCode DMLocatePoints_DMDARegular_3d(DM dm,Vec pos,DMPointLocationType l
 	const PetscInt *boxCells;
 	PetscErrorCode ierr;
 
-	ierr = _DMLocatePoints_DMDARegular_3d_IS_3d(dm,pos,&iscell);CHKERRQ(ierr);
+	ierr = _DMLocatePoints_DMDARegular_IS_3d(dm,pos,&iscell);CHKERRQ(ierr);
 
 	//PetscPrintf(PETSC_COMM_WORLD,"teste swarm\n");
 
