@@ -21,6 +21,7 @@ PetscErrorCode AssembleF_Thermal_3d(Vec F,DM thermal_da,PetscReal *TKe,PetscReal
 								 DM veloc_da, Vec Veloc_total);
 
 PetscErrorCode Thermal_init_2d(Vec F,DM thermal_da);
+PetscErrorCode Thermal_init_3d(Vec F,DM thermal_da);
 
 PetscErrorCode Heat_flow_at_the_base();
 
@@ -145,8 +146,6 @@ PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt
 	ierr = DMDASetFieldName(da_Thermal,0,"T");CHKERRQ(ierr);
 
 
-
-
 	ierr = PetscCalloc1(GaussQuad*T_NE,&NT); CHKERRQ(ierr);
 	ierr = PetscCalloc1(GaussQuad*T_NE,&NT_x); CHKERRQ(ierr);
 	if (dimensions == 3) {
@@ -203,7 +202,11 @@ PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt
 
 	ierr = DMCreateGlobalVector(da_Thermal,&dRho);CHKERRQ(ierr);
 
-	ierr = Thermal_init_2d(Temper,da_Thermal);
+	if (dimensions == 2) {
+		ierr = Thermal_init_2d(Temper,da_Thermal);
+	} else {
+		ierr = Thermal_init_3d(Temper,da_Thermal);
+	}
 
 	ierr = DMCreateLocalVector(da_Thermal,&local_FT);
 	ierr = DMCreateLocalVector(da_Thermal,&local_Temper);
@@ -293,7 +296,6 @@ PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt
 		VecScale(Temper_Cond, -1.0);
 		VecShift(Temper_Cond,  1.0);
 	}
-
 
 
 	ierr = KSPCreate(PETSC_COMM_WORLD,&T_ksp);CHKERRQ(ierr);
