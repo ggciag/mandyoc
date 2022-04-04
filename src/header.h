@@ -56,7 +56,7 @@ PetscBool set_sp_d_c = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
 PetscBool plot_sediment = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
 PetscBool a2l = PETSC_TRUE; // PETSC_TRUE/PETSC_FALSE
 // Parameter file native C variables
-int dimensions = -1;
+int dimensions = 2;
 long Nx = -1;
 long Ny = -1;
 long Nz = -1;
