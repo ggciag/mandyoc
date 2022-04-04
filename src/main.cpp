@@ -96,6 +96,17 @@ int main(int argc,char **args)
 	// Parse command line options
 	parse_options(rank);
 
+	// Update elements aux constants
+	if (dimensions == 3) {
+		T_NE = 8;
+		T_GN = 1;
+		DIMEN = 3;
+		GaussQuad = 27;
+		V_NE = 8;
+		V_GN = 3;
+		V_GT = V_NE*V_GN;
+	}
+
 	PetscLogDouble Tempo1,Tempo2;
 	PetscTime(&Tempo1);
 	char variable_name[100];
