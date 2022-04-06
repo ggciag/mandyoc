@@ -414,12 +414,23 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&ramp_end,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);*/
 
 	if (rank==0){
-		printf("Mesh size:   %ld %ld\n",Nx,Nz);
-		printf("Domain size  %lf %lf\n\n",Lx,depth);
+		if (dimensions == 2) {
+			printf("Mesh size:   %ld %ld\n",Nx,Nz);
+			printf("Domain size  %lf %lf\n\n",Lx,depth);
+		} else {
+			printf("Mesh size:   %ld %ld %ld\n",Nx,Ny,Nz);
+			printf("Domain size  %lf %lf %lf\n\n",Lx,Ly,depth);
+		}
 	}
 
 	// Interfaces
-	if (n_interfaces>0 && interfaces_from_ascii==1) PetscCalloc1(Nx*n_interfaces,&interfaces);
+	if (n_interfaces>0 && interfaces_from_ascii==1) {
+		if (dimensions == 2) {
+			PetscCalloc1(Nx*n_interfaces,&interfaces);
+		} else {
+			PetscCalloc1(Nx*Ny*n_interfaces,&interfaces);
+		}
+	}
 	PetscCalloc1(n_interfaces+1,&inter_geoq);
 	PetscCalloc1(n_interfaces+1,&inter_rho);
 	PetscCalloc1(n_interfaces+1,&inter_H);
@@ -525,9 +536,17 @@ PetscErrorCode reader(int rank, const char fName[]){
 				fscanf(f_interfaces,"%lf",&inter_V[i]);
 		else { ErrorInterfaces(); exit(1);}
 
-		for (PetscInt i=0; i<Nx; i++){
-			for (PetscInt j=0; j<n_interfaces; j++){
-				fscanf(f_interfaces,"%lf",&interfaces[j*Nx+i]);
+		if (dimensions == 2) {
+			for (PetscInt i=0; i<Nx; i++){
+				for (PetscInt j=0; j<n_interfaces; j++){
+					fscanf(f_interfaces,"%lf",&interfaces[j*Nx+i]);
+				}
+			}
+		} else {
+			for (PetscInt i=0; i<Nx*Ny; i++){
+				for (PetscInt j=0; j<n_interfaces; j++){
+					fscanf(f_interfaces,"%lf",&interfaces[j*Nx*Ny+i]);
+				}
 			}
 		}
 
@@ -561,7 +580,13 @@ PetscErrorCode reader(int rank, const char fName[]){
 		fclose(f_interfaces); // Close file
 	}
 
-	if (n_interfaces>0 && interfaces_from_ascii==1) MPI_Bcast(interfaces,Nx*n_interfaces,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+	if (n_interfaces>0 && interfaces_from_ascii==1) {
+		if (dimensions == 2) {
+			MPI_Bcast(interfaces,Nx*n_interfaces,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+		} else {
+			MPI_Bcast(interfaces,Nx*Ny*n_interfaces,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+		}
+	}
 	MPI_Bcast(inter_geoq,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_rho,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_H,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
