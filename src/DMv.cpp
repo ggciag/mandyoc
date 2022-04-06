@@ -631,13 +631,12 @@ PetscErrorCode solve_veloc(int dimensions)
 		VecDot(rk_vec2,rk_vec2,&denok);
 
 		PetscPrintf(PETSC_COMM_WORLD, "    Uzawa iteration: %d, denok = %lg, its = %d\n",k,denok,its);
-
 	}
 
 	if (dimensions == 2) {
 		shift_pressure_2d();
 	} else {
-		shift_pressure_2d();
+		shift_pressure_3d();
 	}
 
 	PetscTime(&Tempo2);
