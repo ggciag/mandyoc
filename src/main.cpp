@@ -316,12 +316,15 @@ int main(int argc,char **args)
 
 	destroy_veloc();
 
-	if (geoq_on && n_interfaces>0 && interfaces_from_ascii==1)	sp_destroy();
+
+	if (sp_surface_processes && geoq_on && n_interfaces>0 && interfaces_from_ascii==1) {
+		sp_destroy();
+	}
 
 	PetscTime(&Tempo2);
 
-
 	ierr = PetscFinalize();
+
 	return 0;
 }
 
