@@ -172,7 +172,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 				//diffusion creep
 				//A = Adiff/mu = 5.3E15/8.0E10 = 66250.0;
 				double A1 = 66250.0;
-				double m1 = -2.5;
+				//double m1 = -2.5;
 				//hb = (h/b)^(-m)
 				double hb_power_m = 5656854249492380.0;
 				//double b1 = 5.0E-10;
