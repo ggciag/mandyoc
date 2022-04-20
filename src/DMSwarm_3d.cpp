@@ -303,7 +303,12 @@ PetscErrorCode createSwarm_3d()
 		ierr = DMSwarmSetLocalSizes(dms,milocal*mjlocal*mklocal*(particles_per_ele),4);CHKERRQ(ierr);
 		ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
 
-		particles_add_remove = milocal*mjlocal*mklocal;
+		//particles_add_remove = milocal*mjlocal*mklocal;
+		if (particles_per_ele > 50) {
+			particles_add_remove = milocal*mjlocal*mklocal * (PetscInt)(particles_per_ele/50);
+		} else {
+			particles_add_remove = milocal*mjlocal*mklocal;
+		}
 
 		printf("%d: %d\nparticles_add_remove = %d",rank,nlocal,particles_add_remove);
 
