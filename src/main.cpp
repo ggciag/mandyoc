@@ -21,24 +21,27 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 #include "header.h"
 
 // Petsc prototypes
-PetscErrorCode create_thermal_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz);
+PetscErrorCode create_thermal_2d_3d(PetscInt mx,PetscInt my,PetscInt mz,PetscInt Px,PetscInt Py,PetscInt Pz);
 PetscErrorCode build_thermal_3d();
 PetscErrorCode solve_thermal_3d();
 PetscErrorCode destroy_thermal_();
 PetscErrorCode write_all_(int cont,Vec u, char *variable_name, PetscInt binary_out);
 PetscErrorCode write_pressure(int cont, PetscInt binary_out);
 PetscErrorCode write_geoq_(int cont, PetscInt binary_out);
-PetscErrorCode create_veloc_2d(PetscInt mx,PetscInt mz,PetscInt Px,PetscInt Pz);
+PetscErrorCode create_veloc_2d_3d(PetscInt mx,PetscInt my,PetscInt mz,PetscInt Px,PetscInt Py,PetscInt Pz);
 PetscErrorCode createSwarm();
-PetscErrorCode moveSwarm(PetscReal dt);
-PetscErrorCode Swarm_add_remove();
+PetscErrorCode moveSwarm2d(PetscReal dt);
+PetscErrorCode moveSwarm3d(PetscReal dt);
+PetscErrorCode Swarm_add_remove2d();
+PetscErrorCode Swarm_add_remove3d();
 PetscErrorCode SwarmViewGP(DM dms,const char prefix[]);
 PetscErrorCode Init_Veloc();
 PetscErrorCode reader(int rank, const char fName[]);
 PetscErrorCode write_veloc_3d(int cont, PetscInt binary_out);
 PetscErrorCode write_veloc_cond(int cont, PetscInt binary_out);
 PetscErrorCode destroy_veloc_3d();
-PetscErrorCode Calc_dt_calor();
+PetscErrorCode Calc_dt_calor2d();
+PetscErrorCode Calc_dt_calor3d();
 PetscErrorCode write_tempo(int cont);
 PetscErrorCode veloc_total();
 PetscErrorCode rescaleVeloc(Vec Veloc_fut, double tempo);
@@ -55,7 +58,7 @@ int main(int argc,char **args)
 {
 	PetscErrorCode ierr;
 	char prefix[PETSC_MAX_PATH_LEN];
-	PetscInt Px,Pz;
+	PetscInt Px,Py,Pz;
 
 	ierr = PetscInitialize(&argc,&args,(char*)0,help);CHKERRQ(ierr);
 	
@@ -81,6 +84,14 @@ int main(int argc,char **args)
 		PetscPrintf(PETSC_COMM_WORLD,"%s",help);
 		exit(1);
 	}
+	ierr = PetscOptionsGetInt(NULL,NULL,"-dimen",&DIMEN,NULL);CHKERRQ(ierr);
+	if (DIMEN!=2 && DIMEN!=3){
+		PetscPrintf(PETSC_COMM_WORLD,"Incorrect dimension.\n");
+		exit(-3);
+	}
+	if (DIMEN==3) {
+		GaussQuad = 27;
+	}
 
 	int rank;
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
@@ -94,9 +105,10 @@ int main(int argc,char **args)
 	PetscTime(&Tempo1);
 	char variable_name[100];
 
-	Px = Pz = PETSC_DECIDE;
+	Px = Py = Pz = PETSC_DECIDE;
 	ierr = PetscOptionsGetInt(NULL,NULL,"-Px",&Px,NULL);CHKERRQ(ierr);
-	Pz = Px;
+	Py   = Px; Pz = Px;
+	ierr = PetscOptionsGetInt(NULL,NULL,"-Py",&Py,NULL);CHKERRQ(ierr);
 	ierr = PetscOptionsGetInt(NULL,NULL,"-Pz",&Pz,NULL);CHKERRQ(ierr);
 
 	if (n_interfaces>0 && interfaces_from_ascii==1){
@@ -152,16 +164,17 @@ int main(int argc,char **args)
 	}
 	
 	dx_const = Lx/(Nx-1);
+	if (DIMEN == 3) dy_const = Ly/(Ny-1);
 	dz_const = depth/(Nz-1);
 
 	//if (rank==0) printf("dx=%lf dz=%lf\n",dx_const,dz_const);
 
-	ierr = create_thermal_2d(Nx-1,Nz-1,Px,Pz);CHKERRQ(ierr);
+	ierr = create_thermal_2d_3d(Nx-1,Ny-1,Nz-1,Px,Py,Pz);CHKERRQ(ierr);
 
 	sprintf(variable_name,"temperature");
 	ierr = write_all_(-1,Temper, variable_name, binary_output);
 
-	ierr = create_veloc_2d(Nx-1,Nz-1,Px,Pz);CHKERRQ(ierr);
+	ierr = create_veloc_2d_3d(Nx-1,Ny-1,Nz-1,Px,Py,Pz);CHKERRQ(ierr);
 
 	if (geoq_on){
 		PetscPrintf(PETSC_COMM_WORLD,"\nSwarm (creating)\n");
@@ -172,7 +185,7 @@ int main(int argc,char **args)
 //	PetscPrintf(PETSC_COMM_SELF,"********** <rank:%d> <particles_per_ele:%d>\n", rank, particles_per_ele); -> conversar com Victor sobre
 //	PetscPrintf(PETSC_COMM_SELF,"********** <rank:%d> <layers:%d>\n", rank, layers); -> conversar com Victor sobre
 	
-	// Surface Processes Swarm
+	// Surface Processes Swarm ///!!! 3D update necessary
 	if (geoq_on && sp_surface_tracking && n_interfaces>0 && interfaces_from_ascii==1) {
 		PetscPrintf(PETSC_COMM_WORLD, "\nSP Swarm (creating)\n");
 		ierr = sp_create_surface_vec(); CHKERRQ(ierr);
@@ -234,7 +247,8 @@ int main(int argc,char **args)
 	}
 
 	VecCopy(Veloc_fut,Veloc);
-	ierr = Calc_dt_calor();
+	if (DIMEN==2) {ierr = Calc_dt_calor2d();}
+	else {ierr = Calc_dt_calor3d();}
 
 	if (initial_print_step > 0) {
 		print_step_aux = print_step;
@@ -285,7 +299,12 @@ int main(int argc,char **args)
 		if (geoq_on){
 			if (RK4==1){
 				VecCopy(Veloc_fut,Veloc_weight);
-				ierr = moveSwarm(dt_calor_sec);
+				if (DIMEN==2){
+					ierr = moveSwarm2d(dt_calor_sec);
+				}
+				else {
+					ierr = moveSwarm3d(dt_calor_sec);
+				}
 			}
 			else {
 				for (PetscInt cont=0, max_cont=4;cont<max_cont; cont++){
@@ -295,10 +314,20 @@ int main(int argc,char **args)
 					VecCopy(Veloc,Veloc_weight);
 					//			y			a		b		x
 					VecAXPBY(Veloc_weight, fac, (1.0-fac),Veloc_fut); //y = a*x + b*y
-					ierr = moveSwarm(dt_calor_sec/max_cont);
+					if (DIMEN==2){
+						ierr = moveSwarm2d(dt_calor_sec/max_cont);
+					}
+					else {
+						ierr = moveSwarm3d(dt_calor_sec/max_cont);
+					}
 				}
 			}
-			Swarm_add_remove();
+			if (DIMEN==2){
+				Swarm_add_remove2d();
+			}
+			else {
+				Swarm_add_remove3d();
+			}
 		}
 
 		if (sp_surface_tracking && geoq_on && n_interfaces>0 && interfaces_from_ascii==1) {
@@ -325,7 +354,8 @@ int main(int argc,char **args)
 			}
 		}
 
-		ierr = Calc_dt_calor();
+		if (DIMEN==2) {ierr = Calc_dt_calor2d();}
+		else {ierr = Calc_dt_calor3d();}
 
 	}
 	if (rank==0) printf("write\n");
@@ -346,7 +376,7 @@ int main(int argc,char **args)
 }
 
 
-PetscErrorCode Calc_dt_calor(){
+PetscErrorCode Calc_dt_calor2d(){
 
 	int rank;
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
@@ -372,6 +402,38 @@ PetscErrorCode Calc_dt_calor(){
 	dt_calor_sec = dt_calor*seg_per_ano;
 	
 
+	PetscFunctionReturn(0);
+
+}
+
+PetscErrorCode Calc_dt_calor3d(){
+
+	int rank;
+	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
+	
+	//////calc dt
+	PetscInt ind_v_max,ind_v_min,ind_v_mod;
+	PetscReal min_v,max_v,max_mod_v,dh_v_mod;
+	
+	VecMax(Veloc_fut,&ind_v_min,&max_v);
+	VecMin(Veloc_fut,&ind_v_max,&min_v);
+	//printf("max_v = %g\n",max_v);
+	//printf("max_v = %g\n",min_v);
+	max_mod_v = fabs(max_v);
+	ind_v_mod = ind_v_max;
+	if (max_mod_v<fabs(min_v)){
+		max_mod_v = fabs(min_v);
+		ind_v_mod = ind_v_min;
+	}
+	if (ind_v_mod%3==0) dh_v_mod = dx_const;
+	if (ind_v_mod%3==1) dh_v_mod = dy_const;
+	if (ind_v_mod%3==2) dh_v_mod = dz_const;
+	if (rank==0) printf("dt = %g",(dh_v_mod/max_mod_v)/seg_per_ano);
+	dt_calor = 0.2*(dh_v_mod/max_mod_v)/seg_per_ano;
+	if (dt_calor>dt_MAX) dt_calor=dt_MAX;
+	dt_calor_sec = dt_calor*seg_per_ano;
+	////////fim calc dt
+	
 	PetscFunctionReturn(0);
 
 }

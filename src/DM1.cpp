@@ -4,11 +4,14 @@
 #include <petsctime.h>
 
 PetscErrorCode montaKeThermal_simplif(double *Ke_local,double *Ke,double  kappa_eff);
+PetscErrorCode montaKeThermal_simplif3d(double *Ke_local,double *Ke,double  kappa_eff);
 PetscErrorCode ascii2bin(char *s1, char *s2);
 PetscErrorCode mean_value_periodic_boundary(DM da,Vec F,Vec local_F, PetscScalar **ff,int esc);
 
 extern double alpha_exp_thermo;
 extern double gravity;
+
+extern int DIMEN;
 
 extern PetscReal *TCe;
 extern PetscReal *TCe_fut;
@@ -34,7 +37,7 @@ extern Vec Temper_Cond;
 
 extern double Delta_T;
 
-extern double Lx, depth;
+extern double Lx, Ly, depth;
 
 extern double h_air;
 
@@ -68,6 +71,7 @@ double Thermal_profile(double t, double zz);
 
 PetscReal Temper3(double xx,double zz);
 PetscReal Temper4(double xx,double zz);
+PetscReal Temper4_3D(double xx,double yy,double zz);
 
 
 extern PetscInt WITH_NON_LINEAR;
@@ -88,6 +92,14 @@ typedef struct {
 } Stokes;
 
 
+typedef struct {
+	PetscScalar u;
+	PetscScalar v;
+	PetscScalar w;
+	//PetscScalar p;
+} Stokes3d;
+
+
 PetscErrorCode DMDAGetLocalElementSize(DM da,PetscInt *mxl,PetscInt *mzl)
 {
 	PetscInt       m,p,M,P;
@@ -101,6 +113,31 @@ PetscErrorCode DMDAGetLocalElementSize(DM da,PetscInt *mxl,PetscInt *mzl)
 	if (mxl) {
 		*mxl = m;
 		if ((sx+m) == M) *mxl = m-1;  /* last proc */
+	}
+	if (mzl) {
+		*mzl = p;
+		if ((sz+p) == P) *mzl = p-1;  /* last proc */
+	}
+	PetscFunctionReturn(0);
+}
+
+PetscErrorCode DMDAGetLocalElementSize_3d(DM da,PetscInt *mxl,PetscInt *myl,PetscInt *mzl)
+{
+	PetscInt       m,n,p,M,N,P;
+	PetscInt       sx,sy,sz;
+	PetscErrorCode ierr;
+	
+	PetscFunctionBeginUser;
+	ierr = DMDAGetInfo(da,0,&M,&N,&P,0,0,0,0,0,0,0,0,0);CHKERRQ(ierr);
+	ierr = DMDAGetCorners(da,&sx,&sy,&sz,&m,&n,&p);CHKERRQ(ierr);
+	
+	if (mxl) {
+		*mxl = m;
+		if ((sx+m) == M) *mxl = m-1;  /* last proc */
+	}
+	if (myl) {
+		*myl = n;
+		if ((sy+n) == N) *myl = n-1;  /* last proc */
 	}
 	if (mzl) {
 		*mzl = p;
@@ -130,8 +167,32 @@ PetscErrorCode DMDAGetElementCorners(DM da,PetscInt *sx,PetscInt *sz,PetscInt *m
 	PetscFunctionReturn(0);
 }
 
+PetscErrorCode DMDAGetElementCorners3d(DM da,PetscInt *sx,PetscInt *sy,PetscInt *sz,PetscInt *mx,PetscInt *my,PetscInt *mz)
+{
+	PetscInt       si,sj,sk;
+	PetscErrorCode ierr;
+	
+	PetscFunctionBeginUser;
+	ierr = DMDAGetGhostCorners(da,&si,&sj,&sk,0,0,0);CHKERRQ(ierr);
+	
+	if (sx) {
+		*sx = si;
+		if (si != 0) *sx = si+1;
+	}
+	if (sy) {
+		*sy = sj;
+		if (sj != 0) *sy = sj+1;
+	}
+	if (sz) {
+		*sz = sk;
+		if (sk != 0) *sz = sk+1;
+	}
+	ierr = DMDAGetLocalElementSize_3d(da,mx,my,mz);CHKERRQ(ierr);
+	PetscFunctionReturn(0);
+}
 
-PetscErrorCode AssembleA_Thermal(Mat A,DM thermal_da,PetscReal *TKe,PetscReal *TMe,PetscReal *TFe,
+
+PetscErrorCode AssembleA_Thermal2d(Mat A,DM thermal_da,PetscReal *TKe,PetscReal *TMe,PetscReal *TFe,
 								 DM veloc_da, Vec Veloc_total)
 {
 	
@@ -289,7 +350,160 @@ PetscErrorCode AssembleA_Thermal(Mat A,DM thermal_da,PetscReal *TKe,PetscReal *T
 	PetscFunctionReturn(0);
 }
 
-PetscErrorCode AssembleF_Thermal(Vec F,DM thermal_da,PetscReal *TKe,PetscReal *TMe,PetscReal *TFe,
+PetscErrorCode AssembleA_Thermal3d(Mat A,DM thermal_da,PetscReal *TKe,PetscReal *TMe,PetscReal *TFe,
+								 DM veloc_da, Vec Veloc_total)
+{
+	PetscErrorCode ierr;
+	
+	PetscInt               sex,sey,sez,mx,my,mz;
+	PetscInt               ei,ej,ek;
+	
+	
+	Stokes3d					***VV;
+	
+	ierr = VecZeroEntries(local_V);CHKERRQ(ierr);
+	
+	ierr = DMGlobalToLocalBegin(veloc_da,Veloc_total,INSERT_VALUES,local_V);
+	ierr = DMGlobalToLocalEnd(  veloc_da,Veloc_total,INSERT_VALUES,local_V);
+	
+	ierr = DMDAVecGetArray(veloc_da,local_V,&VV);CHKERRQ(ierr);
+	
+	
+	
+	////////
+	
+	PetscScalar					***TTC;
+	
+	ierr = VecZeroEntries(local_TC);CHKERRQ(ierr);
+	
+	ierr = DMGlobalToLocalBegin(thermal_da,Temper_Cond,INSERT_VALUES,local_TC);
+	ierr = DMGlobalToLocalEnd(  thermal_da,Temper_Cond,INSERT_VALUES,local_TC);
+	
+	ierr = DMDAVecGetArray(thermal_da,local_TC,&TTC);CHKERRQ(ierr);
+	
+	////////
+
+	PetscScalar ***tt;
+
+	ierr = VecZeroEntries(local_Temper);CHKERRQ(ierr);
+	
+	ierr = DMGlobalToLocalBegin(thermal_da,Temper,INSERT_VALUES,local_Temper);
+	ierr = DMGlobalToLocalEnd(thermal_da,Temper,INSERT_VALUES,local_Temper);
+	
+	ierr = DMDAVecGetArray(thermal_da,local_Temper,&tt);CHKERRQ(ierr);
+	
+	
+	
+	PetscInt               M,N,P;
+
+	
+	MatStencil ind1[1],ind[8];
+	
+	PetscScalar u[8*8],val_cond[1];
+	
+	PetscFunctionBeginUser;
+	ierr = DMDAGetInfo(thermal_da,0,&M,&N,&P,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
+	
+	
+	
+	
+	
+	PetscInt i,j,k,c;
+	
+	PetscInt       sx,sy,sz,mmx,mmy,mmz;
+	
+	ierr = DMDAGetCorners(thermal_da,&sx,&sy,&sz,&mmx,&mmy,&mmz);CHKERRQ(ierr);
+	
+	for (k=sz; k<sz+mmz; k++) {
+		for (j=sy; j<sy+mmy; j++) {
+			for (i=sx; i<sx+mmx; i++) {
+			
+				ind1[0].i = i;
+				ind1[0].j = j;
+				ind1[0].k = k;
+				
+				val_cond[0] = 1.0-TTC[k][j][i];
+				ierr = MatSetValuesStencil(A,1,ind1,1,ind1,val_cond,ADD_VALUES);
+				
+			}
+		}
+	}
+	
+	ierr = DMDAGetElementCorners3d(thermal_da,&sex,&sey,&sez,&mx,&my,&mz);CHKERRQ(ierr);
+
+	PetscReal tt_ele[8],tt_mean,tt_ref=1330.0;
+	double kappa_eff;
+
+	for (ek = sez; ek < sez+mz; ek++) {
+		for (ej = sey; ej < sey+my; ej++) {
+			for (ei = sex; ei < sex+mx; ei++) {
+				
+				ind[0].i=ei  ; ind[0].j=ej  ; ind[0].k=ek  ;
+				ind[1].i=ei+1; ind[1].j=ej  ; ind[1].k=ek  ;
+				ind[2].i=ei  ; ind[2].j=ej+1; ind[2].k=ek  ;
+				ind[3].i=ei+1; ind[3].j=ej+1; ind[3].k=ek  ;
+				ind[4].i=ei  ; ind[4].j=ej  ; ind[4].k=ek+1;
+				ind[5].i=ei+1; ind[5].j=ej  ; ind[5].k=ek+1;
+				ind[6].i=ei  ; ind[6].j=ej+1; ind[6].k=ek+1;
+				ind[7].i=ei+1; ind[7].j=ej+1; ind[7].k=ek+1;
+				
+				for (i=0;i<8;i++){
+					v_vec_aux_ele[i*3+0] = VV[ind[i].k][ind[i].j][ind[i].i].u;
+					v_vec_aux_ele[i*3+1] = VV[ind[i].k][ind[i].j][ind[i].i].v;
+					v_vec_aux_ele[i*3+2] = VV[ind[i].k][ind[i].j][ind[i].i].w;
+				}
+
+				kappa_eff = kappa;
+				if (high_kappa_in_asthenosphere==1){
+					tt_ele[0] = tt[ek][ej][ei];
+					tt_ele[1] = tt[ek][ej][ei+1];
+					tt_ele[2] = tt[ek][ej+1][ei];
+					tt_ele[3] = tt[ek][ej+1][ei+1];
+					tt_ele[4] = tt[ek+1][ej][ei];
+					tt_ele[5] = tt[ek+1][ej][ei+1];
+					tt_ele[6] = tt[ek+1][ej+1][ei];
+					tt_ele[7] = tt[ek+1][ej+1][ei+1];
+	
+					tt_mean = (tt_ele[0]+tt_ele[1]+tt_ele[2]+tt_ele[3])/8;
+					tt_mean+= (tt_ele[4]+tt_ele[5]+tt_ele[6]+tt_ele[7])/8;
+	
+					if (tt_mean > tt_ref){
+						kappa_eff=kappa*(1.0 + (tt_mean-tt_ref)*5);
+					}
+					if (kappa_eff>kappa*50) kappa_eff = kappa*50;
+				}
+				
+				montaKeThermal_simplif3d(TCe_fut, TKe, kappa_eff);//modificar
+				
+				for (c=0;c<T_NE*T_NE;c++) Ttotal[c] = TMe[c] + alpha_thermal*dt_calor_sec*TCe_fut[c];
+				
+				
+				
+				for (i=0;i<8;i++){
+					if (TTC[ind[i].k][ind[i].j][ind[i].i]==0){
+						for (j=0;j<8;j++) u[i*8+j]=0.0;
+					}
+					else {
+						for (j=0;j<8;j++) u[i*8+j]=Ttotal[i*8+j];
+					}
+				}
+				
+				ierr = MatSetValuesStencil(A,8,ind,8,ind,u,ADD_VALUES);
+			}
+		}
+	}
+	ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+	ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+	
+	
+	ierr = DMDAVecRestoreArray(veloc_da,local_V,&VV);CHKERRQ(ierr);
+	ierr = DMDAVecRestoreArray(thermal_da,local_TC,&TTC);CHKERRQ(ierr);
+	
+	
+	PetscFunctionReturn(0);
+}
+
+PetscErrorCode AssembleF_Thermal2d(Vec F,DM thermal_da,PetscReal *TKe,PetscReal *TMe,PetscReal *TFe,
 								 DM veloc_da, Vec Veloc_total)
 {
 
@@ -523,197 +737,609 @@ PetscErrorCode AssembleF_Thermal(Vec F,DM thermal_da,PetscReal *TKe,PetscReal *T
 	PetscFunctionReturn(0);
 }
 
+PetscErrorCode AssembleF_Thermal3d(Vec F,DM thermal_da,PetscReal *TKe,PetscReal *TMe,PetscReal *TFe,
+								 DM veloc_da, Vec Veloc_total)
+{
+
+	PetscScalar              ***ff,***tt,***HH;
+	PetscInt               M,N,P;
+	PetscErrorCode         ierr;
+	
+	PetscInt               sex,sey,sez,mx,my,mz;
+	PetscInt               ei,ej,ek;
+	
+	
+	PetscFunctionBeginUser;
+	ierr = DMDAGetInfo(thermal_da,0,&M,&N,&P,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
+	
+
+	
+	
+	Stokes3d					***VV;
+
+	ierr = VecZeroEntries(local_V);CHKERRQ(ierr);
+	
+	ierr = DMGlobalToLocalBegin(veloc_da,Veloc_total,INSERT_VALUES,local_V);
+	ierr = DMGlobalToLocalEnd(  veloc_da,Veloc_total,INSERT_VALUES,local_V);
+	
+	ierr = DMDAVecGetArray(veloc_da,local_V,&VV);CHKERRQ(ierr);
+	
+	
+	////////
+	
+	PetscScalar					***TTC;
+	
+	
+	ierr = VecZeroEntries(local_TC);CHKERRQ(ierr);
+	
+	ierr = DMGlobalToLocalBegin(thermal_da,Temper_Cond,INSERT_VALUES,local_TC);
+	ierr = DMGlobalToLocalEnd(  thermal_da,Temper_Cond,INSERT_VALUES,local_TC);
+	
+	ierr = DMDAVecGetArray(thermal_da,local_TC,&TTC);CHKERRQ(ierr);
+	
+	////////
+	
+	
+	
+	/* get acces to the vector */
+
+	ierr = VecZeroEntries(local_FT);CHKERRQ(ierr);
+	ierr = DMDAVecGetArray(thermal_da,local_FT,&ff);CHKERRQ(ierr);
+	
+	
+
+	
+	ierr = VecZeroEntries(local_Temper);CHKERRQ(ierr);
+	
+	ierr = DMGlobalToLocalBegin(thermal_da,Temper,INSERT_VALUES,local_Temper);
+	ierr = DMGlobalToLocalEnd(thermal_da,Temper,INSERT_VALUES,local_Temper);
+	
+	ierr = DMDAVecGetArray(thermal_da,local_Temper,&tt);CHKERRQ(ierr);
+	
+	
+	
+	ierr = VecZeroEntries(local_geoq_H);CHKERRQ(ierr);
+	
+	ierr = DMGlobalToLocalBegin(thermal_da,geoq_H,INSERT_VALUES,local_geoq_H);
+	ierr = DMGlobalToLocalEnd(thermal_da,geoq_H,INSERT_VALUES,local_geoq_H);
+	
+	ierr = DMDAVecGetArray(thermal_da,local_geoq_H,&HH);CHKERRQ(ierr);
+	
+	
+	PetscInt i,j,k,c;
+	
+	MatStencil ind[8];
+	
+	PetscReal H_efetivo;
+
+	PetscReal tt_ele[8],tt_mean,tt_ref=1330.0;
+	double kappa_eff;
+	
+	
+	ierr = DMDAGetElementCorners3d(thermal_da,&sex,&sey,&sez,&mx,&my,&mz);CHKERRQ(ierr);
+	for (ek = sez; ek < sez+mz; ek++) {
+		for (ej = sey; ej < sey+my; ej++) {
+			for (ei = sex; ei < sex+mx; ei++) {
+				
+				
+				ind[0].i=ei  ; ind[0].j=ej  ; ind[0].k=ek  ;
+				ind[1].i=ei+1; ind[1].j=ej  ; ind[1].k=ek  ;
+				ind[2].i=ei  ; ind[2].j=ej+1; ind[2].k=ek  ;
+				ind[3].i=ei+1; ind[3].j=ej+1; ind[3].k=ek  ;
+				ind[4].i=ei  ; ind[4].j=ej  ; ind[4].k=ek+1;
+				ind[5].i=ei+1; ind[5].j=ej  ; ind[5].k=ek+1;
+				ind[6].i=ei  ; ind[6].j=ej+1; ind[6].k=ek+1;
+				ind[7].i=ei+1; ind[7].j=ej+1; ind[7].k=ek+1;
+				
+				
+				
+				for (i=0;i<8;i++){
+					v_vec_aux_ele[i*3+0] = VV[ind[i].k][ind[i].j][ind[i].i].u;
+					v_vec_aux_ele[i*3+1] = VV[ind[i].k][ind[i].j][ind[i].i].v;
+					v_vec_aux_ele[i*3+2] = VV[ind[i].k][ind[i].j][ind[i].i].w;
+				}
+
+				kappa_eff = kappa;
+				if (high_kappa_in_asthenosphere==1){
+					tt_ele[0] = tt[ek][ej][ei];
+					tt_ele[1] = tt[ek][ej][ei+1];
+					tt_ele[2] = tt[ek][ej+1][ei];
+					tt_ele[3] = tt[ek][ej+1][ei+1];
+					tt_ele[4] = tt[ek+1][ej][ei];
+					tt_ele[5] = tt[ek+1][ej][ei+1];
+					tt_ele[6] = tt[ek+1][ej+1][ei];
+					tt_ele[7] = tt[ek+1][ej+1][ei+1];
+	
+					tt_mean = (tt_ele[0]+tt_ele[1]+tt_ele[2]+tt_ele[3])/8;
+					tt_mean+= (tt_ele[4]+tt_ele[5]+tt_ele[6]+tt_ele[7])/8;
+	
+					if (tt_mean > tt_ref){
+						kappa_eff=kappa*(1.0 + (tt_mean-tt_ref)*5);
+					}
+					if (kappa_eff>kappa*50) kappa_eff = kappa*50;
+				}
+				
+				
+				montaKeThermal_simplif3d(TCe, TKe, kappa_eff);//modificar
+				
+				for (c=0;c<T_NE*T_NE;c++) Ttotal_b[c] = TMe[c] - comp_alpha_thermal*dt_calor_sec*TCe[c];
+				
+				
+
+
+				H_efetivo = 0.0;
+				
+				if (WITH_RADIOGENIC_H==1){
+					double H_mean=0;
+					for (j=0;j<T_NE;j++) H_mean+=HH[ind[j].k][ind[j].j][ind[j].i];
+					H_mean/=T_NE;/// Está aqui o calor radiogenico variável
+				
+					H_efetivo = H_mean;
+				}
+				
+				if (WITH_ADIABATIC_H==1){
+					double T_mean=0;
+					for (j=0;j<T_NE;j++) T_mean+=tt[ind[j].k][ind[j].j][ind[j].i];
+					T_mean/=T_NE;
+					T_mean+=273.0; //essa temperatura tem que ser em Kelvin, por isso somamos 273
+					
+					double Vz_mean=0;
+					for (j=0;j<T_NE;j++) Vz_mean+=VV[ind[j].k][ind[j].j][ind[j].i].w;
+					Vz_mean/=T_NE;
+					
+					H_efetivo += -T_mean*alpha_exp_thermo*gravity*Vz_mean;
+				}
+				
+				
+				
+				
+				
+				
+				for (c=0;c<T_NE;c++){
+					T_vec_aux_ele_final[c]=dt_calor_sec*TFe[c]*H_efetivo;
+					for (j=0;j<T_NE;j++){
+						T_vec_aux_ele_final[c]+=tt[ind[j].k][ind[j].j][ind[j].i]*Ttotal_b[c*T_NE+j];
+					}
+				}
+				
+				for (i=0;i<8;i++){
+					//if (ind[i].k==0 || ind[i].k==P-1){
+					if (TTC[ind[i].k][ind[i].j][ind[i].i]==0){
+						T_vec_aux_ele_final[i]=0.0;
+					}
+				}
+				
+				for (c=0;c<T_NE;c++){
+					ff[ind[c].k][ind[c].j][ind[c].i] += T_vec_aux_ele_final[c];
+				}
+				
+				
+			}
+		}
+	}
+	
+	
+	
+	PetscInt       sx,sy,sz,mmx,mmy,mmz;
+	
+	ierr = DMDAGetCorners(thermal_da,&sx,&sy,&sz,&mmx,&mmy,&mmz);CHKERRQ(ierr);
+	
+	for (k=sz; k<sz+mmz; k++) {
+		for (j=sy; j<sy+mmy; j++) {
+			for (i=sx; i<sx+mmx; i++) {
+				//if (k==0 || k==P-1){
+				if (TTC[k][j][i]==0){
+					ff[k][j][i]=tt[k][j][i];
+				}
+			}
+		}
+	}
+	
+	ierr = DMDAVecRestoreArray(thermal_da,local_FT,&ff);CHKERRQ(ierr);
+	ierr = DMLocalToGlobalBegin(thermal_da,local_FT,ADD_VALUES,F);CHKERRQ(ierr);
+	ierr = DMLocalToGlobalEnd(thermal_da,local_FT,ADD_VALUES,F);CHKERRQ(ierr);
+	
+	ierr = DMDAVecRestoreArray(veloc_da,local_V,&VV);CHKERRQ(ierr);
+	ierr = DMDAVecRestoreArray(thermal_da,local_TC,&TTC);CHKERRQ(ierr);
+	ierr = DMDAVecRestoreArray(thermal_da,local_Temper,&tt);CHKERRQ(ierr);
+	ierr = DMDAVecRestoreArray(thermal_da,local_geoq_H,&HH);CHKERRQ(ierr);
+	
+
+	PetscFunctionReturn(0);
+
+}
+
+
+
 #include <math.h>
 
 
 PetscErrorCode Thermal_init(Vec F,DM thermal_da)
 {
-	
-	Vec                    local_F;
-	PetscScalar              **ff;
-	PetscInt               M,P;
-	PetscErrorCode         ierr;
-	
-	PetscInt i,k,t;
-	
-	
-	PetscFunctionBeginUser;
-	ierr = DMDAGetInfo(thermal_da,0,&M,&P,NULL,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
-	
-	PetscMPIInt rank;
-	ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
-	
-	
-	PetscReal temper_aux=0.0,t1_aux;
+	if (DIMEN==2){
+		Vec                    local_F;
+		PetscScalar              **ff;
+		PetscInt               M,P;
+		PetscErrorCode         ierr;
+		
+		PetscInt i,k,t;
+		
+		
+		PetscFunctionBeginUser;
+		ierr = DMDAGetInfo(thermal_da,0,&M,&P,NULL,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
+		
+		PetscMPIInt rank;
+		ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
+		
+		
+		PetscReal temper_aux=0.0,t1_aux;
 
-	PetscInt ix[1];
-	PetscScalar y[1];
-	
-	PetscInt low,high;
-	
-	if (temper_extern==1){
+		PetscInt ix[1];
+		PetscScalar y[1];
 		
-		char s1[100],s2[100];
+		PetscInt low,high;
 		
-		sprintf(s1,"input_temperature_0.txt");
-		sprintf(s2,"Temper_init.bin");
-		
-		if (rank==0){
-			ierr = ascii2bin(s1,s2); CHKERRQ(ierr);
-		}
-		MPI_Barrier(PETSC_COMM_WORLD);
-		
-		
-		PetscInt size0;
-		PetscViewer    viewer;
-		
-		VecGetSize(F,&size0);
-		
-		
-		Vec Fprov;
-		
-		PetscViewerBinaryOpen(PETSC_COMM_WORLD,s2,FILE_MODE_READ,&viewer);
-		VecCreate(PETSC_COMM_WORLD,&Fprov);
-		VecLoad(Fprov,viewer);
-		PetscViewerDestroy(&viewer);
-		
-		
-		VecGetOwnershipRange(Fprov,&low,&high);
-		
-		
-		Vec FN;
-		
-		DMDACreateNaturalVector(thermal_da,&FN);
-		
-		
-		for (t=low;t<high;t++){
-			ix[0] = t;
-			VecGetValues(Fprov,1,ix,y);
-			VecSetValue(FN,t,y[0], INSERT_VALUES);
-		}
-		
-		VecAssemblyBegin(FN);
-		VecAssemblyEnd(FN);
-		
-		DMDANaturalToGlobalBegin(thermal_da,FN,INSERT_VALUES,F);
-		DMDANaturalToGlobalEnd(thermal_da,FN,INSERT_VALUES,F);
-		
-		
-		PetscBarrier(NULL);
-		
-		VecAssemblyBegin(F);
-		VecAssemblyEnd(F);
-		
-		
-		
-		
-	}
-	else{
-		/* get access to the vector */
-		ierr = DMGetLocalVector(thermal_da,&local_F);CHKERRQ(ierr);
-		ierr = VecZeroEntries(local_F);CHKERRQ(ierr);
-		ierr = DMDAVecGetArray(thermal_da,local_F,&ff);CHKERRQ(ierr);
-		
-		PetscInt       sx,sz,mmx,mmz;
-		
-		ierr = DMDAGetCorners(thermal_da,&sx,&sz,NULL,&mmx,&mmz,NULL);CHKERRQ(ierr);
-		
-		PetscReal xx,zz,t_inic;
-		
-		for (k=sz; k<sz+mmz; k++) {
-			for (i=sx; i<sx+mmx; i++) {
-				
-				xx = i*Lx/(M-1);
-				zz = -(P-1-k)*depth/(P-1);
-				
-				zz += h_air;
-				
-				if (T_initial_cond==0){
-					temper_aux=(Delta_T*(P-1-k))/(P-1) + 100*cos(i*3.14159/(M-1));
-				}
-				
-				if (T_initial_cond==1){
-					temper_aux=(Delta_T*(P-1-k))/(P-1) + 100*cos(i*3.14159/(M-1));
-				}
-				if (T_initial_cond==2){
-					if (xx<1500.E3) t_inic = 1001.0E6*seg_per_ano;
-					else {
-						if (xx<2000.E3){
-							t_inic = 1000.0E6*seg_per_ano;
-						}
-						else t_inic = 1001.0E6*seg_per_ano;
-					}
-					
-					temper_aux = Thermal_profile(t_inic, zz);
-				}
-				if (T_initial_cond==3){
-					temper_aux = Temper3(xx,zz);
-					
-					temper_aux-=(float)rand_r(&seed)/RAND_MAX;
-				}
-				
-				if (T_initial_cond==8){
-					temper_aux = Temper4(xx,zz);
-				}
-				
-				
-				if (T_initial_cond==9){
-					temper_aux=(depth/H_lito)*(Delta_T*(P-1-k))/(P-1);
-					
-					if (temper_aux>Delta_T) temper_aux=Delta_T;
-					
-					temper_aux-=(float)rand_r(&seed)/RAND_MAX;
-				}
-				
-				
-				if (T_initial_cond==74){
-					t1_aux = 0.5*tan((P-1-k)*3./(P-1)-1.5)/tan(1.5)+0.5;
-					temper_aux=Delta_T*t1_aux + Delta_T*0.2*tan(i*3./(M-1)-1.5);
-				}
-				
-				if (T_initial_cond==141){
-					double z_aux = -depth*(1.0-k*1.0/(Nz-1));
-					double x_aux = Lx*(i*1.0/(Nx-1));
-					
-					if (z_aux>-depth*0.1) temper_aux=0;
-					else {
-						if (z_aux>-depth*0.2) temper_aux=Delta_T*(1.0-(z_aux+depth*0.2)/(depth*0.1));
-						else temper_aux=Delta_T;
-					}
-					
-					if (z_aux>-depth*(1-0.5) && z_aux<=-depth*(1-0.6) && x_aux<=Lx*0.15){
-						temper_aux=Delta_T*0.2;
-					}
-					
-					
-					
-					if (temper_aux>Delta_T) temper_aux=Delta_T;
-					
-					temper_aux-=(float)rand_r(&seed)/RAND_MAX;
-				}
-				
-				
-				if (k==P-1) temper_aux=0.0;
-				if (k==0) temper_aux=Delta_T;
-				
-				if (temper_aux>Delta_T) temper_aux=Delta_T;
-				if (temper_aux<0.0) temper_aux=0.0;
-				
-				ff[k][i]=temper_aux;
+		if (temper_extern==1){
+			
+			char s1[100],s2[100];
+			
+			sprintf(s1,"input_temperature_0.txt");
+			sprintf(s2,"Temper_init.bin");
+			
+			if (rank==0){
+				ierr = ascii2bin(s1,s2); CHKERRQ(ierr);
 			}
-		
+			MPI_Barrier(PETSC_COMM_WORLD);
+			
+			
+			PetscInt size0;
+			PetscViewer    viewer;
+			
+			VecGetSize(F,&size0);
+			
+			
+			Vec Fprov;
+			
+			PetscViewerBinaryOpen(PETSC_COMM_WORLD,s2,FILE_MODE_READ,&viewer);
+			VecCreate(PETSC_COMM_WORLD,&Fprov);
+			VecLoad(Fprov,viewer);
+			PetscViewerDestroy(&viewer);
+			
+			
+			VecGetOwnershipRange(Fprov,&low,&high);
+			
+			
+			Vec FN;
+			
+			DMDACreateNaturalVector(thermal_da,&FN);
+			
+			
+			for (t=low;t<high;t++){
+				ix[0] = t;
+				VecGetValues(Fprov,1,ix,y);
+				VecSetValue(FN,t,y[0], INSERT_VALUES);
+			}
+			
+			VecAssemblyBegin(FN);
+			VecAssemblyEnd(FN);
+			
+			DMDANaturalToGlobalBegin(thermal_da,FN,INSERT_VALUES,F);
+			DMDANaturalToGlobalEnd(thermal_da,FN,INSERT_VALUES,F);
+			
+			
+			PetscBarrier(NULL);
+			
+			VecAssemblyBegin(F);
+			VecAssemblyEnd(F);
+			
+			
+			
+			
 		}
-		
+		else{
+			/* get access to the vector */
+			ierr = DMGetLocalVector(thermal_da,&local_F);CHKERRQ(ierr);
+			ierr = VecZeroEntries(local_F);CHKERRQ(ierr);
+			ierr = DMDAVecGetArray(thermal_da,local_F,&ff);CHKERRQ(ierr);
+			
+			PetscInt       sx,sz,mmx,mmz;
+			
+			ierr = DMDAGetCorners(thermal_da,&sx,&sz,NULL,&mmx,&mmz,NULL);CHKERRQ(ierr);
+			
+			PetscReal xx,zz,t_inic;
+			
+			for (k=sz; k<sz+mmz; k++) {
+				for (i=sx; i<sx+mmx; i++) {
+					
+					xx = i*Lx/(M-1);
+					zz = -(P-1-k)*depth/(P-1);
+					
+					zz += h_air;
+					
+					if (T_initial_cond==0){
+						temper_aux=(Delta_T*(P-1-k))/(P-1) + 100*cos(i*3.14159/(M-1));
+					}
+					
+					if (T_initial_cond==1){
+						temper_aux=(Delta_T*(P-1-k))/(P-1) + 100*cos(i*3.14159/(M-1));
+					}
+					if (T_initial_cond==2){
+						if (xx<1500.E3) t_inic = 1001.0E6*seg_per_ano;
+						else {
+							if (xx<2000.E3){
+								t_inic = 1000.0E6*seg_per_ano;
+							}
+							else t_inic = 1001.0E6*seg_per_ano;
+						}
+						
+						temper_aux = Thermal_profile(t_inic, zz);
+					}
+					if (T_initial_cond==3){
+						temper_aux = Temper3(xx,zz);
+						
+						temper_aux-=(float)rand_r(&seed)/RAND_MAX;
+					}
+					
+					if (T_initial_cond==8){
+						temper_aux = Temper4(xx,zz);
+					}
+					
+					
+					if (T_initial_cond==9){
+						temper_aux=(depth/H_lito)*(Delta_T*(P-1-k))/(P-1);
+						
+						if (temper_aux>Delta_T) temper_aux=Delta_T;
+						
+						temper_aux-=(float)rand_r(&seed)/RAND_MAX;
+					}
+					
+					
+					if (T_initial_cond==74){
+						t1_aux = 0.5*tan((P-1-k)*3./(P-1)-1.5)/tan(1.5)+0.5;
+						temper_aux=Delta_T*t1_aux + Delta_T*0.2*tan(i*3./(M-1)-1.5);
+					}
+					
+					if (T_initial_cond==141){
+						double z_aux = -depth*(1.0-k*1.0/(Nz-1));
+						double x_aux = Lx*(i*1.0/(Nx-1));
+						
+						if (z_aux>-depth*0.1) temper_aux=0;
+						else {
+							if (z_aux>-depth*0.2) temper_aux=Delta_T*(1.0-(z_aux+depth*0.2)/(depth*0.1));
+							else temper_aux=Delta_T;
+						}
+						
+						if (z_aux>-depth*(1-0.5) && z_aux<=-depth*(1-0.6) && x_aux<=Lx*0.15){
+							temper_aux=Delta_T*0.2;
+						}
+						
+						
+						
+						if (temper_aux>Delta_T) temper_aux=Delta_T;
+						
+						temper_aux-=(float)rand_r(&seed)/RAND_MAX;
+					}
+					
+					
+					if (k==P-1) temper_aux=0.0;
+					if (k==0) temper_aux=Delta_T;
+					
+					if (temper_aux>Delta_T) temper_aux=Delta_T;
+					if (temper_aux<0.0) temper_aux=0.0;
+					
+					ff[k][i]=temper_aux;
+				}
+			
+			}
+			
 
-		ierr = DMDAVecRestoreArray(thermal_da,local_F,&ff);CHKERRQ(ierr);
-		ierr = DMLocalToGlobalBegin(thermal_da,local_F,INSERT_VALUES,F);CHKERRQ(ierr);
-		ierr = DMLocalToGlobalEnd(thermal_da,local_F,INSERT_VALUES,F);CHKERRQ(ierr);
-		ierr = DMRestoreLocalVector(thermal_da,&local_F);CHKERRQ(ierr);
+			ierr = DMDAVecRestoreArray(thermal_da,local_F,&ff);CHKERRQ(ierr);
+			ierr = DMLocalToGlobalBegin(thermal_da,local_F,INSERT_VALUES,F);CHKERRQ(ierr);
+			ierr = DMLocalToGlobalEnd(thermal_da,local_F,INSERT_VALUES,F);CHKERRQ(ierr);
+			ierr = DMRestoreLocalVector(thermal_da,&local_F);CHKERRQ(ierr);
 
+		}
+			
+		if (periodic_boundary==1){
+			ierr = mean_value_periodic_boundary(thermal_da,F,local_F,ff,2);
+		}
 	}
+	else {
+
+		Vec                    local_F;
+		PetscScalar              ***ff;
+		PetscInt               M,N,P;
+		PetscErrorCode         ierr;
 		
-	if (periodic_boundary==1){
-		ierr = mean_value_periodic_boundary(thermal_da,F,local_F,ff,2);
+		PetscInt i,j,k,t;
+		
+		
+		PetscFunctionBeginUser;
+		ierr = DMDAGetInfo(thermal_da,0,&M,&N,&P,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
+		
+		PetscMPIInt rank;
+		ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
+		
+		
+		PetscReal temper_aux,t1_aux;
+
+		PetscInt ix[1];
+		PetscScalar y[1];
+		
+		PetscInt low,high;
+		
+		if (temper_extern==1){
+			
+			char s1[100],s2[100];
+			
+			sprintf(s1,"input_temperature_0.txt");
+			sprintf(s2,"Temper_init.bin");
+			
+			if (rank==0){
+				ierr = ascii2bin(s1,s2); CHKERRQ(ierr);
+			}
+			MPI_Barrier(PETSC_COMM_WORLD);
+			
+			
+			PetscInt size0;
+			PetscViewer    viewer;
+			
+			VecGetSize(F,&size0);
+			
+			
+			Vec Fprov;
+			
+			//PetscPrintf(PETSC_COMM_WORLD,"size = %d\n",size);
+			
+			//PetscViewerBinaryOpen(PETSC_COMM_WORLD,"Temper_init.bin",FILE_MODE_READ,&viewer);
+			PetscViewerBinaryOpen(PETSC_COMM_WORLD,s2,FILE_MODE_READ,&viewer);
+			VecCreate(PETSC_COMM_WORLD,&Fprov);
+			VecLoad(Fprov,viewer);
+			PetscViewerDestroy(&viewer);
+			
+			
+			VecGetOwnershipRange(Fprov,&low,&high);
+			
+			
+			Vec FN;
+			
+			DMDACreateNaturalVector(thermal_da,&FN);
+			
+			
+			for (t=low;t<high;t++){
+				ix[0] = t;
+				VecGetValues(Fprov,1,ix,y);
+				VecSetValue(FN,t,y[0], INSERT_VALUES);
+			}
+			
+			VecAssemblyBegin(FN);
+			VecAssemblyEnd(FN);
+			
+			DMDANaturalToGlobalBegin(thermal_da,FN,INSERT_VALUES,F);
+			DMDANaturalToGlobalEnd(thermal_da,FN,INSERT_VALUES,F);
+			
+			
+			//VecView(F,PETSC_VIEWER_STDOUT_WORLD);
+			
+			PetscBarrier(NULL);
+			
+			VecAssemblyBegin(F);
+			VecAssemblyEnd(F);
+			
+			
+			
+			
+		}
+		else{
+			/* get acces to the vector */
+			ierr = DMGetLocalVector(thermal_da,&local_F);CHKERRQ(ierr);
+			ierr = VecZeroEntries(local_F);CHKERRQ(ierr);
+			ierr = DMDAVecGetArray(thermal_da,local_F,&ff);CHKERRQ(ierr);
+			
+			PetscInt       sx,sy,sz,mmx,mmy,mmz;
+			
+			ierr = DMDAGetCorners(thermal_da,&sx,&sy,&sz,&mmx,&mmy,&mmz);CHKERRQ(ierr);
+			
+			PetscReal xx,yy,zz,t_inic;
+			
+			for (k=sz; k<sz+mmz; k++) {
+				for (j=sy; j<sy+mmy; j++) {
+					for (i=sx; i<sx+mmx; i++) {
+						
+						xx = i*Lx/(M-1);
+						yy = j*Ly/(N-1);
+						zz = -(P-1-k)*depth/(P-1);
+						
+						zz += h_air;
+						
+						if (T_initial_cond==0){
+							temper_aux=(Delta_T*(P-1-k))/(P-1) + 100*cos(i*3.14159/(M-1));
+						}
+						
+						if (T_initial_cond==1){
+							temper_aux=(Delta_T*(P-1-k))/(P-1) + 100*cos(j*3.14159/(N-1))*cos(i*3.14159/(M-1));
+						}
+						if (T_initial_cond==2){
+							if (xx<1500.E3) t_inic = 1001.0E6*seg_per_ano;
+							else {
+								if (xx<2000.E3){
+									t_inic = 1000.0E6*seg_per_ano;
+								}
+								else t_inic = 1001.0E6*seg_per_ano;
+							}
+							
+							temper_aux = Thermal_profile(t_inic, zz);
+						}
+						if (T_initial_cond==3){
+							temper_aux = Temper3(xx,zz);
+							
+							temper_aux-=(float)rand_r(&seed)/RAND_MAX;
+						}
+						
+						if (T_initial_cond==8){
+							temper_aux = Temper4_3D(xx,yy,zz);
+						}
+						
+						
+						if (T_initial_cond==9){
+							temper_aux=(depth/H_lito)*(Delta_T*(P-1-k))/(P-1);
+							
+							if (temper_aux>Delta_T) temper_aux=Delta_T;
+							
+							temper_aux-=(float)rand_r(&seed)/RAND_MAX;
+						}
+						
+						
+						if (T_initial_cond==74){
+							t1_aux = 0.5*tan((P-1-k)*3./(P-1)-1.5)/tan(1.5)+0.5;
+							temper_aux=Delta_T*t1_aux + Delta_T*0.2*tan(i*3./(M-1)-1.5);
+						}
+						
+						if (T_initial_cond==141){
+							double z_aux = -depth*(1.0-k*1.0/(Nz-1));
+							double x_aux = Lx*(i*1.0/(Nx-1));
+							//if (array[p*3+2]>-depth*(1-0.52) && array[p*3+2]<=-depth*(1-0.55)
+							/*if ((i==0 || i==Nx-1) && (z_aux>=-depth*(1.0-0.5+0.1)) && (z_aux<-depth*(1-0.6-0.1))){
+								VV[k][j][i].u=300.0/seg_per_ano;
+							}*/
+							
+							if (z_aux>-depth*0.1) temper_aux=0;
+							else {
+								if (z_aux>-depth*0.2) temper_aux=Delta_T*(1.0-(z_aux+depth*0.2)/(depth*0.1));
+								else temper_aux=Delta_T;
+							}
+							
+							if (z_aux>-depth*(1-0.5) && z_aux<=-depth*(1-0.6) && x_aux<=Lx*0.15){
+								temper_aux=Delta_T*0.2;
+							}
+							
+							
+							
+							if (temper_aux>Delta_T) temper_aux=Delta_T;
+							
+							temper_aux-=(float)rand_r(&seed)/RAND_MAX;
+						}
+						
+						
+						if (k==P-1) temper_aux=0.0;
+						if (k==0) temper_aux=Delta_T;
+						
+						if (temper_aux>Delta_T) temper_aux=Delta_T;
+						if (temper_aux<0.0) temper_aux=0.0;
+						
+						ff[k][j][i]=temper_aux;
+					}
+				}
+			}
+			
+			
+			ierr = DMDAVecRestoreArray(thermal_da,local_F,&ff);CHKERRQ(ierr);
+			ierr = DMLocalToGlobalBegin(thermal_da,local_F,INSERT_VALUES,F);CHKERRQ(ierr);
+			ierr = DMLocalToGlobalEnd(thermal_da,local_F,INSERT_VALUES,F);CHKERRQ(ierr);
+			ierr = DMRestoreLocalVector(thermal_da,&local_F);CHKERRQ(ierr);
+			
+			
+		}
 	}
 		
 	
@@ -749,6 +1375,21 @@ PetscReal Temper4(double xx,double zz){
 	Temper = Thermal_profile(t_inic, zz);
 	
 	Temper*=(1.0+(beta_max-1.0)*(cos(10*xx/Lx)+1.0)/4.0);
+	
+	if (Temper>Delta_T) Temper = Delta_T;
+	if (Temper<0.0) Temper = 0;
+	
+	
+	return(Temper);
+}
+
+PetscReal Temper4_3D(double xx,double yy,double zz){
+	PetscReal Temper;
+	
+	double t_inic = 1001.0E6*seg_per_ano;
+	Temper = Thermal_profile(t_inic, zz);
+	
+	Temper*=(1.0+(beta_max-1.0)*(cos(10*xx/Lx)+1.0)*(cos(10*yy/Ly)+1.0)/4.0);
 	
 	if (Temper>Delta_T) Temper = Delta_T;
 	if (Temper<0.0) Temper = 0;
