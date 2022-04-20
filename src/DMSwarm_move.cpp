@@ -1125,7 +1125,6 @@ PetscErrorCode Swarm_add_remove_3d()
 	ierr = DMDAVecRestoreArray(da_Thermal,local_geoq_cont,&qq_cont);CHKERRQ(ierr);
 
 	ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
-	printf("nlocal_%d_antes\n",nlocal);
 
 
 	for (pp=0; pp<cont_p_remove; pp++){
@@ -1141,7 +1140,6 @@ PetscErrorCode Swarm_add_remove_3d()
 	}
 
 	ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
-	printf("nlocal_%d %d %d_depois\n",nlocal,cont_p_remove,particles_add_remove);
 
 	if (cont_p_add>0){
 		ierr = DMSwarmAddNPoints(dms,cont_p_add);
@@ -1185,7 +1183,6 @@ PetscErrorCode Swarm_add_remove_3d()
 	}
 
 	ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
-	printf("nlocal_%d %d %d_depois2\n",nlocal,cont_p_add,particles_add_remove);
 
 
 	//exit(1);
