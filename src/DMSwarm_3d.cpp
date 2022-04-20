@@ -236,8 +236,7 @@ PetscErrorCode createSwarm_3d()
 	PetscInt *iarray;
 	PetscInt *layer_array;
 	PetscReal *rarray;
-	PetscReal *rarray_rho;
-	PetscReal *rarray_H;
+	
 	PetscReal *strain_array;
 
 	//PetscRandom rand;
@@ -261,8 +260,7 @@ PetscErrorCode createSwarm_3d()
 	ierr = DMSwarmRegisterPetscDatatypeField(dms,"itag",1,PETSC_INT);CHKERRQ(ierr);
 	ierr = DMSwarmRegisterPetscDatatypeField(dms,"layer",1,PETSC_INT);CHKERRQ(ierr);
 	ierr = DMSwarmRegisterPetscDatatypeField(dms,"geoq_fac",1,PETSC_REAL);CHKERRQ(ierr);
-	ierr = DMSwarmRegisterPetscDatatypeField(dms,"rho_fac",1,PETSC_REAL);CHKERRQ(ierr);
-	ierr = DMSwarmRegisterPetscDatatypeField(dms,"H_fac",1,PETSC_REAL);CHKERRQ(ierr);
+	
 	ierr = DMSwarmRegisterPetscDatatypeField(dms,"strain_fac",1,PETSC_REAL);CHKERRQ(ierr);
 	ierr = DMSwarmRegisterPetscDatatypeField(dms,"strain_rate_fac",1,PETSC_REAL);CHKERRQ(ierr);
 	ierr = DMSwarmRegisterPetscDatatypeField(dms,"cont",1,PETSC_INT);CHKERRQ(ierr);
@@ -348,15 +346,13 @@ PetscErrorCode createSwarm_3d()
 		ierr = DMSwarmRestoreField(dms,"itag",&bs,NULL,(void**)&iarray);CHKERRQ(ierr);
 
 		ierr = DMSwarmGetField(dms,"geoq_fac",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
-		ierr = DMSwarmGetField(dms,"rho_fac",&bs,NULL,(void**)&rarray_rho);CHKERRQ(ierr);
-		ierr = DMSwarmGetField(dms,"H_fac",&bs,NULL,(void**)&rarray_H);CHKERRQ(ierr);
 		ierr = DMSwarmGetField(dms,"strain_fac",&bs,NULL,(void**)&strain_array);CHKERRQ(ierr);
 
 		if (n_interfaces==0){
 			for (p=0; p<nlocal; p++){
 				rarray[p] = escala_viscosidade;
-				rarray_rho[p] = RHOM;
-				rarray_H[p] = H_per_mass;
+				//rarray_rho[p] = RHOM;
+				//rarray_H[p] = H_per_mass;
 				layer_array[p] = 0;
 				/*rarray[p] = 1.0;
 				rarray_rho[p] = 2700.0;
@@ -417,15 +413,15 @@ PetscErrorCode createSwarm_3d()
 					if (cz<interp_interfaces[in]){
 						verif=1;
 						rarray[p] = inter_geoq[in];
-						rarray_rho[p] = inter_rho[in];
-						rarray_H[p] = inter_H[in];
+						//rarray_rho[p] = inter_rho[in];
+						//rarray_H[p] = inter_H[in];
 						layer_array[p] = in;
 					}
 				}
 				if (verif==0){
 					rarray[p] = inter_geoq[n_interfaces];
-					rarray_rho[p] = inter_rho[n_interfaces];
-					rarray_H[p] = inter_H[n_interfaces];
+					//rarray_rho[p] = inter_rho[n_interfaces];
+					//rarray_H[p] = inter_H[n_interfaces];
 					layer_array[p] = n_interfaces;
 					//printf("entrei!\n");
 				}
@@ -463,8 +459,8 @@ PetscErrorCode createSwarm_3d()
 		ierr = DMSwarmRestoreField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
 
 		ierr = DMSwarmRestoreField(dms,"geoq_fac",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
-		ierr = DMSwarmRestoreField(dms,"rho_fac",&bs,NULL,(void**)&rarray_rho);CHKERRQ(ierr);
-		ierr = DMSwarmRestoreField(dms,"H_fac",&bs,NULL,(void**)&rarray_H);CHKERRQ(ierr);
+		//ierr = DMSwarmRestoreField(dms,"rho_fac",&bs,NULL,(void**)&rarray_rho);CHKERRQ(ierr);
+		//ierr = DMSwarmRestoreField(dms,"H_fac",&bs,NULL,(void**)&rarray_H);CHKERRQ(ierr);
 
 		ierr = DMSwarmRestoreField(dms,"strain_fac",&bs,NULL,(void**)&strain_array);CHKERRQ(ierr);
 
@@ -488,8 +484,8 @@ PetscErrorCode createSwarm_3d()
 
 	ierr = PetscCalloc1(particles_add_remove*3,&p_add_coor);
 	ierr = PetscCalloc1(particles_add_remove ,&p_add_r);
-	ierr = PetscCalloc1(particles_add_remove ,&p_add_r_rho);
-	ierr = PetscCalloc1(particles_add_remove ,&p_add_r_H);
+	//ierr = PetscCalloc1(particles_add_remove ,&p_add_r_rho);
+	//ierr = PetscCalloc1(particles_add_remove ,&p_add_r_H);
 	ierr = PetscCalloc1(particles_add_remove ,&p_add_i);
 	ierr = PetscCalloc1(particles_add_remove ,&p_add_layer);
 	ierr = PetscCalloc1(particles_add_remove ,&p_add_r_strain);

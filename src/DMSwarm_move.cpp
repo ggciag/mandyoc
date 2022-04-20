@@ -897,8 +897,8 @@ PetscErrorCode Swarm_add_remove_3d()
 	PetscInt *iarray;
 	PetscInt *layer_array;
 	PetscReal *rarray;
-	PetscReal *rarray_rho;
-	PetscReal *rarray_H;
+	//PetscReal *rarray_rho;
+	//PetscReal *rarray_H;
 	PetscReal *strain_fac;
 	PetscReal *strain_rate_fac;
 
@@ -909,8 +909,8 @@ PetscErrorCode Swarm_add_remove_3d()
 	ierr = DMSwarmGetField(dms,"itag",&bs,NULL,(void**)&iarray);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"geoq_fac",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
-	ierr = DMSwarmGetField(dms,"rho_fac",&bs,NULL,(void**)&rarray_rho);CHKERRQ(ierr);
-	ierr = DMSwarmGetField(dms,"H_fac",&bs,NULL,(void**)&rarray_H);CHKERRQ(ierr);
+	//ierr = DMSwarmGetField(dms,"rho_fac",&bs,NULL,(void**)&rarray_rho);CHKERRQ(ierr);
+	//ierr = DMSwarmGetField(dms,"H_fac",&bs,NULL,(void**)&rarray_H);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_fac",&bs,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_rate_fac",&bs,NULL,(void**)&strain_rate_fac);CHKERRQ(ierr);
 
@@ -1082,8 +1082,8 @@ PetscErrorCode Swarm_add_remove_3d()
 					p_add_layer[cont_p_add] = layer_array[p_prox_total];
 
 					p_add_r[cont_p_add] = rarray[p_prox_total];
-					p_add_r_rho[cont_p_add] = rarray_rho[p_prox_total];
-					p_add_r_H[cont_p_add] = rarray_H[p_prox_total];
+					//p_add_r_rho[cont_p_add] = rarray_rho[p_prox_total];
+					//p_add_r_H[cont_p_add] = rarray_H[p_prox_total];
 					p_add_r_strain[cont_p_add] = strain_fac[p_prox_total];
 					p_add_r_strain_rate[cont_p_add] = strain_rate_fac[p_prox_total];
 
@@ -1115,8 +1115,8 @@ PetscErrorCode Swarm_add_remove_3d()
 
 	ierr = DMSwarmRestoreField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"geoq_fac",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
-	ierr = DMSwarmRestoreField(dms,"rho_fac",&bs,NULL,(void**)&rarray_rho);CHKERRQ(ierr);
-	ierr = DMSwarmRestoreField(dms,"H_fac",&bs,NULL,(void**)&rarray_H);CHKERRQ(ierr);
+	//ierr = DMSwarmRestoreField(dms,"rho_fac",&bs,NULL,(void**)&rarray_rho);CHKERRQ(ierr);
+	//ierr = DMSwarmRestoreField(dms,"H_fac",&bs,NULL,(void**)&rarray_H);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"itag",&bs,NULL,(void**)&iarray);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"strain_fac",&bs,NULL,(void**)&strain_fac);CHKERRQ(ierr);
@@ -1150,8 +1150,8 @@ PetscErrorCode Swarm_add_remove_3d()
 		ierr = DMSwarmGetField(dms,"itag",&bs,NULL,(void**)&iarray);CHKERRQ(ierr);
 		ierr = DMSwarmGetField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
 		ierr = DMSwarmGetField(dms,"geoq_fac",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
-		ierr = DMSwarmGetField(dms,"rho_fac",&bs,NULL,(void**)&rarray_rho);CHKERRQ(ierr);
-		ierr = DMSwarmGetField(dms,"H_fac",&bs,NULL,(void**)&rarray_H);CHKERRQ(ierr);
+		//ierr = DMSwarmGetField(dms,"rho_fac",&bs,NULL,(void**)&rarray_rho);CHKERRQ(ierr);
+		//ierr = DMSwarmGetField(dms,"H_fac",&bs,NULL,(void**)&rarray_H);CHKERRQ(ierr);
 		ierr = DMSwarmGetField(dms,"strain_fac",&bs,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 		ierr = DMSwarmGetField(dms,"strain_rate_fac",&bs,NULL,(void**)&strain_rate_fac);CHKERRQ(ierr);
 
@@ -1162,9 +1162,9 @@ PetscErrorCode Swarm_add_remove_3d()
 
 			rarray[nlocal+pp] = p_add_r[pp];
 
-			rarray_rho[nlocal+pp] = p_add_r_rho[pp];
+			//rarray_rho[nlocal+pp] = p_add_r_rho[pp];
 
-			rarray_H[nlocal+pp] = p_add_r_H[pp];
+			//rarray_H[nlocal+pp] = p_add_r_H[pp];
 
 			strain_fac[nlocal+pp] = p_add_r_strain[pp];
 			strain_rate_fac[nlocal+pp] = p_add_r_strain_rate[pp];
@@ -1175,8 +1175,8 @@ PetscErrorCode Swarm_add_remove_3d()
 
 		ierr = DMSwarmRestoreField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 		ierr = DMSwarmRestoreField(dms,"geoq_fac",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
-		ierr = DMSwarmRestoreField(dms,"rho_fac",&bs,NULL,(void**)&rarray_rho);CHKERRQ(ierr);
-		ierr = DMSwarmRestoreField(dms,"H_fac",&bs,NULL,(void**)&rarray_H);CHKERRQ(ierr);
+		//ierr = DMSwarmRestoreField(dms,"rho_fac",&bs,NULL,(void**)&rarray_rho);CHKERRQ(ierr);
+		//ierr = DMSwarmRestoreField(dms,"H_fac",&bs,NULL,(void**)&rarray_H);CHKERRQ(ierr);
 		ierr = DMSwarmRestoreField(dms,"itag",&bs,NULL,(void**)&iarray);CHKERRQ(ierr);
 		ierr = DMSwarmRestoreField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
 		ierr = DMSwarmRestoreField(dms,"strain_fac",&bs,NULL,(void**)&strain_fac);CHKERRQ(ierr);
