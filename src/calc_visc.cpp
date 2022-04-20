@@ -161,6 +161,34 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 				visco_real = pow(A,-1./n_exp)*pow(e2_inva,(1.-n_exp)/(n_exp))*exp((QE+VE*P)/(n_exp*R*TK));
 			}
 		}
+		if (rheol==19){
+			double R = 8.3144;
+			
+			double TK = T+273.;
+
+			visco_real = pow(A,-1./n_exp)*pow(e2_inva,(1.-n_exp)/(n_exp))*exp((QE+VE*P)/(n_exp*R*TK));
+
+			if (n_exp>2.99 && n_exp<3.01){
+				//diffusion creep
+				//A = Adiff/mu = 5.3E15/8.0E10 = 66250.0;
+				double A1 = 66250.0;
+				//double m1 = -2.5;
+				//hb = (h/b)^(-m)
+				double hb_power_m = 5656854249492380.0;
+				//double b1 = 5.0E-10;
+				//double mu1 = 8.0E10;
+				//double h1 = 0.001;
+
+				double QE1 = 240000.0;
+				double VE1 = 5.0E-6;
+
+				double visc_diffu = (hb_power_m*exp((QE1+VE1*P)/(R*TK)))/(A1);
+
+				if (visco_real>visc_diffu) visco_real = visc_diffu;
+
+			}
+
+		}
 	}
 	
 
