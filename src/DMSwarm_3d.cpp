@@ -25,6 +25,9 @@ extern double H_lito;
 extern double escala_viscosidade;
 
 extern PetscInt particles_per_ele;
+extern PetscInt nx_ppe;
+extern PetscInt ny_ppe;
+extern PetscInt nz_ppe;
 
 extern double H_per_mass;
 
@@ -40,6 +43,8 @@ extern PetscScalar *inter_geoq;
 extern PetscScalar *inter_H;
 
 extern PetscInt particles_add_remove;
+
+extern PetscReal particles_perturb_factor;
 
 extern PetscInt *ppp;
 extern PetscInt *p_remove;
@@ -206,7 +211,7 @@ PetscErrorCode SwarmViewGP_3d(DM dms,const char prefix[])
 
 	ierr = DMSwarmGetField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	for (p=0; p<npoints; p++) {
-		//if (iarray[p]==0)
+		if (iarray[p]>9999)
 			fprintf(fp,"%+1.4e %+1.4e %+1.4e %d %d %1.4e\n",
 					array[3*p],array[3*p+1],array[3*p+2],
 					iarray[p],layer_array[p],(double)strain_fac[p]);
@@ -238,6 +243,21 @@ PetscErrorCode createSwarm_3d()
 	PetscReal *rarray;
 	
 	PetscReal *strain_array;
+
+	PetscInt nx_part = (int)PetscCbrtReal(particles_per_ele*dx_const*dx_const/(dy_const*dz_const));
+	PetscInt ny_part = (int)PetscCbrtReal(particles_per_ele*dy_const*dy_const/(dz_const*dx_const));
+	PetscInt nz_part = (int)PetscCbrtReal(particles_per_ele*dz_const*dz_const/(dx_const*dy_const));
+
+	if (nx_ppe > 0) {nx_part = nx_ppe;}
+	if (ny_ppe > 0) {ny_part = ny_ppe;}
+	if (nz_ppe > 0) {nz_part = nz_ppe;}
+
+	particles_per_ele = nx_part*ny_part*nz_part;
+
+	PetscPrintf(PETSC_COMM_WORLD,"particles per element in x:  %d\n",nx_part);
+	PetscPrintf(PETSC_COMM_WORLD,"particles per element in y:  %d\n",ny_part);
+	PetscPrintf(PETSC_COMM_WORLD,"particles per element in z:  %d\n",nz_part);
+	PetscPrintf(PETSC_COMM_WORLD,"total particles per element: %d\n\n",particles_per_ele);
 
 	//PetscRandom rand;
 
@@ -291,41 +311,34 @@ PetscErrorCode createSwarm_3d()
 
 		printf("bs = %d\n",bs);
 
-
-		/*if (rank==0){
-			for (int cont=0;cont<10;cont++)
-				printf("array %f\n",array[cont]);
-		}*/
-
 		cnt = 0;
-		//ierr = PetscRandomCreate(PETSC_COMM_SELF,&rand);CHKERRQ(ierr);
-		//ierr = PetscRandomSetType(rand,PETSCRAND48);CHKERRQ(ierr);
-		//ierr = PetscRandomSetInterval(rand,-1.0,1.0);CHKERRQ(ierr);
 
 		for (p=0; p<nlocal/particles_per_ele; p++) {
 			PetscReal px,py,pz,rx,ry,rz;
 
-			for (cont=0;cont<particles_per_ele;cont++){
+			for (int contx=0;contx<nx_part;contx++){
+				for (int conty=0;conty<ny_part;conty++){
+					for (int contz=0;contz<nz_part;contz++){
 
-				//ierr = PetscRandomGetValueReal(rand,&rx);CHKERRQ(ierr);
-				//ierr = PetscRandomGetValueReal(rand,&ry);CHKERRQ(ierr);
-				//ierr = PetscRandomGetValueReal(rand,&rz);CHKERRQ(ierr);
-				rx = 2.0*(float)rand_r(&seed)/RAND_MAX-1.0;
-				ry = 2.0*(float)rand_r(&seed)/RAND_MAX-1.0;
-				rz = 2.0*(float)rand_r(&seed)/RAND_MAX-1.0;
 
-				px = LA_coors[3*p+0] + (0.5*rx+0.5)*dx_const;
-				py = LA_coors[3*p+1] + (0.5*ry+0.5)*dy_const;
-				pz = LA_coors[3*p+2] + (0.5*rz+0.5)*dz_const;
+						rx = 1.0*(float)rand_r(&seed)/RAND_MAX-0.5;
+						ry = 1.0*(float)rand_r(&seed)/RAND_MAX-0.5;
+						rz = 1.0*(float)rand_r(&seed)/RAND_MAX-0.5;
 
-				if ((px>=0) && (px<=Lx) && (py>=0) && (py<=Ly) && (pz>=-depth) && (pz<=0)) {
-					array[bs*cnt+0] = px;
-					array[bs*cnt+1] = py;
-					array[bs*cnt+2] = pz;
-					cnt++;
+						px = LA_coors[3*p+0] + (0.5+contx+rx*particles_perturb_factor)*(dx_const/nx_part);
+						py = LA_coors[3*p+1] + (0.5+conty+ry*particles_perturb_factor)*(dy_const/ny_part);
+						pz = LA_coors[3*p+2] + (0.5+contz+rz*particles_perturb_factor)*(dz_const/nz_part);
+
+
+						if ((px>=0) && (px<=Lx) && (py>=0) && (py<=Ly) && (pz>=-depth) && (pz<=0)) {
+							array[bs*cnt+0] = px;
+							array[bs*cnt+1] = py;
+							array[bs*cnt+2] = pz;
+							cnt++;
+						}
+					}
 				}
-			}
-
+			}	
 		}
 
 		//ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
@@ -336,17 +349,20 @@ PetscErrorCode createSwarm_3d()
 		ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
 		ierr = DMSwarmGetField(dms,"itag",&bs,NULL,(void**)&iarray);CHKERRQ(ierr);
 		ierr = DMSwarmGetField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
+		ierr = DMSwarmGetField(dms,"strain_fac",&bs,NULL,(void**)&strain_array);CHKERRQ(ierr);
 
 		ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 		for (p=0; p<nlocal; p++) {
-			//iarray[p] = (PetscInt)rank;
 			iarray[p] = p%particles_per_ele;
+			if (p%particles_per_ele==0){
+				iarray[p] = 10000 + p/particles_per_ele + 1000000*rank;
+			}
 		}
 
 		ierr = DMSwarmRestoreField(dms,"itag",&bs,NULL,(void**)&iarray);CHKERRQ(ierr);
 
 		ierr = DMSwarmGetField(dms,"geoq_fac",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
-		ierr = DMSwarmGetField(dms,"strain_fac",&bs,NULL,(void**)&strain_array);CHKERRQ(ierr);
+		
 
 		if (n_interfaces==0){
 			for (p=0; p<nlocal; p++){

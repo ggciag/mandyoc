@@ -14,6 +14,7 @@ PetscReal Xi_min = 1.0E-14;
 PetscReal random_initial_strain = 0;
 PetscReal pressure_const = -1.0;
 PetscInt nx_ppe = 0;
+PetscInt ny_ppe = 0;
 PetscInt nz_ppe = 0;
 PetscInt initial_print_step = 0;
 PetscReal initial_print_max_time = 1.0E6;

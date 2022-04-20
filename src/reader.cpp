@@ -78,6 +78,7 @@ extern PetscReal pressure_const;
 extern PetscInt initial_dynamic_range;
 extern PetscInt periodic_boundary;
 extern PetscInt nx_ppe;
+extern PetscInt ny_ppe;
 extern PetscInt nz_ppe;
 extern PetscInt initial_print_step;
 extern PetscReal initial_print_max_time;
@@ -206,6 +207,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "random_initial_strain") == 0) {random_initial_strain = atof(tkn_v);}
 			else if (strcmp(tkn_w, "pressure_const") == 0) {pressure_const = atof(tkn_v);}
 			else if (strcmp(tkn_w, "particles_per_element_x") == 0) {nx_ppe = atoi(tkn_v);}
+			else if (strcmp(tkn_w, "particles_per_element_y") == 0) {ny_ppe = atoi(tkn_v);}
 			else if (strcmp(tkn_w, "particles_per_element_z") == 0) {nz_ppe = atoi(tkn_v);}
 			else if (strcmp(tkn_w, "initial_print_step") == 0) {initial_print_step = atoi(tkn_v);}
 			else if (strcmp(tkn_w, "initial_print_max_time") == 0) {initial_print_max_time = atof(tkn_v);}
@@ -284,6 +286,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 		if (particles_perturb_factor < 0.0) particles_perturb_factor = 0.0;
 		layers = Nz;
 		if (nx_ppe < 0) nx_ppe = 0;
+		if (ny_ppe < 0) ny_ppe = 0;
 		if (nz_ppe < 0) nz_ppe = 0;
 		if (initial_print_step < 0) initial_print_step = 0;
 		if (sp_dt > 0) set_sp_dt = PETSC_TRUE;
@@ -387,6 +390,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&initial_dynamic_range,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&periodic_boundary,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&nx_ppe,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&ny_ppe,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&nz_ppe,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&initial_print_step,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&initial_print_max_time,1,MPIU_REAL,0,PETSC_COMM_WORLD);
