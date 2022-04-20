@@ -56,6 +56,8 @@ extern PetscReal *p_add_r_strain_rate;
 
 extern unsigned int seed;
 
+extern PetscInt print_step_files;
+
 extern PetscReal random_initial_strain;
 
 
@@ -184,9 +186,7 @@ PetscErrorCode SwarmViewGP_3d(DM dms,const char prefix[])
 	PetscReal *array;
 	PetscInt *iarray;
 	PetscInt *layer_array;
-	PetscReal *geoq_fac;
-	PetscReal *rho_fac;
-	PetscReal *H_fac;
+	
 	PetscReal *strain_fac;
 	PetscInt npoints,p,bs;
 	FILE *fp;
@@ -203,22 +203,17 @@ PetscErrorCode SwarmViewGP_3d(DM dms,const char prefix[])
 	ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"itag",NULL,NULL,(void**)&iarray);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"layer",NULL,NULL,(void**)&layer_array);CHKERRQ(ierr);
-	ierr = DMSwarmGetField(dms,"geoq_fac",NULL,NULL,(void**)&geoq_fac);CHKERRQ(ierr);
-	ierr = DMSwarmGetField(dms,"H_fac",NULL,NULL,(void**)&H_fac);CHKERRQ(ierr);
-	ierr = DMSwarmGetField(dms,"rho_fac",NULL,NULL,(void**)&rho_fac);CHKERRQ(ierr);
+
 	ierr = DMSwarmGetField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	for (p=0; p<npoints; p++) {
 		//if (iarray[p]==0)
-			fprintf(fp,"%+1.4e %+1.4e %+1.4e %d %d %1.4e %1.4e %1.4e %1.4e\n",
+			fprintf(fp,"%+1.4e %+1.4e %+1.4e %d %d %1.4e\n",
 					array[3*p],array[3*p+1],array[3*p+2],
-					iarray[p],layer_array[p],(double)geoq_fac[p],
-					(double)rho_fac[p],(double)H_fac[p],(double)strain_fac[p]);
+					iarray[p],layer_array[p],(double)strain_fac[p]);
 	}
 	ierr = DMSwarmRestoreField(dms,"itag",NULL,NULL,(void**)&iarray);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"layer",NULL,NULL,(void**)&layer_array);CHKERRQ(ierr);
-	ierr = DMSwarmRestoreField(dms,"geoq_fac",NULL,NULL,(void**)&geoq_fac);CHKERRQ(ierr);
-	ierr = DMSwarmRestoreField(dms,"H_fac",NULL,NULL,(void**)&H_fac);CHKERRQ(ierr);
-	ierr = DMSwarmRestoreField(dms,"rho_fac",NULL,NULL,(void**)&rho_fac);CHKERRQ(ierr);
+	
 	ierr = DMSwarmRestoreField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 	fclose(fp);
@@ -479,7 +474,9 @@ PetscErrorCode createSwarm_3d()
 
 	ierr = DMView(dms,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
 
-	//ierr = SwarmViewGP_3d(dms,"step_0");CHKERRQ(ierr);
+	if (print_step_files==1){
+		ierr = SwarmViewGP_3d(dms,"step_0");CHKERRQ(ierr);
+	}
 
 
 	MPI_Barrier(PETSC_COMM_WORLD);
