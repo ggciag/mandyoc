@@ -37,6 +37,7 @@ With required python packages:
 To run the tests, some additional python packages are required:
 
 * pytest
+* numpy
 
 To build the documentation, further python packages are necessary:
 
