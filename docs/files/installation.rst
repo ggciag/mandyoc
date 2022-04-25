@@ -124,7 +124,7 @@ Finally, add a symlink of `mpirun` to `~/.local/bin`:
 
 .. code-block::
 
-	ln -s /path/to/pets/arch-label-optimized/bin/mpirun ~/.local/bin/mpirun
+	ln -s /path/to/petsc/arch-label-optimized/bin/mpirun ~/.local/bin/mpirun
 
 
 *Mandyoc* Installation
