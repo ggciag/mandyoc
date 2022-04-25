@@ -55,6 +55,10 @@ Check out the `PETSc installation`_ for details.
 	The following steps its a example installation with minimum requirements
 	to run *Mandyoc*.
 
+**Requirements:**
+
+* ``CMake``
+
 The first step is to **download** PETSc (v3.15.5) release from `PETSc website`_
 or **clone** the repository into your machine.
 *Mandyoc* might work with latest release of PETSc, but this is not guaranteed
