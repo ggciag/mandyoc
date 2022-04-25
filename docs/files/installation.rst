@@ -58,7 +58,7 @@ Check out the `PETSc installation`_ for details.
 The first step is to **download** PETSc (v3.15.5) release from `PETSc website`_
 or **clone** the repository into your machine.
 *Mandyoc* might work with latest release of PETSc, but this is not guaranteed
-since new verions might introduce breaking changes.
+since new versions might introduce breaking changes.
 
 Clone the repository to your desired location::
 
