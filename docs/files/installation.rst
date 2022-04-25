@@ -126,6 +126,12 @@ Finally, add a symlink of `mpirun` to `~/.local/bin`:
 
 	ln -s /path/to/petsc/arch-label-optimized/bin/mpirun ~/.local/bin/mpirun
 
+.. note::
+
+    Make sure the directory ``~/.local/bin`` exists, otherwise the above
+    command will fail.
+	You can create it by running ``mkdir -p ~/.local/bin``.
+
 
 *Mandyoc* Installation
 ----------------------
