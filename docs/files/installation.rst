@@ -142,6 +142,7 @@ To clone the repository, navigate to the directory you wish to install *Mandyoc*
 .. code-block:: bash
 
    git clone https://github.com/ggciag/mandyoc
+   cd mandyoc
 
 Before to install Mandyoc, you mast *set an environment variable* which indicates the path to PETSc installation folder:
 
