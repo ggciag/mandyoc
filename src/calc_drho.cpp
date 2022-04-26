@@ -294,12 +294,8 @@ PetscErrorCode calc_pressure_3d()
 
 	//ierr = DMDAVecGetArray(da_Thermal,local_geoq_rho,&qq_rho);CHKERRQ(ierr);
 
-	PetscInt i,j,k,c,n,g;
-
-	MatStencil indr[T_NE],ind[V_GT];
-
 	int M,N,P;
-	double xx,yy,zz;
+	double zz;
 
 	PetscFunctionBeginUser;
 	ierr = DMDAGetInfo(da_Thermal,0,&M,&N,&P,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
@@ -327,17 +323,6 @@ PetscErrorCode calc_pressure_3d()
 	for (ek = sez; ek < sez+mz; ek++) {
 		for (ej = sey; ej < sey+my; ej++) {
 			for (ei = sex; ei < sex+mx; ei++) {
-				indr[0].i=ei  ; indr[0].j=ej  ; indr[0].k=ek  ;
-				indr[1].i=ei+1; indr[1].j=ej  ; indr[1].k=ek  ;
-				indr[2].i=ei  ; indr[2].j=ej+1; indr[2].k=ek  ;
-				indr[3].i=ei+1; indr[3].j=ej+1; indr[3].k=ek  ;
-				indr[4].i=ei  ; indr[4].j=ej  ; indr[4].k=ek+1;
-				indr[5].i=ei+1; indr[5].j=ej  ; indr[5].k=ek+1;
-				indr[6].i=ei  ; indr[6].j=ej+1; indr[6].k=ek+1;
-				indr[7].i=ei+1; indr[7].j=ej+1; indr[7].k=ek+1;
-
-				xx = ei*Lx/(M-1);
-				yy = ej*Ly/(N-1);
 				zz = -(P-1-ek)*depth/(P-1);
 
 				for (int in=0;in<n_interfaces;in++){

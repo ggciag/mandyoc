@@ -736,25 +736,6 @@ PetscErrorCode AssembleA_Veloc_3d(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	e2_aux_MIN = 1.0E50;
 
 
-	FILE *sai_visc;
-
-	if (print_visc==1 && tcont%print_step==0) {
-
-		char nome[200];
-
-		PetscMPIInt rank;
-		ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
-
-		sprintf(nome,"visc_%d_%d.txt",tcont,rank);
-
-		sai_visc = fopen(nome,"w");
-
-	}
-
-	PetscReal visc_meio;
-
-
-
 	PetscReal rho_mean_bottom;
 	PetscReal traction_bottom;
 
@@ -778,11 +759,8 @@ PetscErrorCode AssembleA_Veloc_3d(Mat A,Mat AG,DM veloc_da, DM temper_da){
 				for (i=0;i<T_NE;i++) geoq_ele[i]=qq[indr[i].k][indr[i].j][indr[i].i];
 
 
-				visc_meio = montaKeVeloc_simplif_3d(Ke_veloc,Ke_veloc_general,geoq_ele);
+				montaKeVeloc_simplif_3d(Ke_veloc,Ke_veloc_general,geoq_ele);
 
-				/*if (print_visc==1 && tcont%print_step==0) {
-					fprintf(sai_visc,"%d %d %d %lg\n",ei,ej,ek,visc_meio);
-				}*/
 
 				//stabilization algorithm for geodynamic numerical simulations with free surface (Kaus, 2010)
 
@@ -891,10 +869,6 @@ PetscErrorCode AssembleA_Veloc_3d(Mat A,Mat AG,DM veloc_da, DM temper_da){
 
 			}
 		}
-	}
-
-	if (print_visc==1 && tcont%print_step==0) {
-		fclose(sai_visc);
 	}
 
 	ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);

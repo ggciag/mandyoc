@@ -191,7 +191,7 @@ PetscErrorCode SwarmViewGP_3d(DM dms,const char prefix[])
 	PetscReal *array;
 	PetscInt *iarray;
 	PetscInt *layer_array;
-	
+
 	PetscReal *strain_fac;
 	PetscInt npoints,p,bs;
 	FILE *fp;
@@ -218,7 +218,7 @@ PetscErrorCode SwarmViewGP_3d(DM dms,const char prefix[])
 	}
 	ierr = DMSwarmRestoreField(dms,"itag",NULL,NULL,(void**)&iarray);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"layer",NULL,NULL,(void**)&layer_array);CHKERRQ(ierr);
-	
+
 	ierr = DMSwarmRestoreField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 	fclose(fp);
@@ -235,13 +235,13 @@ PetscErrorCode createSwarm_3d()
 	PetscMPIInt rank;
 	ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
 
-	PetscInt bs,nlocal,p,cont;
+	PetscInt bs,nlocal,p;
 
 	PetscReal *array;
 	PetscInt *iarray;
 	PetscInt *layer_array;
 	PetscReal *rarray;
-	
+
 	PetscReal *strain_array;
 
 	PetscInt nx_part = (int)PetscCbrtReal(particles_per_ele*dx_const*dx_const/(dy_const*dz_const));
@@ -280,7 +280,7 @@ PetscErrorCode createSwarm_3d()
 	ierr = DMSwarmRegisterPetscDatatypeField(dms,"itag",1,PETSC_INT);CHKERRQ(ierr);
 	ierr = DMSwarmRegisterPetscDatatypeField(dms,"layer",1,PETSC_INT);CHKERRQ(ierr);
 	ierr = DMSwarmRegisterPetscDatatypeField(dms,"geoq_fac",1,PETSC_REAL);CHKERRQ(ierr);
-	
+
 	ierr = DMSwarmRegisterPetscDatatypeField(dms,"strain_fac",1,PETSC_REAL);CHKERRQ(ierr);
 	ierr = DMSwarmRegisterPetscDatatypeField(dms,"strain_rate_fac",1,PETSC_REAL);CHKERRQ(ierr);
 	ierr = DMSwarmRegisterPetscDatatypeField(dms,"cont",1,PETSC_INT);CHKERRQ(ierr);
@@ -343,7 +343,7 @@ PetscErrorCode createSwarm_3d()
 						}
 					}
 				}
-			}	
+			}
 		}
 
 		//ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
@@ -367,7 +367,7 @@ PetscErrorCode createSwarm_3d()
 		ierr = DMSwarmRestoreField(dms,"itag",&bs,NULL,(void**)&iarray);CHKERRQ(ierr);
 
 		ierr = DMSwarmGetField(dms,"geoq_fac",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
-		
+
 
 		if (n_interfaces==0){
 			for (p=0; p<nlocal; p++){

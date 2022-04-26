@@ -943,12 +943,11 @@ PetscReal montaKeVeloc_simplif_2d(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_
 
 }
 
-PetscReal montaKeVeloc_simplif_3d(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_ele){
+PetscErrorCode montaKeVeloc_simplif_3d(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_ele){
 
 	long i,j;
 
 	double Visc_local,Geoq_local;
-	double visc_meio;
 
 	//PetscErrorCode ierr=0;
 
@@ -987,9 +986,6 @@ PetscReal montaKeVeloc_simplif_3d(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_
 
 
 					Visc_local = Geoq_local;
-
-					if (kx==0 && ky==0 && kz==0) visc_meio = Visc_local;
-
 
 					if (Visc_local<visc_aux_MIN) visc_aux_MIN=Visc_local;
 					if (Visc_local>visc_aux_MAX) visc_aux_MAX=Visc_local;
@@ -1035,8 +1031,6 @@ PetscReal montaKeVeloc_simplif_3d(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_
 			}
 		}
 
-		visc_meio = Visc_mean;
-
 		for (i=0;i<V_GT;i++){
 			for (j=0;j<V_GT;j++){
 				Ke[i*V_GT+j]*=Visc_mean;
@@ -1048,7 +1042,7 @@ PetscReal montaKeVeloc_simplif_3d(PetscReal *Ke,PetscReal *KeG, PetscReal *geoq_
 
 	//printf("Visc_min = %lg; Visc_max = %lg\n",Visc_min,Visc_max);
 
-	return(visc_meio);
+	PetscFunctionReturn(0);
 
 }
 
