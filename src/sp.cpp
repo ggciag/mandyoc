@@ -65,7 +65,7 @@ PetscErrorCode sp_diffusion(PetscReal dt, PetscInt size);
 PetscErrorCode sp_fluvial(PetscReal dt, PetscInt size);
 PetscErrorCode sp_fluvial2(PetscReal dt, PetscInt size);
 PetscErrorCode sp_forced(PetscReal dt, PetscInt size);
-PetscErrorCode DMDAGetElementCorners(DM da,PetscInt *sx,PetscInt *sz,PetscInt *mx,PetscInt *mz);
+PetscErrorCode DMDAGetElementCorners_2d(DM da,PetscInt *sx,PetscInt *sz,PetscInt *mx,PetscInt *mz);
 
 
 PetscErrorCode sp_create_surface_vec()
@@ -188,7 +188,7 @@ PetscErrorCode sp_interpolate_surface_particles_to_vec()
     ierr = DMSwarmGetField(dms, DMSwarmPICField_coor, &bs,NULL, (void**)&pcoords); CHKERRQ(ierr);
     ierr = DMSwarmGetField(dms, "layer", &bs, NULL, (void**)&layer); CHKERRQ(ierr);
 
-    ierr = DMDAGetElementCorners(da_Veloc, &sex, &sey, &mx, &my); CHKERRQ(ierr);
+    ierr = DMDAGetElementCorners_2d(da_Veloc, &sex, &sey, &mx, &my); CHKERRQ(ierr);
 
     for (p = 0; sp_surface_local_size && p < nlocal; p++) {
         px = pcoords[2*p];
@@ -397,7 +397,7 @@ PetscErrorCode update_particles_properties()
     ierr = VecGetLocalSize(sp_surface_global, &sp_size_local); CHKERRQ(ierr);
     sp_dx = Lx/(sp_size-1);
 
-    ierr = DMDAGetElementCorners(da_Veloc, &sex, &sey, &mx, &my); CHKERRQ(ierr);
+    ierr = DMDAGetElementCorners_2d(da_Veloc, &sex, &sey, &mx, &my); CHKERRQ(ierr);
 
     ierr = VecGetArray(sp_surface_global_aux, &y_aux); CHKERRQ(ierr);
 
@@ -611,7 +611,7 @@ PetscErrorCode sp_fluvial(PetscReal dt, PetscInt size)
     PetscScalar *h,*h_aux,*h_aux2,*q,*fc,*vR;
     PetscInt *hi;
     PetscInt sum;
-    
+
     PetscReal K = K_fluvial;//2.0E-7;
 
 
@@ -663,7 +663,7 @@ PetscErrorCode sp_fluvial(PetscReal dt, PetscInt size)
 
     for (j=0;j<size;j++) vR[j] = 1.0;//PetscExpReal(-PetscPowReal(sp_dx*j-Lx/2,4)/PetscPowReal(Lx/8,4));
 
-    
+
 	if (precipitation_profile==1){
 		FILE *f_prec;
 		f_prec = fopen("precipitation.txt","r");
@@ -682,7 +682,7 @@ PetscErrorCode sp_fluvial(PetscReal dt, PetscInt size)
     for (j=0;j<size;j++) h_aux[j]=h[j];
 
     for (t=0; t < max_steps; t++) {
-        for (j=0;j<size;j++) q[j] = sp_dx*vR[j];    
+        for (j=0;j<size;j++) q[j] = sp_dx*vR[j];
         for (j=0;j<size;j++) {
             fc[j]=1;
             if (h[j]<hsl) fc[j]=0;
@@ -691,7 +691,7 @@ PetscErrorCode sp_fluvial(PetscReal dt, PetscInt size)
         fc[size-1]=0;
         for (j=0;j<size;j++) {if (h[j]<hsl) h[j]=hsl;}
         for (j=0;j<size;j++) hi[j]=j;
-        
+
         for (sum=0,j=0;j<size;j++) sum+=fc[j];
         while (sum>0){
 
@@ -755,9 +755,9 @@ PetscErrorCode sp_fluvial(PetscReal dt, PetscInt size)
     PetscFree(fc);
     PetscFree(q);
     PetscFree(hi);
-    
 
-   
+
+
 
     PetscFunctionReturn(0);
 }
@@ -779,7 +779,7 @@ PetscErrorCode sp_fluvial2(PetscReal dt, PetscInt size)
     PetscInt ci,cf,out;
     PetscInt sum;
     PetscReal hmax;
-    
+
     PetscReal K = K_fluvial;//2.0E-7;
 
 
@@ -828,7 +828,7 @@ PetscErrorCode sp_fluvial2(PetscReal dt, PetscInt size)
     for (j=0;j<size;j++) h_aux[j]=h[j];
 
     for (t=0; t < max_steps; t++) {
-        for (j=0;j<size;j++) q[j] = sp_dx;    
+        for (j=0;j<size;j++) q[j] = sp_dx;
         for (j=0;j<size;j++) {
             fc[j]=1;
             if (h[j]<hsl) fc[j]=0;
@@ -846,7 +846,7 @@ PetscErrorCode sp_fluvial2(PetscReal dt, PetscInt size)
         cf=1;
         out = 0;
         for (j=1;j<size;j++){
-            if (out==0 && fc[j]==1){ 
+            if (out==0 && fc[j]==1){
                 ci=j;
                 cf=j;
                 out=1;
@@ -909,7 +909,7 @@ PetscErrorCode sp_fluvial2(PetscReal dt, PetscInt size)
     PetscFree(fc);
     PetscFree(q);
     PetscFree(hi);
-    
+
 
 
 
@@ -928,7 +928,7 @@ PetscErrorCode sp_fluvial2(PetscReal dt, PetscInt size)
     }
     */
 
-   
+
 
     PetscFunctionReturn(0);
 }
@@ -991,7 +991,7 @@ PetscErrorCode sp_forced(PetscReal dt, PetscInt size)
 
     for (j=0;j<size;j++) vR[j] = 1.0;//PetscExpReal(-PetscPowReal(sp_dx*j-Lx/2,4)/PetscPowReal(Lx/8,4));
 
-    
+
 	if (precipitation_profile==1){
 		FILE *f_prec;
 		f_prec = fopen("precipitation.txt","r");
@@ -1024,9 +1024,9 @@ PetscErrorCode sp_forced(PetscReal dt, PetscInt size)
     PetscFree(fc);
     PetscFree(q);
     PetscFree(hi);
-    
 
-   
+
+
 
     PetscFunctionReturn(0);
 }

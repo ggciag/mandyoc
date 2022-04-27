@@ -14,6 +14,7 @@ PetscReal Xi_min = 1.0E-14;
 PetscReal random_initial_strain = 0;
 PetscReal pressure_const = -1.0;
 PetscInt nx_ppe = 0;
+PetscInt ny_ppe = 0;
 PetscInt nz_ppe = 0;
 PetscInt initial_print_step = 0;
 PetscReal initial_print_max_time = 1.0E6;
@@ -22,7 +23,7 @@ PetscScalar m_fluvial = 1.0;
 PetscScalar sea_level = 0.0;
 PetscScalar basal_heat = -1.0;
 PetscReal sp_dt = 0.0;
-PetscScalar sp_d_c = 0.0; 
+PetscScalar sp_d_c = 0.0;
 // Parameter file boolean variables
 PetscInt WITH_NON_LINEAR = 0; // 1=True, 0=False
 PetscInt WITH_ADIABATIC_H = 0; // 1=True, 0=False
@@ -56,10 +57,12 @@ PetscBool set_sp_d_c = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
 PetscBool plot_sediment = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
 PetscBool a2l = PETSC_TRUE; // PETSC_TRUE/PETSC_FALSE
 // Parameter file native C variables
+int dimensions = 2;
 long Nx = -1;
+long Ny = -1;
 long Nz = -1;
 long layers;
-double Lx, depth;
+double Lx, Ly, depth;
 int n_interfaces = 0;
 int ContMult;
 long stepMAX;
@@ -94,6 +97,10 @@ int bcT_bot;
 int bcT_left;
 int bcT_right;
 // End of parameter file variables
+
+PetscInt Px = PETSC_DECIDE;
+PetscInt Py = PETSC_DECIDE;
+PetscInt Pz = PETSC_DECIDE;
 
 double visc_MAX_comp;
 double visc_MIN_comp;
@@ -137,6 +144,7 @@ double comp_alpha_thermal = 1.0 - alpha_thermal;
 PetscInt i_veloc=0;
 
 double dx_const;
+double dy_const;
 double dz_const;
 
 
@@ -166,6 +174,7 @@ double r5p9 = 5.0/9.0;
 
 PetscReal *NT;
 PetscReal *NT_x;
+PetscReal *NT_y;
 PetscReal *NT_z;
 
 
@@ -213,6 +222,12 @@ Vec local_geoq_strain;
 
 Vec geoq_strain_rate;
 Vec local_geoq_strain_rate;
+
+PetscReal *N_x_Gauss;
+PetscReal *N_y_Gauss;
+PetscReal *N_z_Gauss;
+
+PetscInt print_visc;
 
 Mat VA, VB, VG;
 Vec Vf, Veloc, Veloc_fut,Veloc_weight,Veloc_0;
@@ -287,6 +302,8 @@ PetscInt *p_i;
 
 PetscReal *p_add_coor;
 PetscReal *p_add_r;
+PetscReal *p_add_r_rho;
+PetscReal *p_add_r_H;
 PetscInt *p_add_i;
 PetscInt *p_add_layer;
 PetscReal *p_add_r_strain;

@@ -78,7 +78,7 @@ extern PetscInt binary_output;
 
 
 
-PetscErrorCode _DMLocatePoints_DMDARegular_IS(DM dm,Vec pos,IS *iscell)
+PetscErrorCode _DMLocatePoints_DMDARegular_IS_2d(DM dm,Vec pos,IS *iscell)
 {
 
 	PetscInt p,n,bs,npoints,si,sk,milocal,mklocal,mx,mz;
@@ -136,7 +136,7 @@ PetscErrorCode _DMLocatePoints_DMDARegular_IS(DM dm,Vec pos,IS *iscell)
 	PetscFunctionReturn(0);
 }
 
-PetscErrorCode DMLocatePoints_DMDARegular(DM dm,Vec pos,DMPointLocationType ltype, PetscSF cellSF)
+PetscErrorCode DMLocatePoints_DMDARegular_2d(DM dm,Vec pos,DMPointLocationType ltype, PetscSF cellSF)
 {
 	IS iscell;
 	PetscSFNode *cells;
@@ -144,7 +144,7 @@ PetscErrorCode DMLocatePoints_DMDARegular(DM dm,Vec pos,DMPointLocationType ltyp
 	const PetscInt *boxCells;
 	PetscErrorCode ierr;
 
-	ierr = _DMLocatePoints_DMDARegular_IS(dm,pos,&iscell);CHKERRQ(ierr);
+	ierr = _DMLocatePoints_DMDARegular_IS_2d(dm,pos,&iscell);CHKERRQ(ierr);
 
 	ierr = VecGetLocalSize(pos,&npoints);CHKERRQ(ierr);
 	ierr = VecGetBlockSize(pos,&bs);CHKERRQ(ierr);
@@ -167,7 +167,7 @@ PetscErrorCode DMLocatePoints_DMDARegular(DM dm,Vec pos,DMPointLocationType ltyp
 	PetscFunctionReturn(0);
 }
 
-PetscErrorCode DMGetNeighbors_DMDARegular(DM dm,PetscInt *nneighbors,const PetscMPIInt **neighbors)
+PetscErrorCode DMGetNeighbors_DMDARegular_2d(DM dm,PetscInt *nneighbors,const PetscMPIInt **neighbors)
 {
 	DM dmregular;
 	PetscErrorCode ierr;
@@ -177,7 +177,7 @@ PetscErrorCode DMGetNeighbors_DMDARegular(DM dm,PetscInt *nneighbors,const Petsc
 	PetscFunctionReturn(0);
 }
 
-PetscErrorCode SwarmViewGP(DM dms,const char prefix[])
+PetscErrorCode SwarmViewGP_2d(DM dms,const char prefix[])
 {
 	PetscReal *array;
 	PetscInt *iarray;
@@ -250,10 +250,7 @@ PetscErrorCode SwarmViewGP(DM dms,const char prefix[])
 	PetscFunctionReturn(0);
 }
 
-
-
-
-PetscErrorCode createSwarm()
+PetscErrorCode createSwarm_2d()
 {
 	PetscErrorCode ierr=0;
 
@@ -289,8 +286,8 @@ PetscErrorCode createSwarm()
 
 	ierr = DMShellCreate(PETSC_COMM_WORLD,&dmcell);CHKERRQ(ierr);
 	ierr = DMSetApplicationContext(dmcell,(void*)da_Veloc);CHKERRQ(ierr);
-	dmcell->ops->locatepoints = DMLocatePoints_DMDARegular;
-	dmcell->ops->getneighbors = DMGetNeighbors_DMDARegular;
+	dmcell->ops->locatepoints = DMLocatePoints_DMDARegular_2d;
+	dmcell->ops->getneighbors = DMGetNeighbors_DMDARegular_2d;
 	//PetscPrintf(PETSC_COMM_WORLD,"teste swarm externo\n");
 
 	/* Create the swarm */
@@ -478,7 +475,7 @@ PetscErrorCode createSwarm()
 	ierr = DMView(dms,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
 
 	if (print_step_files==1){
-		ierr = SwarmViewGP(dms,"step_0");CHKERRQ(ierr);
+		ierr = SwarmViewGP_2d(dms,"step_0");CHKERRQ(ierr);
 	}
 
 

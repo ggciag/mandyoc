@@ -7,9 +7,10 @@ PetscBool check_a_b_bool(char tkn_w[], char tkn_v[], const char str_a[], const c
 void ErrorInterfaces();
 
 // Parameter file variables
-extern long Nx, Nz;
+extern int dimensions;
+extern long Nx, Ny, Nz;
 extern long layers;
-extern double Lx, depth;
+extern double Lx, Ly, depth;
 extern int ContMult;
 extern long stepMAX;
 extern double timeMAX;
@@ -77,6 +78,7 @@ extern PetscReal pressure_const;
 extern PetscInt initial_dynamic_range;
 extern PetscInt periodic_boundary;
 extern PetscInt nx_ppe;
+extern PetscInt ny_ppe;
 extern PetscInt nz_ppe;
 extern PetscInt initial_print_step;
 extern PetscReal initial_print_max_time;
@@ -144,18 +146,18 @@ PetscErrorCode reader(int rank, const char fName[]){
 	char *tkn_w, *tkn_v;
 	char line[size];
 	// char *mandatoryParam = ["nx", "nz"];
-	
+
 	if (rank==0){
 		nline = 0;
 		FILE *f_parameters;
-		
+
 		f_parameters = fopen(fName,"r");
 		if (f_parameters == NULL) {PetscPrintf(PETSC_COMM_WORLD, "ERROR. The <%s> file was NOT FOUND.\n", fName); exit(1);}
 		while (!feof(f_parameters))
 		{
 			// Increment line number nline
 			nline += 1;
-			
+
 			// Read each line from the parameters f_parameters, trim undesireble characters
 			// and split line in thk_w[] and thk_v[].
 			nread = fgets(line, size, f_parameters);
@@ -164,12 +166,15 @@ PetscErrorCode reader(int rank, const char fName[]){
 			if (tkn_w[0] == '#') continue;
 			tkn_v 	= strtok(NULL, " \t=#\n");
 			// PetscPrintf(PETSC_COMM_WORLD, "(%s)(%s)\n", tkn_w, tkn_v);
-			
+
 			// Store and check every parameter.
 			// Parameters with values
-			if (strcmp(tkn_w, "nx") == 0) {Nx = atol(tkn_v);}
+			if (strcmp(tkn_w, "dimensions") == 0) {dimensions = atoi(tkn_v);}
+			else if (strcmp(tkn_w, "nx") == 0) {Nx = atol(tkn_v);}
+			else if (strcmp(tkn_w, "ny") == 0) {Ny = atol(tkn_v);}
 			else if (strcmp(tkn_w, "nz") == 0) {Nz = atol(tkn_v);}
 			else if (strcmp(tkn_w, "lx") == 0) {Lx = atof(tkn_v);}
+			else if (strcmp(tkn_w, "ly") == 0) {Ly = atof(tkn_v);}
 			else if (strcmp(tkn_w, "lz") == 0) {depth = atof(tkn_v);}
 			else if (strcmp(tkn_w, "multigrid") == 0) {ContMult = atoi(tkn_v);}
 			else if (strcmp(tkn_w, "step_max") == 0) {stepMAX = atol(tkn_v);}
@@ -202,6 +207,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "random_initial_strain") == 0) {random_initial_strain = atof(tkn_v);}
 			else if (strcmp(tkn_w, "pressure_const") == 0) {pressure_const = atof(tkn_v);}
 			else if (strcmp(tkn_w, "particles_per_element_x") == 0) {nx_ppe = atoi(tkn_v);}
+			else if (strcmp(tkn_w, "particles_per_element_y") == 0) {ny_ppe = atoi(tkn_v);}
 			else if (strcmp(tkn_w, "particles_per_element_z") == 0) {nz_ppe = atoi(tkn_v);}
 			else if (strcmp(tkn_w, "initial_print_step") == 0) {initial_print_step = atoi(tkn_v);}
 			else if (strcmp(tkn_w, "initial_print_max_time") == 0) {initial_print_max_time = atof(tkn_v);}
@@ -211,7 +217,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "basal_heat") == 0) {basal_heat = atof(tkn_v);}
 			else if (strcmp(tkn_w, "sp_dt") == 0) {sp_dt = atof(tkn_v);}
 			else if (strcmp(tkn_w, "sp_d_c") == 0) {sp_d_c = atof(tkn_v);}
-			
+
 			// Boolean parameters
 			else if (strcmp(tkn_w, "geoq") == 0) {geoq_on = check_a_b(tkn_w, tkn_v, "on", "off");}
 			else if (strcmp(tkn_w, "non_linear_method") == 0) {WITH_NON_LINEAR = check_a_b(tkn_w, tkn_v, "on", "off");}
@@ -253,9 +259,9 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "sp_surface_processes") == 0) {sp_surface_processes = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "plot_sediment") == 0) {plot_sediment = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "a2l") == 0) {a2l = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
-			
+
 			else if (strcmp(tkn_w, "high_kappa_in_asthenosphere") == 0) {high_kappa_in_asthenosphere = check_a_b(tkn_w, tkn_v, "True", "False");}
-			
+
 			// Else
 			else
 			{
@@ -264,12 +270,23 @@ PetscErrorCode reader(int rank, const char fName[]){
 			}
 		}
 		fclose(f_parameters);
-		
+
+		// check/set dimensions
+		if (dimensions != 2 && dimensions != 3) {
+			fprintf(stderr, "Error. \"dimensions\" keyword must be 2 (for 2D mode) or 3 (for 3D mode).\n");
+			exit(1);
+		}
+		if (dimensions == 3 && Ny < 2) {
+			fprintf(stderr, "Error. \"Ny\" keyword must be a least 2 for 3D mode.\n");
+			exit(1);
+		}
+
 		// Parameters values exceptions and pre-processing
 		if (particles_perturb_factor > 1.0) particles_perturb_factor = 1.0;
 		if (particles_perturb_factor < 0.0) particles_perturb_factor = 0.0;
 		layers = Nz;
 		if (nx_ppe < 0) nx_ppe = 0;
+		if (ny_ppe < 0) ny_ppe = 0;
 		if (nz_ppe < 0) nz_ppe = 0;
 		if (initial_print_step < 0) initial_print_step = 0;
 		if (sp_dt > 0) set_sp_dt = PETSC_TRUE;
@@ -279,30 +296,33 @@ PetscErrorCode reader(int rank, const char fName[]){
 		fscanf(f_parameters,"%s",str);
 		if (strcmp (str,"H_lito") == 0) fscanf(f_parameters,"%lf",&H_lito);
 		else {printf("H_lito error\n"); exit(1);}
-		
+
 		fscanf(f_parameters,"%s",str);
 		if (strcmp (str,"h_air") == 0) fscanf(f_parameters,"%lf",&h_air);
 		else {printf("h_air error\n"); exit(1);}
-		
+
 		fscanf(f_parameters,"%s",str);
 		if (strcmp (str,"beta_max") == 0) fscanf(f_parameters,"%lf",&beta_max);
 		else {printf("beta_max error\n"); exit(1);}
-		
+
 		fscanf(f_parameters,"%s",str);
 		if (strcmp (str,"ramp_begin") == 0) fscanf(f_parameters,"%lf",&ramp_begin);
 		else {printf("ramp_begin error\n"); exit(1);}
-		
+
 		fscanf(f_parameters,"%s",str);
 		if (strcmp (str,"ramp_end") == 0) fscanf(f_parameters,"%lf",&ramp_end);
 		else {printf("ramp_end error\n"); exit(1);}
 		*/
-		
+
 	}
-	
+
 	// Broadcast every parameter from the parameter file.
+	MPI_Bcast(&dimensions,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&Nx,1,MPI_LONG,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&Ny,1,MPI_LONG,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&Nz,1,MPI_LONG,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&Lx,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&Ly,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&depth,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&ContMult,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&stepMAX,1,MPI_LONG,0,PETSC_COMM_WORLD);
@@ -370,6 +390,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&initial_dynamic_range,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&periodic_boundary,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&nx_ppe,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&ny_ppe,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&nz_ppe,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&initial_print_step,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&initial_print_max_time,1,MPIU_REAL,0,PETSC_COMM_WORLD);
@@ -387,22 +408,33 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&set_sp_d_c,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&plot_sediment,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&a2l,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
-	
+
 	//MPI_Bcast(&,1,,0,PETSC_COMM_WORLD);
-	
+
 	/*MPI_Bcast(&H_lito,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&h_air,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&beta_max,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&ramp_begin,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&ramp_end,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);*/
-	
+
 	if (rank==0){
-		printf("Mesh size:   %ld %ld\n",Nx,Nz);
-		printf("Domain size  %lf %lf\n\n",Lx,depth);
+		if (dimensions == 2) {
+			printf("Mesh size:   %ld %ld\n",Nx,Nz);
+			printf("Domain size  %lf %lf\n\n",Lx,depth);
+		} else {
+			printf("Mesh size:   %ld %ld %ld\n",Nx,Ny,Nz);
+			printf("Domain size  %lf %lf %lf\n\n",Lx,Ly,depth);
+		}
 	}
-	
+
 	// Interfaces
-	if (n_interfaces>0 && interfaces_from_ascii==1) PetscCalloc1(Nx*n_interfaces,&interfaces);
+	if (n_interfaces>0 && interfaces_from_ascii==1) {
+		if (dimensions == 2) {
+			PetscCalloc1(Nx*n_interfaces,&interfaces);
+		} else {
+			PetscCalloc1(Nx*Ny*n_interfaces,&interfaces);
+		}
+	}
 	PetscCalloc1(n_interfaces+1,&inter_geoq);
 	PetscCalloc1(n_interfaces+1,&inter_rho);
 	PetscCalloc1(n_interfaces+1,&inter_H);
@@ -410,7 +442,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	PetscCalloc1(n_interfaces+1,&inter_n);
 	PetscCalloc1(n_interfaces+1,&inter_Q);
 	PetscCalloc1(n_interfaces+1,&inter_V);
-	
+
 	// Read interfaces.txt
 	if ((interfaces_from_ascii==1) && (rank==0)){
 		nline = 0;
@@ -418,10 +450,10 @@ PetscErrorCode reader(int rank, const char fName[]){
 //		int nheader = 7;
 //		char cp_line_1[size], cp_line_2[size];
 		FILE *f_interfaces;
-		
+
 		f_interfaces = fopen("interfaces.txt","r");
 		if (f_interfaces==NULL) {PetscPrintf(PETSC_COMM_WORLD, "ERROR. The <interfaces.txt> file was NOT FOUND.\n"); exit(1);}
-		
+
 //		while(!feof(f_interfaces))
 //		{
 //			nunits = 0;
@@ -459,10 +491,10 @@ PetscErrorCode reader(int rank, const char fName[]){
 //			nline += 1;
 //		}
 // 		End
-		
+
 		f_interfaces = fopen("interfaces.txt","r");
 		int check_fscanf;
-		
+
 		fscanf(f_interfaces,"%s",str);
 		if (strcmp (str,"C") == 0){
 			for (PetscInt i=0;i<n_interfaces+1;i++){
@@ -471,46 +503,54 @@ PetscErrorCode reader(int rank, const char fName[]){
 			}
 		}
 		else { ErrorInterfaces(); exit(1);}
-		
+
 		fscanf(f_interfaces,"%s",str);
 		if (strcmp (str,"rho") == 0)
 			for (PetscInt i=0;i<n_interfaces+1;i++)
 				fscanf(f_interfaces,"%lf",&inter_rho[i]);
 		else { ErrorInterfaces(); exit(1);}
-		
+
 		fscanf(f_interfaces,"%s",str);
 		if (strcmp (str,"H") == 0)
 			for (PetscInt i=0;i<n_interfaces+1;i++)
 				fscanf(f_interfaces,"%lf",&inter_H[i]);
 		else { ErrorInterfaces(); exit(1);}
-		
+
 		fscanf(f_interfaces,"%s",str);
 		if (strcmp (str,"A") == 0)
 			for (PetscInt i=0;i<n_interfaces+1;i++)
 				fscanf(f_interfaces,"%lf",&inter_A[i]);
 		else { ErrorInterfaces(); exit(1);}
-		
+
 		fscanf(f_interfaces,"%s",str);
 		if (strcmp (str,"n") == 0)
 			for (PetscInt i=0;i<n_interfaces+1;i++)
 				fscanf(f_interfaces,"%lf",&inter_n[i]);
 		else { ErrorInterfaces(); exit(1);}
-		
+
 		fscanf(f_interfaces,"%s",str);
 		if (strcmp (str,"Q") == 0)
 			for (PetscInt i=0;i<n_interfaces+1;i++)
 				fscanf(f_interfaces,"%lf",&inter_Q[i]);
 		else { ErrorInterfaces(); exit(1);}
-		
+
 		fscanf(f_interfaces,"%s",str);
 		if (strcmp (str,"V") == 0)
 			for (PetscInt i=0;i<n_interfaces+1;i++)
 				fscanf(f_interfaces,"%lf",&inter_V[i]);
 		else { ErrorInterfaces(); exit(1);}
-		
-		for (PetscInt i=0; i<Nx; i++){
-			for (PetscInt j=0; j<n_interfaces; j++){
-				fscanf(f_interfaces,"%lf",&interfaces[j*Nx+i]);
+
+		if (dimensions == 2) {
+			for (PetscInt i=0; i<Nx; i++){
+				for (PetscInt j=0; j<n_interfaces; j++){
+					fscanf(f_interfaces,"%lf",&interfaces[j*Nx+i]);
+				}
+			}
+		} else {
+			for (PetscInt i=0; i<Nx*Ny; i++){
+				for (PetscInt j=0; j<n_interfaces; j++){
+					fscanf(f_interfaces,"%lf",&interfaces[j*Nx*Ny+i]);
+				}
 			}
 		}
 
@@ -540,11 +580,17 @@ PetscErrorCode reader(int rank, const char fName[]){
 		for (PetscInt i=0;i<n_interfaces+1;i++)
 			printf("%.3e ",inter_V[i]);
 		printf("\n\n");
-		
+
 		fclose(f_interfaces); // Close file
 	}
-	
-	if (n_interfaces>0 && interfaces_from_ascii==1) MPI_Bcast(interfaces,Nx*n_interfaces,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+
+	if (n_interfaces>0 && interfaces_from_ascii==1) {
+		if (dimensions == 2) {
+			MPI_Bcast(interfaces,Nx*n_interfaces,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+		} else {
+			MPI_Bcast(interfaces,Nx*Ny*n_interfaces,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+		}
+	}
 	MPI_Bcast(inter_geoq,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_rho,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_H,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
@@ -552,10 +598,10 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(inter_n,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_Q,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_V,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
-	
+
 	// Broadcast, special cases
 //	MPI_Bcast(&n_interfaces,1,MPI_INT,0,PETSC_COMM_WORLD); // Broadcast after interfaces.txt
-	
+
 	// Variable [B]oundary [C]onditions for the [V]elocity
 	if (variable_bcv==1){
 		FILE *f_bcv;
@@ -760,5 +806,3 @@ PetscBool check_a_b_bool(char tkn_w[], char tkn_v[], const char str_a[], const c
 	}
 	return value;
 }
-
-
