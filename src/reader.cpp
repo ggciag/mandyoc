@@ -136,6 +136,16 @@ extern PetscScalar *topo_var_rate;
 extern PetscScalar *global_surface_array_helper;
 extern PetscScalar *global_surface_array_helper_aux;
 
+extern PetscReal h0_scaled;
+extern PetscReal visc0_scaled;
+extern PetscReal g0_scaled;
+extern PetscReal rho0_scaled;
+
+extern PetscReal pressure0_scaled;
+extern PetscReal strain_rate0_scaled;
+
+extern PetscReal air_threshold_density;
+
 PetscErrorCode load_topo_var(int rank);
 
 // Reads input ASCII files
@@ -261,6 +271,12 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "a2l") == 0) {a2l = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 
 			else if (strcmp(tkn_w, "high_kappa_in_asthenosphere") == 0) {high_kappa_in_asthenosphere = check_a_b(tkn_w, tkn_v, "True", "False");}
+
+			else if (strcmp(tkn_w, "h0_scaled") == 0) {h0_scaled = atof(tkn_v);}
+			else if (strcmp(tkn_w, "visc0_scaled") == 0) {visc0_scaled = atof(tkn_v);}
+			else if (strcmp(tkn_w, "g0_scaled") == 0) {g0_scaled = atof(tkn_v);}
+			else if (strcmp(tkn_w, "rho0_scaled") == 0) {rho0_scaled = atof(tkn_v);}
+
 
 			// Else
 			else
@@ -408,6 +424,17 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&set_sp_d_c,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&plot_sediment,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&a2l,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
+
+	MPI_Bcast(&h0_scaled,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&visc0_scaled,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&g0_scaled,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&rho0_scaled,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+
+	pressure0_scaled = rho0_scaled*g0_scaled*h0_scaled;
+	strain_rate0_scaled = rho0_scaled*g0_scaled*h0_scaled/visc0_scaled;
+	
+	air_threshold_density = 100.0/rho0_scaled;
+
 
 	//MPI_Bcast(&,1,,0,PETSC_COMM_WORLD);
 

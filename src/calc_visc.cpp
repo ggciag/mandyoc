@@ -16,6 +16,10 @@ extern PetscReal pressure_const;
 extern double h_air;
 extern int tcont;
 
+extern PetscReal visc0_scaled;
+extern PetscReal h0_scaled;
+extern PetscReal strain_rate0_scaled;
+extern PetscReal pressure0_scaled;
 
 double strain_softening(double strain, double f1, double f2)
 {
@@ -38,6 +42,11 @@ double strain_softening(double strain, double f1, double f2)
 
 double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,double e2_inva,double strain_cumulate,
 						double A, double n_exp, double QE, double VE){
+
+	e2_inva *= strain_rate0_scaled;
+	P *= pressure0_scaled;
+	z *= h0_scaled;
+
 	
 	double visco_real = visc_MIN;
 	double depth = 0.0;
@@ -235,6 +244,10 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		}
 		
 	}
+
+
+	//printf("%lf %lg %lg %lg\n",z,P,e2_inva,visco_real);
+	visco_real /=visc0_scaled;
 	
 	
 	if (visco_real>visc_MAX) visco_real=visc_MAX;

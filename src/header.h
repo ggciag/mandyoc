@@ -360,3 +360,17 @@ PetscScalar *var_climate_time;
 PetscScalar *var_climate_scale;
 PetscInt n_var_climate;
 PetscInt cont_var_climate=0;
+
+
+//Rescaled variables for non-dimensional scenarios 
+//(necessary to calculate the effective viscosity using 
+//dimensional pressure, temperature, strain rate and cummulative strain)
+PetscReal h0_scaled = 1.0;
+PetscReal visc0_scaled = 1.0;
+PetscReal g0_scaled = 1.0;
+PetscReal rho0_scaled = 1.0;
+
+PetscReal strain_rate0_scaled;
+PetscReal pressure0_scaled;
+
+PetscReal air_threshold_density;

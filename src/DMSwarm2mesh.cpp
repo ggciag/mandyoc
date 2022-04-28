@@ -37,6 +37,8 @@ extern PetscInt periodic_boundary;
 
 extern double visc_MIN;
 
+extern PetscReal air_threshold_density;
+
 PetscErrorCode Swarm2Mesh_2d(){
 
 	PetscErrorCode ierr;
@@ -417,7 +419,7 @@ PetscErrorCode Swarm2Mesh_2d(){
 
 	for (k=sz; k<sz+mmz; k++) {
 		for (i=sx; i<sx+mmx; i++) {
-			if (qq_rho[k][i]<100.0){ //check: force temperature zero for low density material
+			if (qq_rho[k][i]<air_threshold_density){ //check: force temperature zero for low density material
 				TT[k][i]=0.0;
 			}
 		}
@@ -859,7 +861,7 @@ PetscErrorCode Swarm2Mesh_3d(){
 	for (k=sz; k<sz+mmz; k++) {
 		for (j=sy; j<sy+mmy; j++) {
 			for (i=sx; i<sx+mmx; i++) {
-				if (qq_rho[k][j][i]<100.0){
+				if (qq_rho[k][j][i]<air_threshold_density){
 					TT[k][j][i]=0.0;
 				}
 			}
