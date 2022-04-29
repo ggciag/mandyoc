@@ -37,6 +37,7 @@ With required python packages:
 To run the tests, some additional python packages are required:
 
 * pytest
+* numpy
 
 To build the documentation, further python packages are necessary:
 
@@ -54,10 +55,14 @@ Check out the `PETSc installation`_ for details.
 	The following steps its a example installation with minimum requirements
 	to run *Mandyoc*.
 
+**Requirements:**
+
+* ``CMake``
+
 The first step is to **download** PETSc (v3.15.5) release from `PETSc website`_
 or **clone** the repository into your machine.
 *Mandyoc* might work with latest release of PETSc, but this is not guaranteed
-since new verions might introduce breaking changes.
+since new versions might introduce breaking changes.
 
 Clone the repository to your desired location::
 
@@ -119,7 +124,13 @@ Finally, add a symlink of `mpirun` to `~/.local/bin`:
 
 .. code-block::
 
-	ln -s /path/to/pets/arch-label-optimized/bin/mpirun ~/.local/bin/mpirun
+	ln -s /path/to/petsc/arch-label-optimized/bin/mpirun ~/.local/bin/mpirun
+
+.. note::
+
+    Make sure the directory ``~/.local/bin`` exists, otherwise the above
+    command will fail.
+	You can create it by running ``mkdir -p ~/.local/bin``.
 
 
 *Mandyoc* Installation
@@ -131,6 +142,7 @@ To clone the repository, navigate to the directory you wish to install *Mandyoc*
 .. code-block:: bash
 
    git clone https://github.com/ggciag/mandyoc
+   cd mandyoc
 
 Before to install Mandyoc, you mast *set an environment variable* which indicates the path to PETSc installation folder:
 
