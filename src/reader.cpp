@@ -141,6 +141,15 @@ extern PetscReal visc0_scaled;
 extern PetscReal g0_scaled;
 extern PetscReal rho0_scaled;
 
+extern PetscReal time0_scaled;
+extern PetscReal veloc0_scaled;
+extern PetscReal kappa0_scaled;
+extern PetscReal temperature0_scaled;
+
+extern PetscReal advection_scaled;
+extern PetscReal radiogenic_scaled;
+extern PetscReal adiabatic_scaled;
+
 extern PetscReal pressure0_scaled;
 extern PetscReal strain_rate0_scaled;
 
@@ -276,6 +285,9 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "visc0_scaled") == 0) {visc0_scaled = atof(tkn_v);}
 			else if (strcmp(tkn_w, "g0_scaled") == 0) {g0_scaled = atof(tkn_v);}
 			else if (strcmp(tkn_w, "rho0_scaled") == 0) {rho0_scaled = atof(tkn_v);}
+
+			else if (strcmp(tkn_w, "diffusivity0_scaled") == 0) {kappa0_scaled = atof(tkn_v);}
+			else if (strcmp(tkn_w, "temperature0_scaled") == 0) {temperature0_scaled = atof(tkn_v);}
 
 
 			// Else
@@ -430,10 +442,23 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&g0_scaled,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&rho0_scaled,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 
+	MPI_Bcast(&kappa0_scaled,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&temperature0_scaled,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+
 	pressure0_scaled = rho0_scaled*g0_scaled*h0_scaled;
 	strain_rate0_scaled = rho0_scaled*g0_scaled*h0_scaled/visc0_scaled;
+	veloc0_scaled = rho0_scaled*g0_scaled*h0_scaled*h0_scaled/visc0_scaled;
+
+	time0_scaled = h0_scaled*h0_scaled/kappa0_scaled;
+
+	advection_scaled = veloc0_scaled*time0_scaled/h0_scaled;
+	radiogenic_scaled = time0_scaled/temperature0_scaled;
+	adiabatic_scaled = time0_scaled*g0_scaled*veloc0_scaled;
+
+
 	
 	air_threshold_density = 100.0/rho0_scaled;
+
 
 
 	//MPI_Bcast(&,1,,0,PETSC_COMM_WORLD);

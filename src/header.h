@@ -369,6 +369,14 @@ PetscReal h0_scaled = 1.0;
 PetscReal visc0_scaled = 1.0;
 PetscReal g0_scaled = 1.0;
 PetscReal rho0_scaled = 1.0;
+PetscReal time0_scaled;
+PetscReal veloc0_scaled;
+PetscReal kappa0_scaled = 1.0;
+PetscReal temperature0_scaled = 1.0;
+
+PetscReal advection_scaled;
+PetscReal radiogenic_scaled;
+PetscReal adiabatic_scaled;
 
 PetscReal strain_rate0_scaled;
 PetscReal pressure0_scaled;
