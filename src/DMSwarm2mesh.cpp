@@ -39,6 +39,8 @@ extern double visc_MIN;
 
 extern PetscReal air_threshold_density;
 
+extern PetscReal rho0_scaled;
+
 PetscErrorCode Swarm2Mesh_2d(){
 
 	PetscErrorCode ierr;
@@ -441,7 +443,7 @@ PetscErrorCode Swarm2Mesh_2d(){
 			ierr = DMGlobalToLocalBegin(da_Thermal,geoq_rho,INSERT_VALUES,local_geoq_rho);
 			ierr = DMGlobalToLocalEnd(  da_Thermal,geoq_rho,INSERT_VALUES,local_geoq_rho);
 			ierr = DMDAVecGetArray(da_Thermal,local_geoq_rho,&qq_rho);CHKERRQ(ierr);
-			PetscReal rho_min=5.0	,rho_max=2700.0*0.8, rho_mean; //check: in the future, make this free to the user modify
+			PetscReal rho_min=5.0/rho0_scaled,rho_max=2700.0*0.8/rho0_scaled, rho_mean; //check: in the future, make this free to the user modify
 			for (k=sz; k<sz+mmz-1; k++) {
 				for (i=sx; i<sx+mmx-1; i++) {
 					rho_mean = (qq_rho[k][i] + qq_rho[k][i+1] + qq_rho[k+1][i] + qq_rho[k+1][i+1])/4.0;

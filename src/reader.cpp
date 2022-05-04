@@ -136,6 +136,8 @@ extern PetscScalar *topo_var_rate;
 extern PetscScalar *global_surface_array_helper;
 extern PetscScalar *global_surface_array_helper_aux;
 
+extern PetscInt non_dim;
+
 extern PetscReal h0_scaled;
 extern PetscReal visc0_scaled;
 extern PetscReal g0_scaled;
@@ -147,6 +149,7 @@ extern PetscReal kappa0_scaled;
 extern PetscReal temperature0_scaled;
 
 extern PetscReal advection_scaled;
+extern PetscReal diffusion_scaled;
 extern PetscReal radiogenic_scaled;
 extern PetscReal adiabatic_scaled;
 
@@ -449,9 +452,11 @@ PetscErrorCode reader(int rank, const char fName[]){
 	strain_rate0_scaled = rho0_scaled*g0_scaled*h0_scaled/visc0_scaled;
 	veloc0_scaled = rho0_scaled*g0_scaled*h0_scaled*h0_scaled/visc0_scaled;
 
-	time0_scaled = h0_scaled*h0_scaled/kappa0_scaled;
+	time0_scaled = h0_scaled/veloc0_scaled;
+	if (time0_scaled!=1.0 || veloc0_scaled!=1) non_dim=1;
 
 	advection_scaled = veloc0_scaled*time0_scaled/h0_scaled;
+	diffusion_scaled = kappa0_scaled*time0_scaled/h0_scaled/h0_scaled;
 	radiogenic_scaled = time0_scaled/temperature0_scaled;
 	adiabatic_scaled = time0_scaled*g0_scaled*veloc0_scaled;
 

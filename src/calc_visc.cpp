@@ -47,7 +47,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 	P *= pressure0_scaled;
 	z *= h0_scaled;
 
-	
+	double visco_ref = visco_r*visc0_scaled;
 	double visco_real = visc_MIN;
 	double depth = 0.0;
 	if (pressure_in_rheol==0){
@@ -62,14 +62,14 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 	if (e2_inva<1.0E-36) e2_inva=1.0E-36;
 	
 	
-	if (rheol==0)	visco_real = visco_r;
+	if (rheol==0)	visco_real = visco_ref;
 	
 	if (rheol==1){
 		double r = 20.0;
 		double Q = 225.0/log(r)-0.25*log(r);
 		double G = 15./log(r)-0.5;
 		
-		return(geoq_ponto*visco_r*exp(  Q/(T/Delta_T+G) - Q/(0.5+G)    ));
+		return(geoq_ponto*visco_ref*exp(  Q/(T/Delta_T+G) - Q/(0.5+G)    ));
 	}
 	
 	if (rheol==2){
@@ -80,7 +80,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		double Tb = Delta_T+273.0;
 		
 		double aux = E*(1.0/(T+273.0)-1.0/Tb)/R;
-		visco_real = visco_r*exp(aux);
+		visco_real = visco_ref*exp(aux);
 		
 	}
 	
@@ -93,7 +93,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		double Tb = 1300.0+273.0;
 		
 		double aux = E*(1.0/(T+273.0)-1.0/Tb)/R;
-		visco_real = visco_r*exp(aux);
+		visco_real = visco_ref*exp(aux);
 		
 	}
 	
@@ -105,7 +105,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		double Tb = Delta_T+273.0;
 		
 		double aux = E*(1.0/(T+273.0)-1.0/Tb)/R;
-		visco_real = visco_r*exp(aux);
+		visco_real = visco_ref*exp(aux);
 		
 	}
 	
@@ -119,7 +119,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		double Tb = Delta_T+273.0;
 		
 		double aux = -(T+273)*E/(R*Tb*Tb);
-		visco_real = visco_r*b*exp(aux);
+		visco_real = visco_ref*b*exp(aux);
 		
 	}
 	
@@ -133,7 +133,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		double Tb = Delta_T+273.0;
 		
 		double aux = -(T+273)*E/(R*Tb*Tb);
-		visco_real = visco_r*b*exp(aux);
+		visco_real = visco_ref*b*exp(aux);
 		
 		
 	}
@@ -143,10 +143,10 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		double TK = T+273.0;
 		
 		if (pressure_in_rheol==0) {
-			visco_real = visco_r*A*exp(-(QE+VE*10.0*3300.*(depth))/(R*TK));
+			visco_real = visco_ref*A*exp(-(QE+VE*10.0*3300.*(depth))/(R*TK));
 		}
 		else {
-			visco_real = visco_r*A*exp(-(QE+VE*P)/(R*TK));
+			visco_real = visco_ref*A*exp(-(QE+VE*P)/(R*TK));
 		}
 	}
 	
@@ -154,7 +154,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		
 		double TK = T+273.0;
 		
-		visco_real = visco_r*exp(-QE*TK + VE*(-z));
+		visco_real = visco_ref*exp(-QE*TK + VE*(-z));
 	}
 	
 	if (WITH_NON_LINEAR==1){
@@ -205,7 +205,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		double beta = 6.907755279;
 		double DT = 1000.0;
 
-		visco_real = visco_r * exp(-(beta*T/DT));
+		visco_real = visco_ref * exp(-(beta*T/DT));
 	}
 	
 	if (geoq_on)
@@ -237,7 +237,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 
 
 		if (rheol == 70){
-			visco_real = visco_r;
+			visco_real = visco_ref;
 			if (2*visco_real*e2_inva-1.0>0){
 				visco_real = 1.0/(2*(e2_inva));
 			}

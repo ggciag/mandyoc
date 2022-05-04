@@ -365,6 +365,8 @@ PetscInt cont_var_climate=0;
 //Rescaled variables for non-dimensional scenarios 
 //(necessary to calculate the effective viscosity using 
 //dimensional pressure, temperature, strain rate and cummulative strain)
+PetscInt non_dim = 0;
+
 PetscReal h0_scaled = 1.0;
 PetscReal visc0_scaled = 1.0;
 PetscReal g0_scaled = 1.0;
@@ -375,6 +377,7 @@ PetscReal kappa0_scaled = 1.0;
 PetscReal temperature0_scaled = 1.0;
 
 PetscReal advection_scaled;
+PetscReal diffusion_scaled;
 PetscReal radiogenic_scaled;
 PetscReal adiabatic_scaled;
 

@@ -226,8 +226,13 @@ int main(int argc,char **args)
 			print_step = print_step_aux;
 			PetscPrintf(PETSC_COMM_WORLD, "\n\n*** Restored print_step = %d\n\n", print_step);
 		}
-
-		PetscPrintf(PETSC_COMM_WORLD,"\n\nstep = %d, time = %.3g yr, dt = %.3g yr\n",tcont,tempo,dt_calor);
+		if (non_dim==1){
+			PetscPrintf(PETSC_COMM_WORLD,"\n\nstep = %d, time = %.3g, dt = %.3g\n",tcont,tempo,dt_calor);
+		}
+		else{
+			PetscPrintf(PETSC_COMM_WORLD,"\n\nstep = %d, time = %.3g yr, dt = %.3g yr\n",tcont,tempo,dt_calor);
+		}
+		
 
 		//PetscPrintf(PETSC_COMM_WORLD,"next sp %.3g Myr\n\n", sp_eval_time);
 
@@ -351,12 +356,14 @@ double Calc_dt_calor(int rank) {
 		if (ind_v_mod%3==0) dh_v_mod = dx_const;
 		if (ind_v_mod%3==1) dh_v_mod = dy_const;
 		if (ind_v_mod%3==2) dh_v_mod = dz_const;
-		PetscPrintf(PETSC_COMM_WORLD, "dt = %g",(dh_v_mod/max_mod_v)/seg_per_ano);
+		//PetscPrintf(PETSC_COMM_WORLD, "dt = %g",(dh_v_mod/max_mod_v)/seg_per_ano);
 		dt_calor = 0.2*(dh_v_mod/max_mod_v)/seg_per_ano;
 	}
 
 	if (dt_calor>dt_MAX) dt_calor=dt_MAX;
 	dt_calor_sec = dt_calor*seg_per_ano;
+
+	if (non_dim==1) dt_calor*=seg_per_ano;
 
 	return dt_calor_sec;
 }
