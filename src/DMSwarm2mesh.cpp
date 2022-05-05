@@ -876,6 +876,39 @@ PetscErrorCode Swarm2Mesh_3d(){
 	ierr = DMLocalToGlobalBegin(da_Thermal,local_Temper,INSERT_VALUES,Temper);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalEnd(da_Thermal,local_Temper,INSERT_VALUES,Temper);CHKERRQ(ierr);
 
+	if (sticky_blanket_air==1){
+		if (visc_const_per_element==1){
+
+			ierr = DMGlobalToLocalBegin(da_Thermal,geoq,INSERT_VALUES,local_geoq);
+			ierr = DMGlobalToLocalEnd(  da_Thermal,geoq,INSERT_VALUES,local_geoq);
+			ierr = DMDAVecGetArray(da_Thermal,local_geoq,&qq);CHKERRQ(ierr);
+
+			ierr = DMGlobalToLocalBegin(da_Thermal,geoq_rho,INSERT_VALUES,local_geoq_rho);
+			ierr = DMGlobalToLocalEnd(  da_Thermal,geoq_rho,INSERT_VALUES,local_geoq_rho);
+			ierr = DMDAVecGetArray(da_Thermal,local_geoq_rho,&qq_rho);CHKERRQ(ierr);
+			PetscReal rho_min=5.0/rho0_scaled,rho_max=2700.0*0.8/rho0_scaled, rho_mean; //check: in the future, make this free to the user modify
+			for (k=sz; k<sz+mmz-1; k++) {
+				for (j=sy; j<sy+mmy-1; j++) {
+					for (i=sx; i<sx+mmx-1; i++) {
+						rho_mean = (qq_rho[k][j][i] + qq_rho[k][j][i+1] + qq_rho[k+1][j][i] + qq_rho[k+1][j][i+1])/8.0;
+						rho_mean+= (qq_rho[k][j+1][i] + qq_rho[k][j+1][i+1] + qq_rho[k+1][j+1][i] + qq_rho[k+1][j+1][i+1])/8.0;
+						if (rho_mean>rho_min && rho_mean<rho_max){
+							if (qq[k][j][i]<visc_MIN*50) qq[k][j][i]=visc_MIN*50;
+						}
+					}
+				}
+			}
+
+			ierr = DMDAVecRestoreArray(da_Thermal,local_geoq,&qq);CHKERRQ(ierr);
+			ierr = DMLocalToGlobalBegin(da_Thermal,local_geoq,INSERT_VALUES,geoq);CHKERRQ(ierr);
+			ierr = DMLocalToGlobalEnd(da_Thermal,local_geoq,INSERT_VALUES,geoq);CHKERRQ(ierr);
+
+
+			ierr = DMDAVecRestoreArray(da_Thermal,local_geoq_rho,&qq_rho);CHKERRQ(ierr);
+
+		}
+	}
+
 
 	PetscFunctionReturn(0);
 
