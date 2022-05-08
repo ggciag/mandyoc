@@ -126,6 +126,8 @@ extern PetscReal theta_FSSA;
 
 extern PetscInt periodic_boundary;
 
+extern PetscReal veloc0_scaled;
+
 PetscErrorCode AssembleA_Veloc_2d(Mat A,Mat AG,DM veloc_da, DM temper_da){
 
 	PetscErrorCode         ierr;
@@ -1246,6 +1248,8 @@ PetscErrorCode Init_Veloc(int dimensions) {
 
 		VecAssemblyBegin(Veloc);
 		VecAssemblyEnd(Veloc);
+
+		VecScale(Veloc,1./veloc0_scaled);
 
 		i_veloc++;
 	}
