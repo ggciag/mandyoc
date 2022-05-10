@@ -722,7 +722,7 @@ PetscErrorCode AssembleA_Veloc_3d(Mat A,Mat AG,DM veloc_da, DM temper_da){
 
 	PetscReal sumRho;
 	VecSum(dRho,&sumRho);
-	PetscPrintf(PETSC_COMM_WORLD,"Rho sum = %lf\n\n\n",sumRho);
+	//PetscPrintf(PETSC_COMM_WORLD,"Rho sum = %lf\n\n\n",sumRho);
 
 
 
