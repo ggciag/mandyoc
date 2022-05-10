@@ -449,6 +449,7 @@ PetscErrorCode Swarm2Mesh_2d(){
 					rho_mean = (qq_rho[k][i] + qq_rho[k][i+1] + qq_rho[k+1][i] + qq_rho[k+1][i+1])/4.0;
 					if (rho_mean>rho_min && rho_mean<rho_max){
 						if (qq[k][i]<visc_MIN*50) qq[k][i]=visc_MIN*50;
+						if (qq[k][i+1]<visc_MIN*50) qq[k][i+1]=visc_MIN*50;
 					}
 				}
 			}
@@ -894,6 +895,9 @@ PetscErrorCode Swarm2Mesh_3d(){
 						rho_mean+= (qq_rho[k][j+1][i] + qq_rho[k][j+1][i+1] + qq_rho[k+1][j+1][i] + qq_rho[k+1][j+1][i+1])/8.0;
 						if (rho_mean>rho_min && rho_mean<rho_max){
 							if (qq[k][j][i]<visc_MIN*50) qq[k][j][i]=visc_MIN*50;
+							if (qq[k][j][i+1]<visc_MIN*50) qq[k][j][i+1]=visc_MIN*50;
+							if (qq[k][j+1][i]<visc_MIN*50) qq[k][j+1][i]=visc_MIN*50;
+							if (qq[k][j+1][i+1]<visc_MIN*50) qq[k][j+1][i+1]=visc_MIN*50;
 						}
 					}
 				}
