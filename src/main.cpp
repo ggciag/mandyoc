@@ -357,7 +357,7 @@ double Calc_dt_calor(int rank) {
 		if (ind_v_mod%3==1) dh_v_mod = dy_const;
 		if (ind_v_mod%3==2) dh_v_mod = dz_const;
 		//PetscPrintf(PETSC_COMM_WORLD, "dt = %g",(dh_v_mod/max_mod_v)/seg_per_ano);
-		dt_calor = 0.2*(dh_v_mod/max_mod_v)/seg_per_ano;
+		dt_calor = 0.1*(dh_v_mod/max_mod_v)/(seg_per_ano*sub_division_time_step);
 	}
 
 	if (dt_calor>dt_MAX) dt_calor=dt_MAX;
