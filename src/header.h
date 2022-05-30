@@ -311,6 +311,8 @@ PetscReal *p_add_r_strain_rate;
 
 PetscInt cont_particles=0;
 
+PetscReal epsilon_x = 1.0E-7;
+
 unsigned int seed;
 
 PetscInt *seed_layer;

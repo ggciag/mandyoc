@@ -23,7 +23,7 @@ extern double dx_const;
 extern double dy_const;
 extern double dz_const;
 
-extern double Lx, depth;
+extern double Lx, Ly, depth;
 
 extern PetscInt visc_harmonic_mean;
 extern PetscInt visc_const_per_element;
@@ -40,6 +40,8 @@ extern double visc_MIN;
 extern PetscReal air_threshold_density;
 
 extern PetscReal rho0_scaled;
+
+extern PetscReal epsilon_x;
 
 PetscErrorCode Swarm2Mesh_2d(){
 
@@ -106,7 +108,6 @@ PetscErrorCode Swarm2Mesh_2d(){
 	ierr = DMSwarmGetField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_rate_fac",NULL,NULL,(void**)&strain_rate_fac);CHKERRQ(ierr);
 
-	PetscReal epsilon_x = 1.0E-7;
 	for (p=0; p<nlocal; p++) {
 		PetscReal cx,cz;
 		PetscReal rx,rz,rfac;
@@ -544,6 +545,31 @@ PetscErrorCode Swarm2Mesh_3d(){
 			cy = array[3*p+1];
 			cz = array[3*p+2];
 
+			if (cx>=Lx) {
+				printf("moveSwarm in 3D - outside: cx=%lf>=%lf\n",cx,Lx);
+				cx=Lx-epsilon_x;
+			}
+			if (cx<=0.0) {
+				printf("moveSwarm in 3D - outside: cx=%lf<=0.0\n",cx);
+				cx=epsilon_x;
+			}
+			if (cy>=Ly) {
+				printf("moveSwarm in 3D - outside: cy=%lf>=%lf\n",cy,Ly);
+				cy=Ly-epsilon_x;
+			}
+			if (cy<=0.0) {
+				printf("moveSwarm in 3D - outside: cy=%lf<=0.0\n",cy);
+				cy=epsilon_x;
+			}
+			if (cz>=0){
+				printf("moveSwarm in 3D - outside: cz=%lf>=0.0\n",cz);
+				cz=-epsilon_x;
+			}
+			if (cz<=-depth){
+				printf("moveSwarm in 3D - outside: cz=%lf<=-%lf\n",cz,depth);
+				cz=-depth+epsilon_x;
+			}
+
 			i = (int)(cx/dx_const);
 			j = (int)(cy/dy_const);
 			k = (int)((cz+depth)/dz_const);
@@ -643,6 +669,31 @@ PetscErrorCode Swarm2Mesh_3d(){
 			cx = array[3*p];
 			cy = array[3*p+1];
 			cz = array[3*p+2];
+
+			if (cx>=Lx) {
+				printf("moveSwarm in 3D - outside: cx=%lf>=%lf\n",cx,Lx);
+				cx=Lx-epsilon_x;
+			}
+			if (cx<=0.0) {
+				printf("moveSwarm in 3D - outside: cx=%lf<=0.0\n",cx);
+				cx=epsilon_x;
+			}
+			if (cy>=Ly) {
+				printf("moveSwarm in 3D - outside: cy=%lf>=%lf\n",cy,Ly);
+				cy=Ly-epsilon_x;
+			}
+			if (cy<=0.0) {
+				printf("moveSwarm in 3D - outside: cy=%lf<=0.0\n",cy);
+				cy=epsilon_x;
+			}
+			if (cz>=0){
+				printf("moveSwarm in 3D - outside: cz=%lf>=0.0\n",cz);
+				cz=-epsilon_x;
+			}
+			if (cz<=-depth){
+				printf("moveSwarm in 3D - outside: cz=%lf<=-%lf\n",cz,depth);
+				cz=-depth+epsilon_x;
+			}
 
 			i = (int)(cx/dx_const);
 			j = (int)(cy/dy_const);
@@ -792,6 +843,31 @@ PetscErrorCode Swarm2Mesh_3d(){
 				cy = array[3*p+1];
 				cz = array[3*p+2];
 
+				if (cx>=Lx) {
+					printf("moveSwarm in 3D - outside: cx=%lf>=%lf\n",cx,Lx);
+					cx=Lx-epsilon_x;
+				}
+				if (cx<=0.0) {
+					printf("moveSwarm in 3D - outside: cx=%lf<=0.0\n",cx);
+					cx=epsilon_x;
+				}
+				if (cy>=Ly) {
+					printf("moveSwarm in 3D - outside: cy=%lf>=%lf\n",cy,Ly);
+					cy=Ly-epsilon_x;
+				}
+				if (cy<=0.0) {
+					printf("moveSwarm in 3D - outside: cy=%lf<=0.0\n",cy);
+					cy=epsilon_x;
+				}
+				if (cz>=0){
+					printf("moveSwarm in 3D - outside: cz=%lf>=0.0\n",cz);
+					cz=-epsilon_x;
+				}
+				if (cz<=-depth){
+					printf("moveSwarm in 3D - outside: cz=%lf<=-%lf\n",cz,depth);
+					cz=-depth+epsilon_x;
+				}
+
 				i = (int)(cx/dx_const);
 				j = (int)(cy/dy_const);
 				k = (int)((cz+depth)/dz_const);
@@ -808,6 +884,31 @@ PetscErrorCode Swarm2Mesh_3d(){
 				cx = array[3*p];
 				cy = array[3*p+1];
 				cz = array[3*p+2];
+
+				if (cx>=Lx) {
+					printf("moveSwarm in 3D - outside: cx=%lf>=%lf\n",cx,Lx);
+					cx=Lx-epsilon_x;
+				}
+				if (cx<=0.0) {
+					printf("moveSwarm in 3D - outside: cx=%lf<=0.0\n",cx);
+					cx=epsilon_x;
+				}
+				if (cy>=Ly) {
+					printf("moveSwarm in 3D - outside: cy=%lf>=%lf\n",cy,Ly);
+					cy=Ly-epsilon_x;
+				}
+				if (cy<=0.0) {
+					printf("moveSwarm in 3D - outside: cy=%lf<=0.0\n",cy);
+					cy=epsilon_x;
+				}
+				if (cz>=0){
+					printf("moveSwarm in 3D - outside: cz=%lf>=0.0\n",cz);
+					cz=-epsilon_x;
+				}
+				if (cz<=-depth){
+					printf("moveSwarm in 3D - outside: cz=%lf<=-%lf\n",cz,depth);
+					cz=-depth+epsilon_x;
+				}
 
 				i = (int)(cx/dx_const);
 				j = (int)(cy/dy_const);
