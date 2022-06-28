@@ -23,7 +23,7 @@ extern double dx_const;
 extern double dy_const;
 extern double dz_const;
 
-extern double Lx, depth;
+extern double Lx, Ly, depth;
 
 extern PetscInt visc_harmonic_mean;
 extern PetscInt visc_const_per_element;
@@ -36,6 +36,12 @@ extern PetscScalar *inter_H;
 extern PetscInt periodic_boundary;
 
 extern double visc_MIN;
+
+extern PetscReal air_threshold_density;
+
+extern PetscReal rho0_scaled;
+
+extern PetscReal epsilon_x;
 
 PetscErrorCode Swarm2Mesh_2d(){
 
@@ -102,7 +108,6 @@ PetscErrorCode Swarm2Mesh_2d(){
 	ierr = DMSwarmGetField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_rate_fac",NULL,NULL,(void**)&strain_rate_fac);CHKERRQ(ierr);
 
-	PetscReal epsilon_x = 1.0E-7;
 	for (p=0; p<nlocal; p++) {
 		PetscReal cx,cz;
 		PetscReal rx,rz,rfac;
@@ -417,7 +422,7 @@ PetscErrorCode Swarm2Mesh_2d(){
 
 	for (k=sz; k<sz+mmz; k++) {
 		for (i=sx; i<sx+mmx; i++) {
-			if (qq_rho[k][i]<100.0){ //check: force temperature zero for low density material
+			if (qq_rho[k][i]<air_threshold_density){ //check: force temperature zero for low density material
 				TT[k][i]=0.0;
 			}
 		}
@@ -439,12 +444,13 @@ PetscErrorCode Swarm2Mesh_2d(){
 			ierr = DMGlobalToLocalBegin(da_Thermal,geoq_rho,INSERT_VALUES,local_geoq_rho);
 			ierr = DMGlobalToLocalEnd(  da_Thermal,geoq_rho,INSERT_VALUES,local_geoq_rho);
 			ierr = DMDAVecGetArray(da_Thermal,local_geoq_rho,&qq_rho);CHKERRQ(ierr);
-			PetscReal rho_min=5.0	,rho_max=2700.0*0.8, rho_mean; //check: in the future, make this free to the user modify
+			PetscReal rho_min=5.0/rho0_scaled,rho_max=2700.0*0.8/rho0_scaled, rho_mean; //check: in the future, make this free to the user modify
 			for (k=sz; k<sz+mmz-1; k++) {
 				for (i=sx; i<sx+mmx-1; i++) {
 					rho_mean = (qq_rho[k][i] + qq_rho[k][i+1] + qq_rho[k+1][i] + qq_rho[k+1][i+1])/4.0;
 					if (rho_mean>rho_min && rho_mean<rho_max){
 						if (qq[k][i]<visc_MIN*50) qq[k][i]=visc_MIN*50;
+						if (qq[k][i+1]<visc_MIN*50) qq[k][i+1]=visc_MIN*50;
 					}
 				}
 			}
@@ -538,6 +544,31 @@ PetscErrorCode Swarm2Mesh_3d(){
 			cx = array[3*p];
 			cy = array[3*p+1];
 			cz = array[3*p+2];
+
+			if (cx>=Lx) {
+				printf("moveSwarm in 3D - outside: cx=%lf>=%lf\n",cx,Lx);
+				cx=Lx-epsilon_x;
+			}
+			if (cx<=0.0) {
+				printf("moveSwarm in 3D - outside: cx=%lf<=0.0\n",cx);
+				cx=epsilon_x;
+			}
+			if (cy>=Ly) {
+				printf("moveSwarm in 3D - outside: cy=%lf>=%lf\n",cy,Ly);
+				cy=Ly-epsilon_x;
+			}
+			if (cy<=0.0) {
+				printf("moveSwarm in 3D - outside: cy=%lf<=0.0\n",cy);
+				cy=epsilon_x;
+			}
+			if (cz>=0){
+				printf("moveSwarm in 3D - outside: cz=%lf>=0.0\n",cz);
+				cz=-epsilon_x;
+			}
+			if (cz<=-depth){
+				printf("moveSwarm in 3D - outside: cz=%lf<=-%lf\n",cz,depth);
+				cz=-depth+epsilon_x;
+			}
 
 			i = (int)(cx/dx_const);
 			j = (int)(cy/dy_const);
@@ -638,6 +669,31 @@ PetscErrorCode Swarm2Mesh_3d(){
 			cx = array[3*p];
 			cy = array[3*p+1];
 			cz = array[3*p+2];
+
+			if (cx>=Lx) {
+				printf("moveSwarm in 3D - outside: cx=%lf>=%lf\n",cx,Lx);
+				cx=Lx-epsilon_x;
+			}
+			if (cx<=0.0) {
+				printf("moveSwarm in 3D - outside: cx=%lf<=0.0\n",cx);
+				cx=epsilon_x;
+			}
+			if (cy>=Ly) {
+				printf("moveSwarm in 3D - outside: cy=%lf>=%lf\n",cy,Ly);
+				cy=Ly-epsilon_x;
+			}
+			if (cy<=0.0) {
+				printf("moveSwarm in 3D - outside: cy=%lf<=0.0\n",cy);
+				cy=epsilon_x;
+			}
+			if (cz>=0){
+				printf("moveSwarm in 3D - outside: cz=%lf>=0.0\n",cz);
+				cz=-epsilon_x;
+			}
+			if (cz<=-depth){
+				printf("moveSwarm in 3D - outside: cz=%lf<=-%lf\n",cz,depth);
+				cz=-depth+epsilon_x;
+			}
 
 			i = (int)(cx/dx_const);
 			j = (int)(cy/dy_const);
@@ -787,6 +843,31 @@ PetscErrorCode Swarm2Mesh_3d(){
 				cy = array[3*p+1];
 				cz = array[3*p+2];
 
+				if (cx>=Lx) {
+					printf("moveSwarm in 3D - outside: cx=%lf>=%lf\n",cx,Lx);
+					cx=Lx-epsilon_x;
+				}
+				if (cx<=0.0) {
+					printf("moveSwarm in 3D - outside: cx=%lf<=0.0\n",cx);
+					cx=epsilon_x;
+				}
+				if (cy>=Ly) {
+					printf("moveSwarm in 3D - outside: cy=%lf>=%lf\n",cy,Ly);
+					cy=Ly-epsilon_x;
+				}
+				if (cy<=0.0) {
+					printf("moveSwarm in 3D - outside: cy=%lf<=0.0\n",cy);
+					cy=epsilon_x;
+				}
+				if (cz>=0){
+					printf("moveSwarm in 3D - outside: cz=%lf>=0.0\n",cz);
+					cz=-epsilon_x;
+				}
+				if (cz<=-depth){
+					printf("moveSwarm in 3D - outside: cz=%lf<=-%lf\n",cz,depth);
+					cz=-depth+epsilon_x;
+				}
+
 				i = (int)(cx/dx_const);
 				j = (int)(cy/dy_const);
 				k = (int)((cz+depth)/dz_const);
@@ -803,6 +884,31 @@ PetscErrorCode Swarm2Mesh_3d(){
 				cx = array[3*p];
 				cy = array[3*p+1];
 				cz = array[3*p+2];
+
+				if (cx>=Lx) {
+					printf("moveSwarm in 3D - outside: cx=%lf>=%lf\n",cx,Lx);
+					cx=Lx-epsilon_x;
+				}
+				if (cx<=0.0) {
+					printf("moveSwarm in 3D - outside: cx=%lf<=0.0\n",cx);
+					cx=epsilon_x;
+				}
+				if (cy>=Ly) {
+					printf("moveSwarm in 3D - outside: cy=%lf>=%lf\n",cy,Ly);
+					cy=Ly-epsilon_x;
+				}
+				if (cy<=0.0) {
+					printf("moveSwarm in 3D - outside: cy=%lf<=0.0\n",cy);
+					cy=epsilon_x;
+				}
+				if (cz>=0){
+					printf("moveSwarm in 3D - outside: cz=%lf>=0.0\n",cz);
+					cz=-epsilon_x;
+				}
+				if (cz<=-depth){
+					printf("moveSwarm in 3D - outside: cz=%lf<=-%lf\n",cz,depth);
+					cz=-depth+epsilon_x;
+				}
 
 				i = (int)(cx/dx_const);
 				j = (int)(cy/dy_const);
@@ -859,7 +965,7 @@ PetscErrorCode Swarm2Mesh_3d(){
 	for (k=sz; k<sz+mmz; k++) {
 		for (j=sy; j<sy+mmy; j++) {
 			for (i=sx; i<sx+mmx; i++) {
-				if (qq_rho[k][j][i]<100.0){
+				if (qq_rho[k][j][i]<air_threshold_density){
 					TT[k][j][i]=0.0;
 				}
 			}
@@ -871,6 +977,42 @@ PetscErrorCode Swarm2Mesh_3d(){
 	ierr = DMDAVecRestoreArray(da_Thermal,local_Temper,&TT);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalBegin(da_Thermal,local_Temper,INSERT_VALUES,Temper);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalEnd(da_Thermal,local_Temper,INSERT_VALUES,Temper);CHKERRQ(ierr);
+
+	if (sticky_blanket_air==1){
+		if (visc_const_per_element==1){
+
+			ierr = DMGlobalToLocalBegin(da_Thermal,geoq,INSERT_VALUES,local_geoq);
+			ierr = DMGlobalToLocalEnd(  da_Thermal,geoq,INSERT_VALUES,local_geoq);
+			ierr = DMDAVecGetArray(da_Thermal,local_geoq,&qq);CHKERRQ(ierr);
+
+			ierr = DMGlobalToLocalBegin(da_Thermal,geoq_rho,INSERT_VALUES,local_geoq_rho);
+			ierr = DMGlobalToLocalEnd(  da_Thermal,geoq_rho,INSERT_VALUES,local_geoq_rho);
+			ierr = DMDAVecGetArray(da_Thermal,local_geoq_rho,&qq_rho);CHKERRQ(ierr);
+			PetscReal rho_min=5.0/rho0_scaled,rho_max=2700.0*0.8/rho0_scaled, rho_mean; //check: in the future, make this free to the user modify
+			for (k=sz; k<sz+mmz-1; k++) {
+				for (j=sy; j<sy+mmy-1; j++) {
+					for (i=sx; i<sx+mmx-1; i++) {
+						rho_mean = (qq_rho[k][j][i] + qq_rho[k][j][i+1] + qq_rho[k+1][j][i] + qq_rho[k+1][j][i+1])/8.0;
+						rho_mean+= (qq_rho[k][j+1][i] + qq_rho[k][j+1][i+1] + qq_rho[k+1][j+1][i] + qq_rho[k+1][j+1][i+1])/8.0;
+						if (rho_mean>rho_min && rho_mean<rho_max){
+							if (qq[k][j][i]<visc_MIN*50) qq[k][j][i]=visc_MIN*50;
+							if (qq[k][j][i+1]<visc_MIN*50) qq[k][j][i+1]=visc_MIN*50;
+							if (qq[k][j+1][i]<visc_MIN*50) qq[k][j+1][i]=visc_MIN*50;
+							if (qq[k][j+1][i+1]<visc_MIN*50) qq[k][j+1][i+1]=visc_MIN*50;
+						}
+					}
+				}
+			}
+
+			ierr = DMDAVecRestoreArray(da_Thermal,local_geoq,&qq);CHKERRQ(ierr);
+			ierr = DMLocalToGlobalBegin(da_Thermal,local_geoq,INSERT_VALUES,geoq);CHKERRQ(ierr);
+			ierr = DMLocalToGlobalEnd(da_Thermal,local_geoq,INSERT_VALUES,geoq);CHKERRQ(ierr);
+
+
+			ierr = DMDAVecRestoreArray(da_Thermal,local_geoq_rho,&qq_rho);CHKERRQ(ierr);
+
+		}
+	}
 
 
 	PetscFunctionReturn(0);

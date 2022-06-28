@@ -136,6 +136,28 @@ extern PetscScalar *topo_var_rate;
 extern PetscScalar *global_surface_array_helper;
 extern PetscScalar *global_surface_array_helper_aux;
 
+extern PetscInt non_dim;
+
+extern PetscReal h0_scaled;
+extern PetscReal visc0_scaled;
+extern PetscReal g0_scaled;
+extern PetscReal rho0_scaled;
+
+extern PetscReal time0_scaled;
+extern PetscReal veloc0_scaled;
+extern PetscReal kappa0_scaled;
+extern PetscReal temperature0_scaled;
+
+extern PetscReal advection_scaled;
+extern PetscReal diffusion_scaled;
+extern PetscReal radiogenic_scaled;
+extern PetscReal adiabatic_scaled;
+
+extern PetscReal pressure0_scaled;
+extern PetscReal strain_rate0_scaled;
+
+extern PetscReal air_threshold_density;
+
 PetscErrorCode load_topo_var(int rank);
 
 // Reads input ASCII files
@@ -261,6 +283,17 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "a2l") == 0) {a2l = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 
 			else if (strcmp(tkn_w, "high_kappa_in_asthenosphere") == 0) {high_kappa_in_asthenosphere = check_a_b(tkn_w, tkn_v, "True", "False");}
+
+			else if (strcmp(tkn_w, "nondimensionalization") == 0) {non_dim = check_a_b(tkn_w, tkn_v, "True", "False");}
+			/*else if (strcmp(tkn_w, "h0_scaled") == 0) {h0_scaled = atof(tkn_v);}
+			else if (strcmp(tkn_w, "visc0_scaled") == 0) {visc0_scaled = atof(tkn_v);}
+			else if (strcmp(tkn_w, "g0_scaled") == 0) {g0_scaled = atof(tkn_v);}
+			else if (strcmp(tkn_w, "rho0_scaled") == 0) {rho0_scaled = atof(tkn_v);}
+
+			else if (strcmp(tkn_w, "diffusivity0_scaled") == 0) {kappa0_scaled = atof(tkn_v);}
+			else if (strcmp(tkn_w, "temperature0_scaled") == 0) {temperature0_scaled = atof(tkn_v);}*/
+			
+
 
 			// Else
 			else
@@ -409,6 +442,67 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&plot_sediment,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&a2l,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 
+	MPI_Bcast(&non_dim,1,MPI_INT,0,PETSC_COMM_WORLD);
+
+	if (non_dim==1){
+		h0_scaled = depth;
+		depth /= h0_scaled;
+		Lx /= h0_scaled;
+		if (dimensions==3) Ly /= h0_scaled;
+
+		visc0_scaled = visc_MAX;
+		visc_MAX /= visc0_scaled;
+		visc_MIN /= visc0_scaled;
+		visco_r /= visc0_scaled;
+
+		g0_scaled = gravity;
+		gravity /= g0_scaled;
+
+		rho0_scaled = RHOM;
+		RHOM /= rho0_scaled;
+
+		kappa0_scaled = kappa;
+		kappa /= kappa0_scaled;
+
+	}
+
+	if (rank==0){
+		FILE *f_dim;
+		f_dim = fopen("dimensional_convertion.txt","w");
+		fprintf(f_dim,"depth %lg\n",h0_scaled);
+		fprintf(f_dim,"viscosity %lg\n",visc0_scaled);
+		fprintf(f_dim,"gravity %lg\n",g0_scaled);
+		fprintf(f_dim,"density %lg\n",rho0_scaled);
+		fprintf(f_dim,"diffusivity %lg\n",kappa0_scaled);
+		fclose(f_dim);
+	}
+
+	/*MPI_Bcast(&h0_scaled,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&visc0_scaled,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&g0_scaled,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&rho0_scaled,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+
+	MPI_Bcast(&kappa0_scaled,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&temperature0_scaled,1,MPIU_REAL,0,PETSC_COMM_WORLD);*/
+
+	pressure0_scaled = rho0_scaled*g0_scaled*h0_scaled;
+	strain_rate0_scaled = rho0_scaled*g0_scaled*h0_scaled/visc0_scaled;
+	veloc0_scaled = rho0_scaled*g0_scaled*h0_scaled*h0_scaled/visc0_scaled;
+
+	time0_scaled = h0_scaled/veloc0_scaled;
+	//if (time0_scaled!=1.0 || veloc0_scaled!=1) non_dim=1;
+
+	advection_scaled = veloc0_scaled*time0_scaled/h0_scaled;
+	diffusion_scaled = kappa0_scaled*time0_scaled/h0_scaled/h0_scaled;
+	radiogenic_scaled = time0_scaled/temperature0_scaled;
+	adiabatic_scaled = time0_scaled*g0_scaled*veloc0_scaled;
+
+
+	
+	air_threshold_density = 100.0/rho0_scaled;
+
+
+
 	//MPI_Bcast(&,1,,0,PETSC_COMM_WORLD);
 
 	/*MPI_Bcast(&H_lito,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
@@ -506,8 +600,10 @@ PetscErrorCode reader(int rank, const char fName[]){
 
 		fscanf(f_interfaces,"%s",str);
 		if (strcmp (str,"rho") == 0)
-			for (PetscInt i=0;i<n_interfaces+1;i++)
+			for (PetscInt i=0;i<n_interfaces+1;i++){
 				fscanf(f_interfaces,"%lf",&inter_rho[i]);
+				inter_rho[i]/=rho0_scaled;
+			}
 		else { ErrorInterfaces(); exit(1);}
 
 		fscanf(f_interfaces,"%s",str);
@@ -544,12 +640,14 @@ PetscErrorCode reader(int rank, const char fName[]){
 			for (PetscInt i=0; i<Nx; i++){
 				for (PetscInt j=0; j<n_interfaces; j++){
 					fscanf(f_interfaces,"%lf",&interfaces[j*Nx+i]);
+					interfaces[j*Nx+i] /= h0_scaled;
 				}
 			}
 		} else {
 			for (PetscInt i=0; i<Nx*Ny; i++){
 				for (PetscInt j=0; j<n_interfaces; j++){
 					fscanf(f_interfaces,"%lf",&interfaces[j*Nx*Ny+i]);
+					interfaces[j*Nx*Ny+i] /= h0_scaled;
 				}
 			}
 		}

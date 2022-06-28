@@ -126,6 +126,8 @@ extern PetscReal theta_FSSA;
 
 extern PetscInt periodic_boundary;
 
+extern PetscReal veloc0_scaled;
+
 PetscErrorCode AssembleA_Veloc_2d(Mat A,Mat AG,DM veloc_da, DM temper_da){
 
 	PetscErrorCode         ierr;
@@ -720,7 +722,7 @@ PetscErrorCode AssembleA_Veloc_3d(Mat A,Mat AG,DM veloc_da, DM temper_da){
 
 	PetscReal sumRho;
 	VecSum(dRho,&sumRho);
-	PetscPrintf(PETSC_COMM_WORLD,"Rho sum = %lf\n\n\n",sumRho);
+	//PetscPrintf(PETSC_COMM_WORLD,"Rho sum = %lf\n\n\n",sumRho);
 
 
 
@@ -1246,6 +1248,8 @@ PetscErrorCode Init_Veloc(int dimensions) {
 
 		VecAssemblyBegin(Veloc);
 		VecAssemblyEnd(Veloc);
+
+		VecScale(Veloc,1./veloc0_scaled);
 
 		i_veloc++;
 	}

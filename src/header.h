@@ -311,6 +311,8 @@ PetscReal *p_add_r_strain_rate;
 
 PetscInt cont_particles=0;
 
+PetscReal epsilon_x = 1.0E-7;
+
 unsigned int seed;
 
 PetscInt *seed_layer;
@@ -360,3 +362,28 @@ PetscScalar *var_climate_time;
 PetscScalar *var_climate_scale;
 PetscInt n_var_climate;
 PetscInt cont_var_climate=0;
+
+
+//Rescaled variables for non-dimensional scenarios 
+//(necessary to calculate the effective viscosity using 
+//dimensional pressure, temperature, strain rate and cummulative strain)
+PetscInt non_dim = 0;
+
+PetscReal h0_scaled = 1.0;
+PetscReal visc0_scaled = 1.0;
+PetscReal g0_scaled = 1.0;
+PetscReal rho0_scaled = 1.0;
+PetscReal time0_scaled;
+PetscReal veloc0_scaled;
+PetscReal kappa0_scaled = 1.0;
+PetscReal temperature0_scaled = 1.0;
+
+PetscReal advection_scaled;
+PetscReal diffusion_scaled;
+PetscReal radiogenic_scaled;
+PetscReal adiabatic_scaled;
+
+PetscReal strain_rate0_scaled;
+PetscReal pressure0_scaled;
+
+PetscReal air_threshold_density;

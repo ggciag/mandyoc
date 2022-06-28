@@ -74,6 +74,9 @@ extern PetscInt WITH_NON_LINEAR;
 extern PetscInt WITH_ADIABATIC_H;
 extern PetscInt WITH_RADIOGENIC_H;
 
+extern PetscReal radiogenic_scaled;
+extern PetscReal adiabatic_scaled;
+
 extern unsigned int seed;
 
 extern PetscInt periodic_boundary;
@@ -414,7 +417,7 @@ PetscErrorCode AssembleF_Thermal_2d(Vec F,DM thermal_da,PetscReal *TKe,PetscReal
 				for (j=0;j<T_NE;j++) H_mean+=HH[ind[j].j][ind[j].i];
 				H_mean/=T_NE;// Variable radiogenic heat flow here
 
-				H_efetivo = H_mean;
+				H_efetivo = H_mean*radiogenic_scaled;
 			}
 
 			if (WITH_ADIABATIC_H==1){
@@ -427,7 +430,7 @@ PetscErrorCode AssembleF_Thermal_2d(Vec F,DM thermal_da,PetscReal *TKe,PetscReal
 				for (j=0;j<T_NE;j++) Vz_mean+=VV[ind[j].j][ind[j].i].w;
 				Vz_mean/=T_NE;
 
-				H_efetivo += -T_mean*alpha_exp_thermo*gravity*Vz_mean;
+				H_efetivo += -T_mean*alpha_exp_thermo*gravity*Vz_mean*adiabatic_scaled;
 			}
 
 

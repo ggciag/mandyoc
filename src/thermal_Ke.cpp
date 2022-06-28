@@ -30,6 +30,9 @@ extern long GaussQuad;
 extern double H_per_mass;
 extern double c_heat_capacity;
 
+extern PetscReal advection_scaled;
+extern PetscReal diffusion_scaled;
+
 
 extern PetscReal *NT;
 extern PetscReal *NT_x;
@@ -157,7 +160,8 @@ PetscErrorCode montaKeThermal_simplif_2d(double *Ke_local,double *Ke,double kapp
 
 
 	//exit(0);
-
+	for (i=0;i<V_NE*V_NE;i++) Ke_local[i]*=advection_scaled;
+	kappa_eff *= diffusion_scaled;
 	for (i=0;i<V_NE*V_NE;i++) Ke_local[i]+=Ke[i]*kappa_eff;
 
 	return (ierr);
@@ -383,8 +387,8 @@ PetscErrorCode montaKeThermal_simplif_3d(double *Ke_local,double *Ke){
 
 
 	//exit(0);
-
-	for (i=0;i<V_NE*V_NE;i++) Ke_local[i]+=Ke[i];
+	for (i=0;i<V_NE*V_NE;i++) Ke_local[i]*=advection_scaled;
+	for (i=0;i<V_NE*V_NE;i++) Ke_local[i]+=Ke[i]*diffusion_scaled;
 
 	return (ierr);
 

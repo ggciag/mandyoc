@@ -32,7 +32,7 @@ extern double dx_const;
 extern double dy_const;
 extern double dz_const;
 
-extern double Lx, depth;
+extern double Lx, Ly, depth;
 
 extern Vec local_V,Veloc_weight;
 
@@ -78,6 +78,7 @@ extern PetscInt RK4;
 
 extern PetscInt periodic_boundary;
 
+extern PetscReal epsilon_x;
 
 PetscReal linear_interpolation(PetscReal rx, PetscReal rz,PetscScalar V0, PetscScalar V1, PetscScalar V2, PetscScalar V3){
 	PetscReal rfac,vx;
@@ -218,7 +219,6 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 			PetscInt ii,kk;
 
 			PetscReal kx,kz,ex,ez;
-			PetscReal epsilon_x = 1.0E-7;
 
 			if (RK4==1){
 				//fourth-order Runge-Kutta scheme
@@ -401,6 +401,32 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 			cx = array[3*p];
 			cy = array[3*p+1];
 			cz = array[3*p+2];
+
+			if (cx>=Lx) {
+				printf("moveSwarm in 3D - outside: cx=%lf>=%lf\n",cx,Lx);
+				cx=Lx-epsilon_x;
+			}
+			if (cx<=0.0) {
+				printf("moveSwarm in 3D - outside: cx=%lf<=0.0\n",cx);
+				cx=epsilon_x;
+			}
+			if (cy>=Ly) {
+				printf("moveSwarm in 3D - outside: cy=%lf>=%lf\n",cy,Ly);
+				cy=Ly-epsilon_x;
+			}
+			if (cy<=0.0) {
+				printf("moveSwarm in 3D - outside: cy=%lf<=0.0\n",cy);
+				cy=epsilon_x;
+			}
+			if (cz>=0){
+				printf("moveSwarm in 3D - outside: cz=%lf>=0.0\n",cz);
+				cz=-epsilon_x;
+			}
+			if (cz<=-depth){
+				printf("moveSwarm in 3D - outside: cz=%lf<=-%lf\n",cz,depth);
+				cz=-depth+epsilon_x;
+			}
+
 
 			i = (int)(cx/dx_const);
 			j = (int)(cy/dy_const);
@@ -626,7 +652,6 @@ PetscErrorCode Swarm_add_remove_2d()
 	PetscReal cx,cz,dx,dz;
 	PetscInt i,k;
 	PetscReal cx_v[10],cz_v[10];
-	PetscReal epsilon_x = 1.0E-7;
 
 	for (p=0; p<nlocal; p++) {
 
@@ -929,6 +954,31 @@ PetscErrorCode Swarm_add_remove_3d()
 		cx = array[3*p];
 		cy = array[3*p+1];
 		cz = array[3*p+2];
+
+		if (cx>=Lx) {
+			printf("moveSwarm in 3D - outside: cx=%lf>=%lf\n",cx,Lx);
+			cx=Lx-epsilon_x;
+		}
+		if (cx<=0.0) {
+			printf("moveSwarm in 3D - outside: cx=%lf<=0.0\n",cx);
+			cx=epsilon_x;
+		}
+		if (cy>=Ly) {
+			printf("moveSwarm in 3D - outside: cy=%lf>=%lf\n",cy,Ly);
+			cy=Ly-epsilon_x;
+		}
+		if (cy<=0.0) {
+			printf("moveSwarm in 3D - outside: cy=%lf<=0.0\n",cy);
+			cy=epsilon_x;
+		}
+		if (cz>=0){
+			printf("moveSwarm in 3D - outside: cz=%lf>=0.0\n",cz);
+			cz=-epsilon_x;
+		}
+		if (cz<=-depth){
+			printf("moveSwarm in 3D - outside: cz=%lf<=-%lf\n",cz,depth);
+			cz=-depth+epsilon_x;
+		}
 
 		i = (int)(cx/dx_const);
 		j = (int)(cy/dy_const);
