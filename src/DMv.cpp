@@ -16,6 +16,12 @@ extern int bcv_left_slip;
 extern int bcv_right_normal;
 extern int bcv_right_slip;
 
+extern int bcv_back_normal;
+extern int bcv_back_slip;
+
+extern int bcv_front_normal;
+extern int bcv_front_slip;
+
 extern PetscInt bcv_extern;
 
 extern PetscInt visc_const_per_element;
@@ -418,7 +424,18 @@ PetscErrorCode create_veloc(int dimensions, PetscInt mx, PetscInt my, PetscInt m
 							ff3d[k][j][i].w = 0.0;
 						}
 
-						if (j==0 || j==N-1) ff3d[k][j][i].v = 0.0;
+						if (j==0 && bcv_back_normal==1) ff3d[k][j][i].v = 0.0;
+						if (j==0 && bcv_back_slip==1){
+							ff3d[k][j][i].u = 0.0;
+							ff3d[k][j][i].w = 0.0;
+						}
+
+						if (j==N-1 && bcv_front_normal==1) ff3d[k][j][i].v = 0.0;
+						if (j==N-1 && bcv_front_slip==1){
+							ff3d[k][j][i].u = 0.0;
+							ff3d[k][j][i].w = 0.0;
+						}
+
 
 						if (k==0   && bcv_bot_normal==1) ff3d[k][j][i].w = 0.0;
 						if (k==0   && bcv_bot_slip==1){
