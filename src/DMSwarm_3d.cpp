@@ -75,6 +75,8 @@ extern PetscReal *strain_seed_layer;
 extern PetscInt strain_seed_layer_size;
 extern PetscBool strain_seed_layer_set;
 
+extern PetscReal epsilon_x;
+
 
 PetscErrorCode _DMLocatePoints_DMDARegular_IS_3d(DM dm,Vec pos,IS *iscell)
 {
@@ -393,6 +395,31 @@ PetscErrorCode createSwarm_3d()
 				cx = array[3*p];
 				cy = array[3*p+1];
 				cz = array[3*p+2];
+
+				if (cx>=Lx) {
+					printf("moveSwarm in 3D - outside: cx=%lf>=%lf\n",cx,Lx);
+					cx=Lx-epsilon_x;
+				}
+				if (cx<=0.0) {
+					printf("moveSwarm in 3D - outside: cx=%lf<=0.0\n",cx);
+					cx=epsilon_x;
+				}
+				if (cy>=Ly) {
+					printf("moveSwarm in 3D - outside: cy=%lf>=%lf\n",cy,Ly);
+					cy=Ly-epsilon_x;
+				}
+				if (cy<=0.0) {
+					printf("moveSwarm in 3D - outside: cy=%lf<=0.0\n",cy);
+					cy=epsilon_x;
+				}
+				if (cz>=0){
+					printf("moveSwarm in 3D - outside: cz=%lf>=0.0\n",cz);
+					cz=-epsilon_x;
+				}
+				if (cz<=-depth){
+					printf("moveSwarm in 3D - outside: cz=%lf<=-%lf\n",cz,depth);
+					cz=-depth+epsilon_x;
+				}
 
 				i = (int)(cx/dx_const);
 				j = (int)(cy/dy_const);
