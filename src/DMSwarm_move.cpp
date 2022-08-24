@@ -381,9 +381,9 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 			strain_fac[p]+= dt*E2_invariant;//cumulative strain
 			strain_rate_fac[p] = E2_invariant;
 
-			if (tp<600 && layer_array[p]==0) {
-				layer_array[p]=1;
+			if (layer_array[p]==0) {
 				strain_fac[p]=0.0;
+				if (tp<600) layer_array[p]=1;
 			}
 
 
