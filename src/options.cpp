@@ -49,9 +49,9 @@ PetscErrorCode parse_options(int rank)
 			exit(1);
 		}
 		if (strain_seed_layer_set == PETSC_FALSE && seed_layer_set == PETSC_TRUE) {
-			PetscPrintf(PETSC_COMM_WORLD, "Using default value '2.0' for -strain_seed (for all seed layers)\n");
+			PetscPrintf(PETSC_COMM_WORLD, "Using default value '0.5' for -strain_seed (for all seed layers)\n");
 			for (int k = 0; k < seed_layer_size; k++) {
-				strain_seed_layer[k] = 2.0;
+				strain_seed_layer[k] = 0.5;
 			}
 		}
 		PetscPrintf(PETSC_COMM_WORLD, "Number of seed layers: %d\n", seed_layer_size);
