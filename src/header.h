@@ -323,6 +323,9 @@ PetscReal *strain_seed_layer;
 PetscInt strain_seed_layer_size;
 PetscBool strain_seed_layer_set = PETSC_FALSE;
 
+PetscBool strain_seed_constant = PETSC_TRUE;
+PetscBool strain_seed_constant_set = PETSC_FALSE;
+
 PetscScalar *var_bcv_time;
 PetscScalar *var_bcv_scale;
 PetscInt n_var_bcv=0;
@@ -364,8 +367,8 @@ PetscInt n_var_climate;
 PetscInt cont_var_climate=0;
 
 
-//Rescaled variables for non-dimensional scenarios 
-//(necessary to calculate the effective viscosity using 
+//Rescaled variables for non-dimensional scenarios
+//(necessary to calculate the effective viscosity using
 //dimensional pressure, temperature, strain rate and cummulative strain)
 PetscInt non_dim = 0;
 
