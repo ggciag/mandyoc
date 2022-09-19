@@ -96,6 +96,10 @@ extern PetscInt high_kappa_in_asthenosphere;
 extern PetscBool plot_sediment;
 extern PetscBool a2l;
 
+// Phase change paramenters
+extern PetscInt phase_change;
+extern PetscInt phase_change_unit_number;
+
 // Removed from parameter file
 extern double H_lito;
 extern double beta_max;
@@ -285,6 +289,13 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "high_kappa_in_asthenosphere") == 0) {high_kappa_in_asthenosphere = check_a_b(tkn_w, tkn_v, "True", "False");}
 
 			else if (strcmp(tkn_w, "nondimensionalization") == 0) {non_dim = check_a_b(tkn_w, tkn_v, "True", "False");}
+
+
+			// Phase change reading
+			else if (strcmp(tkn_w, "phase_change") == 0) {phase_change = check_a_b(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "phase_change_unit_number") == 0) {phase_change_unit_number = atoi(tkn_v);}
+
+
 			/*else if (strcmp(tkn_w, "h0_scaled") == 0) {h0_scaled = atof(tkn_v);}
 			else if (strcmp(tkn_w, "visc0_scaled") == 0) {visc0_scaled = atof(tkn_v);}
 			else if (strcmp(tkn_w, "g0_scaled") == 0) {g0_scaled = atof(tkn_v);}
@@ -443,6 +454,9 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&a2l,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 
 	MPI_Bcast(&non_dim,1,MPI_INT,0,PETSC_COMM_WORLD);
+
+	MPI_Bcast(&phase_change,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&phase_change_unit_number,1,MPI_LONG,0,PETSC_COMM_WORLD);
 
 	if (non_dim==1){
 		h0_scaled = depth;
@@ -696,6 +710,11 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(inter_n,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_Q,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_V,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+
+	// Read phase change matrix
+	// Read Temperature info line: T-start, T-end, dT
+	// Read Pressure info line: P-start, P_end, dP
+	// Read Temperature x Pressure matrix
 
 	// Broadcast, special cases
 //	MPI_Bcast(&n_interfaces,1,MPI_INT,0,PETSC_COMM_WORLD); // Broadcast after interfaces.txt
