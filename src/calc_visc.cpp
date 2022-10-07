@@ -158,7 +158,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		visco_real = visco_ref*exp(-QE*TK + VE*(-z));
 	}
 	
-	if (WITH_NON_LINEAR==1 && PLASTICITY==1){
+	if (WITH_NON_LINEAR==1){
 		if (rheol==9){
 			double R = 8.3144;
 			
@@ -214,7 +214,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 	
 	
 	
-	if (WITH_NON_LINEAR==1){
+	if (WITH_NON_LINEAR==1 && PLASTICITY==1){
 		//double c0 = 1.0;// Petersen et al. (2010) plastic criterium
 		//double mu = 0.01;//
 		//double c0 = 22.0E6;// 
