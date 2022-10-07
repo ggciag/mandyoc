@@ -1,9 +1,12 @@
 static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 "Flags:\n\n"\
-"   -seed [int]:          specify one (or more, comma separated) layer for weak plastic criterium (seed layer)\n"\
-"                         default value: no layer specified\n\n"\
-"   -strain_seed [float]: specify one (or more, comma separated) value for the seed layer strain\n"\
-"                         default value: 2.0\n\n"\
+"   -seed [int]:                  specify one (or more, comma separated) layer for weak plastic criterium (seed layer)\n"\
+"                                 default value: no layer specified\n\n"\
+"   -strain_seed [float]:         specify one (or more, comma separated) value for the seed layer strain\n"\
+"                                 default value: 0.5\n\n"\
+"   -strain_seed_constant [bool]: specify if the strain_seed value is used as a constant value (default)\n"\
+"                                 or if it is summed over the random initial strain\n"\
+"                                 default value: true\n\n"\
 "";
 
 /* MANDYOC: MANtle DYnamics simulatOr Code*/
@@ -232,7 +235,7 @@ int main(int argc,char **args)
 		else{
 			PetscPrintf(PETSC_COMM_WORLD,"\n\nstep = %d, time = %.3g yr, dt = %.3g yr\n",tcont,tempo,dt_calor);
 		}
-		
+
 
 		//PetscPrintf(PETSC_COMM_WORLD,"next sp %.3g Myr\n\n", sp_eval_time);
 

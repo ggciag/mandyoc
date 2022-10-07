@@ -74,6 +74,7 @@ extern PetscBool seed_layer_set;
 extern PetscReal *strain_seed_layer;
 extern PetscInt strain_seed_layer_size;
 extern PetscBool strain_seed_layer_set;
+extern PetscBool strain_seed_constant;
 
 extern PetscReal epsilon_x;
 
@@ -479,12 +480,20 @@ PetscErrorCode createSwarm_3d()
 
 				if (seed_layer_set == PETSC_TRUE) {
 					if (seed_layer_size == 1 && layer_array[p] == seed_layer[0]) {
-						strain_array[p] = strain_seed_layer[0];
+						if (strain_seed_constant == PETSC_TRUE) {
+							strain_array[p] = strain_seed_layer[0];
+						} else {
+							strain_array[p] += strain_seed_layer[0];
+						}
 					}
 					else {
 						for (int k = 0; k < seed_layer_size; k++) {
 							if (layer_array[p] == seed_layer[k]) {
-								strain_array[p] = strain_seed_layer[k];
+								if (strain_seed_constant == PETSC_TRUE) {
+									strain_array[p] = strain_seed_layer[k];
+								} else {
+									strain_array[p] += strain_seed_layer[k];
+								}
 							}
 						}
 					}
