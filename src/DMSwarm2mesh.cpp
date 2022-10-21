@@ -2,6 +2,31 @@
 #include <petscdmda.h>
 #include <petscdmswarm.h>
 
+#define SPHASE 6
+
+void print_vec(float vec[SPHASE])
+{
+	int i;
+	for (i=0; i<SPHASE; i+=1)
+	{
+		fprintf(stderr, "%.1f ", vec[i]);
+	}
+	fprintf(stderr, "\n");
+}
+
+void print_mat(float mat[SPHASE][SPHASE])
+{
+	int i, j;
+	for (j=0; j<SPHASE; j+=1)
+	{
+		for (i=0; i<SPHASE; i+=1)
+		{
+			fprintf(stderr, "%.1f ", mat[i][j]);
+		}
+		fprintf(stderr, "\n");
+	}
+}
+
 PetscErrorCode mean_value_periodic_boundary_2d(DM da,Vec F,Vec local_F, PetscScalar **ff,int esc);
 
 extern DM dms;
@@ -42,6 +67,11 @@ extern PetscReal air_threshold_density;
 extern PetscReal rho0_scaled;
 
 extern PetscReal epsilon_x;
+
+extern float phase_density[SPHASE][SPHASE];
+extern float phase_pressure[SPHASE];
+extern float phase_temperature[SPHASE];
+
 
 PetscErrorCode Swarm2Mesh_2d(){
 

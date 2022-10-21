@@ -2,6 +2,8 @@
 #define GIT_VERSION "git-version-unavailable"
 #endif
 
+#define SPHASE 6
+
 // Parameter file numerical variables
 PetscReal rtol = PETSC_DEFAULT;
 PetscReal denok_min = 1.0E-4;
@@ -24,6 +26,7 @@ PetscScalar sea_level = 0.0;
 PetscScalar basal_heat = -1.0;
 PetscReal sp_dt = 0.0;
 PetscScalar sp_d_c = 0.0;
+PetscInt phase_change_unit_number = 0;
 // Parameter file boolean variables
 PetscInt WITH_NON_LINEAR = 0; // 1=True, 0=False
 PetscInt WITH_ADIABATIC_H = 0; // 1=True, 0=False
@@ -49,6 +52,7 @@ PetscInt checkered = 0; // 1=True, 0=False
 PetscInt initial_dynamic_range = 0; // 1=True, 0=False
 PetscInt periodic_boundary = 0; // 1=True, 0=False
 PetscInt high_kappa_in_asthenosphere = 0; // 1=True, 0=False
+PetscInt phase_change = 0; // 1=True, 0=False
 // Will be added to param.txt
 PetscBool sp_surface_tracking = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
 PetscBool sp_surface_processes = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
@@ -97,6 +101,11 @@ int bcT_bot;
 int bcT_left;
 int bcT_right;
 // End of parameter file variables
+
+// Phase change variables
+float phase_pressure[SPHASE];
+float phase_temperature[SPHASE];
+float phase_density[SPHASE][SPHASE];
 
 PetscInt Px = PETSC_DECIDE;
 PetscInt Py = PETSC_DECIDE;

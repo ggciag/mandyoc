@@ -1,8 +1,11 @@
 #include <petscksp.h>
 
+#define SPHASE 6
+
 // Prototypes
 int check_a_b(char tkn_w[], char tkn_v[], const char str_a[], const char str_b[]);
 PetscBool check_a_b_bool(char tkn_w[], char tkn_v[], const char str_a[], const char str_b[]);
+PetscInt read_phase_file(char *fname, float phase_pressure[SPHASE], float phase_temperature[SPHASE], float phase_density[SPHASE][SPHASE]);
 //void ErrorInterfaces(int rank, const char fname[], int flag);
 void ErrorInterfaces();
 
@@ -99,6 +102,9 @@ extern PetscBool a2l;
 // Phase change paramenters
 extern PetscInt phase_change;
 extern PetscInt phase_change_unit_number;
+extern float phase_pressure[SPHASE];
+extern float phase_temperature[SPHASE];
+extern float phase_density[SPHASE][SPHASE];
 
 // Removed from parameter file
 extern double H_lito;
@@ -711,6 +717,16 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(inter_Q,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_V,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 
+	// Phase change
+	if ((phase_change==1) && (rank==0)){
+		// fprintf(stderr, "Phase change parameters\n");
+		read_phase_file("models/olivine_phase.txt", phase_pressure, phase_temperature, phase_density);
+	}
+	MPI_Bcast(phase_pressure,SPHASE,MPI_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(phase_temperature,SPHASE,MPI_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(phase_density,SPHASE*SPHASE,MPI_REAL,0,PETSC_COMM_WORLD);
+
+
 	// Read phase change matrix
 	// Read Temperature info line: T-start, T-end, dT
 	// Read Pressure info line: P-start, P_end, dP
@@ -922,4 +938,61 @@ PetscBool check_a_b_bool(char tkn_w[], char tkn_v[], const char str_a[], const c
 		exit(1);
 	}
 	return value;
+}
+
+// Read phase change file
+PetscInt read_phase_file(char *fname, float phase_pressure[SPHASE], float phase_temperature[SPHASE], float phase_density[SPHASE][SPHASE])
+{
+	FILE *file;
+	int size = 1024;
+	char line[size];
+	void *nread;
+	char *tkn_0, *tkn_1;
+	int i, j = 0;
+
+	file = fopen(fname, "r");
+	if (file == NULL) return -1;
+	while (!feof(file))
+	{
+		nread = fgets(line, size, file);
+		if ((nread == NULL) || (line[0] == '\n') || (line[0] == '#')) continue;
+		// Dealing with the first two lines
+		tkn_0 = strtok(line, " \t\n");
+		if (tkn_0[0] == '#') continue;
+		if (strcmp(tkn_0, "p") == 0)
+		{
+			for (i=0; i<2; i+=1)
+			{
+				tkn_1 = strtok(NULL, " \t\n");
+				phase_pressure[i*(SPHASE-1)] = atof(tkn_1);
+			}
+			for (i=1; i<SPHASE-1; i+=1)
+			{
+				phase_pressure[i] = phase_pressure[0] + i * (phase_pressure[SPHASE-1] - phase_pressure[0]) / SPHASE;
+			}
+		}
+		else if (strcmp(tkn_0, "t") == 0)
+		{
+			for (i=0; i<2; i+=1)
+			{
+				tkn_1 = strtok(NULL, " \t\n");
+				phase_temperature[i*(SPHASE-1)] = atof(tkn_1);
+			}
+			for (i=1; i<SPHASE-1; i+=1)
+			{
+				phase_temperature[i] = phase_temperature[0] + i * (phase_temperature[SPHASE-1] - phase_temperature[0]) / SPHASE;
+			}
+		}
+		else
+		{
+			for (i=0; i<SPHASE; i+=1)
+			{
+				phase_density[i][j] = atof(tkn_0);
+				tkn_0 = strtok(NULL, " \t\n");
+			}
+			j += 1;
+		}
+	}
+	fclose(file);
+	return 0;
 }
