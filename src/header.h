@@ -28,6 +28,7 @@ PetscScalar sp_d_c = 0.0;
 PetscInt WITH_NON_LINEAR = 0; // 1=True, 0=False
 PetscInt WITH_ADIABATIC_H = 0; // 1=True, 0=False
 PetscInt WITH_RADIOGENIC_H = 0; // 1=True, 0=False
+PetscInt PLASTICITY = 1; // 1=True, 0=False
 PetscInt direct_solver = 1; // 1=direct, 0=iterative
 PetscInt visc_const_per_element = 0; // 1=constant, 0=variable
 PetscInt visc_harmonic_mean = 1; // 1=harmoninc, 0=arithmetic

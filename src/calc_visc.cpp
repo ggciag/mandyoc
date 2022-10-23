@@ -11,6 +11,7 @@ extern int geoq_on;
 extern double visco_r;
 extern double Delta_T;
 extern PetscInt WITH_NON_LINEAR;
+extern PetscInt PLASTICITY;
 extern PetscInt pressure_in_rheol;
 extern PetscReal pressure_const;
 extern double h_air;
@@ -213,7 +214,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 	
 	
 	
-	if (WITH_NON_LINEAR==1){
+	if (WITH_NON_LINEAR==1 && PLASTICITY==1){
 		//double c0 = 1.0;// Petersen et al. (2010) plastic criterium
 		//double mu = 0.01;//
 		//double c0 = 22.0E6;// 
