@@ -218,6 +218,7 @@ In this problem, a rigid punch vertically indents a rigid plastic half space. Th
 	:align: center
 	:alt: applied boundary conditions and the expected slip-lines
 
+	Applied boundary conditions and the expected slip-lines.
 
 
 
