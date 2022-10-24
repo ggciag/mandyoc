@@ -214,12 +214,14 @@ The indenter benchmark
 In this problem, a rigid punch vertically indents a rigid plastic half space. This problem presents an analytical solution
 
 .. figure:: figs/punch.png
-	:width: 90%
+	:width: 60%
 	:align: center
 	:alt: applied boundary conditions and the expected slip-lines
 
 	Applied boundary conditions and the expected slip-lines.
 
+The numerical simulation is performed only for one time step in a material with pure plastic von Mises rheology.
+The left and right boundaries are set to free slip, the bottom to no slip. At the top boundary, the velocity is prescribed as (0,-1) in the center of the domain, in the interval :math:`Lx-\delta_x/2` and :math:`Lx+\delta_x/2`.
 
 
 
