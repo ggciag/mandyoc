@@ -213,7 +213,7 @@ The indenter benchmark
 
 In this problem, a rigid punch vertically indents a rigid plastic half space. This problem presents an analytical solution
 
-.. figure:: figs/punch_setup.png
+.. figure:: figs/punch.png
 	:width: 90%
 	:align: center
 	:alt: applied boundary conditions and the expected slip-lines
