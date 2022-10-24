@@ -205,3 +205,14 @@ Below, :numref:`crameriScalingGraph` shows the results of a basic scaling test f
   :alt: Scaling results for Crameri2012_case2
 
   Results of scaling test for Crameri2012_case2.
+
+
+
+The indenter benchmark
+-----------------------
+
+
+
+
+
+
