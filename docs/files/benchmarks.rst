@@ -221,7 +221,42 @@ In this problem, a rigid punch vertically indents a rigid plastic half space. Th
 	Applied boundary conditions and the expected slip-lines.
 
 The numerical simulation is performed only for one time step in a material with pure plastic von Mises rheology.
-The left and right boundaries are set to free slip, the bottom to no slip. At the top boundary, the velocity is prescribed as (0,-1) in the center of the domain, in the interval :math:`Lx-\delta_x/2` and :math:`Lx+\delta_x/2`.
+The horizontal and vertical dimensions of the domain are set to :math:`Lx = 1` and :math:`Ly  = 0.5`.
+The left and right boundaries are set to free slip and the bottom to no slip. 
+At the top boundary, the velocity is prescribed as (0,-1) in the center of the domain, in the interval :math:`Lx/2-\delta_x` and :math:`Lx/2+\delta_x` with :math:`delta_x = 0.08`. Outside this interval, the velocity on the top boundary was set free.
+The minimum and maximum effective viscosity were set as :math:`10^{-2}` and :math:`10^4`, respectively.
+
+
+.. figure:: figs/punch_V_abs.png
+	:width: 80%
+	:align: center
+	:alt: Absolute value
+
+	Absolute value.
+
+
+.. figure:: figs/punch_strain_rate.png
+	:width: 80%
+	:align: center
+	:alt: strain rate
+
+	Strain rate.
+
+
+.. figure:: figs/punch_viscosity.png
+	:width: 80%
+	:align: center
+	:alt: viscosity
+
+	Viscosity field.
+
+	
+
+
+
+
+
+
 
 
 
