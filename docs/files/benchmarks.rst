@@ -227,12 +227,15 @@ At the top boundary, the velocity is prescribed as (0,-1) in the center of the d
 The minimum and maximum effective viscosity were set as :math:`10^{-2}` and :math:`10^4`, respectively.
 
 
+The results presented in the following figures were obtained from a numerical simulation performed with a mesh with 400x200 elements.
+
+
 .. figure:: figs/punch_V_abs.png
 	:width: 80%
 	:align: center
 	:alt: Absolute value
 
-	Absolute value.
+	Absolute value for the velocity field. The white curves are the slip-lines from the analytical solution.
 
 
 .. figure:: figs/punch_strain_rate.png
@@ -240,7 +243,7 @@ The minimum and maximum effective viscosity were set as :math:`10^{-2}` and :mat
 	:align: center
 	:alt: strain rate
 
-	Strain rate.
+	Strain rate field.
 
 
 .. figure:: figs/punch_viscosity.png
@@ -250,10 +253,45 @@ The minimum and maximum effective viscosity were set as :math:`10^{-2}` and :mat
 
 	Viscosity field.
 
+The shear bands obtained with the numerical simulation follows the slip lines at :math:`\pi/4` angle, as predicted by the analytical solution (indicated by the white lines in the figure for the velocity field), separating the three rigid bodies.
+
+
 	
+The slab detachment benchmark
+-----------------------------
+
+
+.. figure:: figs/slab_visc_0.png
+	:width: 80%
+	:align: center
+	:alt: viscosity 0
+
+	Viscosity structure
+
+
+.. figure:: figs/slab_visc_100.png
+	:width: 80%
+	:align: center
+	:alt: viscosity 100
+
+	Viscosity structure
+
+
+.. figure:: figs/slab_visc_500.png
+	:width: 80%
+	:align: center
+	:alt: viscosity 500
+
+	Viscosity structure
 
 
 
+.. figure:: figs/slab_visc_1000.png
+	:width: 80%
+	:align: center
+	:alt: viscosity 1000
+
+	Viscosity structure
 
 
 
