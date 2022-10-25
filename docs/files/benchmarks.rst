@@ -296,10 +296,10 @@ The slab detachment benchmark
 
 
 
-.. figure:: slab_compare_widths.png
+.. figure:: figs/slab_compare_widths.png
 	:width: 80%
 	:align: center
-	:alt: viscosity 1000
+	:alt: necking
 
 	Necking width through time
 
