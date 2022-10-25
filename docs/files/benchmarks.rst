@@ -221,6 +221,15 @@ In this problem, a rigid punch vertically indents a rigid plastic half space. Th
 	Applied boundary conditions and the expected slip-lines.
 
 The numerical simulation is performed only for one time step in a material with pure plastic von Mises rheology.
+The yield function :math:`F` is
+
+:math:`F = 2 \eta \dot\varepsilon_{II} - 1`.
+
+If :math:`F>0`, the stress is outside the yield surface, and the effective viscosity :math:`\eta_{eff}` is
+
+:math:`\eta_{eff} = \frac{1}{2\varepsilon_{II}}`.
+
+
 The horizontal and vertical dimensions of the domain are set to :math:`L_x = 1` and :math:`L_y  = 0.5`.
 The left and right boundaries are set to free slip and the bottom to no slip. 
 At the top boundary, the velocity is prescribed as (0,-1) in the center of the domain, in the interval :math:`L_x/2-\delta_x` and :math:`L_x/2+\delta_x` with :math:`\delta_x = 0.08`. Outside this interval, the velocity on the top boundary was set free.
@@ -251,7 +260,7 @@ The results presented in the following figures were obtained from a numerical si
 	:align: center
 	:alt: viscosity
 
-	Viscosity field.
+	Logarithm of the Viscosity field.
 
 The shear bands obtained with the numerical simulation follows the slip lines at :math:`\pi/4` angle, as predicted by the analytical solution (indicated by the white lines in the figure for the velocity field), separating the three rigid bodies.
 
@@ -259,6 +268,8 @@ The shear bands obtained with the numerical simulation follows the slip lines at
 	
 The slab detachment benchmark
 -----------------------------
+
+
 
 
 .. figure:: figs/slab_visc_0.png
@@ -274,7 +285,7 @@ The slab detachment benchmark
 	:align: center
 	:alt: viscosity 100
 
-	Viscosity structure - :math:`\log_{10} (\eta)` in Pa s.
+	Viscosity structure - :math:`\log_{10} (\eta)`, with :math:`\eta` in Pa s.
 
 
 .. figure:: figs/slab_visc_500.png
@@ -282,7 +293,7 @@ The slab detachment benchmark
 	:align: center
 	:alt: viscosity 500
 
-	Viscosity structure - :math:`\log_{10} (\eta)` in Pa s.
+	Viscosity structure - :math:`\log_{10} (\eta)`, with :math:`\eta` in Pa s.
 
 
 
@@ -291,7 +302,11 @@ The slab detachment benchmark
 	:align: center
 	:alt: viscosity 1000
 
-	Viscosity structure - :math:`\log_{10} (\eta)` in Pa s.
+	Viscosity structure - :math:`\log_{10} (\eta)`, with :math:`\eta` in Pa s.
+
+
+
+
 
 
 
