@@ -205,3 +205,106 @@ Below, :numref:`crameriScalingGraph` shows the results of a basic scaling test f
   :alt: Scaling results for Crameri2012_case2
 
   Results of scaling test for Crameri2012_case2.
+
+
+
+The indenter benchmark
+-----------------------
+
+In this problem, a rigid punch vertically indents a rigid plastic half space. This problem presents an analytical solution
+
+.. figure:: figs/punch.png
+	:width: 60%
+	:align: center
+	:alt: applied boundary conditions and the expected slip-lines
+
+	Applied boundary conditions and the expected slip-lines.
+
+The numerical simulation is performed only for one time step in a material with pure plastic von Mises rheology.
+The horizontal and vertical dimensions of the domain are set to :math:`Lx = 1` and :math:`Ly  = 0.5`.
+The left and right boundaries are set to free slip and the bottom to no slip. 
+At the top boundary, the velocity is prescribed as (0,-1) in the center of the domain, in the interval :math:`Lx/2-\delta_x` and :math:`Lx/2+\delta_x` with :math:`delta_x = 0.08`. Outside this interval, the velocity on the top boundary was set free.
+The minimum and maximum effective viscosity were set as :math:`10^{-2}` and :math:`10^4`, respectively.
+
+
+The results presented in the following figures were obtained from a numerical simulation performed with a mesh with 400x200 elements.
+
+
+.. figure:: figs/punch_V_abs.png
+	:width: 80%
+	:align: center
+	:alt: Absolute value
+
+	Absolute value for the velocity field. The white curves are the slip-lines from the analytical solution.
+
+
+.. figure:: figs/punch_strain_rate.png
+	:width: 80%
+	:align: center
+	:alt: strain rate
+
+	Strain rate field.
+
+
+.. figure:: figs/punch_viscosity.png
+	:width: 80%
+	:align: center
+	:alt: viscosity
+
+	Viscosity field.
+
+The shear bands obtained with the numerical simulation follows the slip lines at :math:`\pi/4` angle, as predicted by the analytical solution (indicated by the white lines in the figure for the velocity field), separating the three rigid bodies.
+
+
+	
+The slab detachment benchmark
+-----------------------------
+
+
+.. figure:: figs/slab_visc_0.png
+	:width: 80%
+	:align: center
+	:alt: viscosity 0
+
+	Viscosity structure - :math:`\log_{10} (\eta)` in Pa s.
+
+
+.. figure:: figs/slab_visc_100.png
+	:width: 80%
+	:align: center
+	:alt: viscosity 100
+
+	Viscosity structure - :math:`\log_{10} (\eta)` in Pa s.
+
+
+.. figure:: figs/slab_visc_500.png
+	:width: 80%
+	:align: center
+	:alt: viscosity 500
+
+	Viscosity structure - :math:`\log_{10} (\eta)` in Pa s.
+
+
+
+.. figure:: figs/slab_visc_1000.png
+	:width: 80%
+	:align: center
+	:alt: viscosity 1000
+
+	Viscosity structure - :math:`\log_{10} (\eta)` in Pa s.
+
+
+
+
+.. figure:: figs/slab_compare_widths.png
+	:width: 80%
+	:align: center
+	:alt: necking
+
+	Necking width through time
+
+
+
+
+
+
