@@ -221,9 +221,9 @@ In this problem, a rigid punch vertically indents a rigid plastic half space. Th
 	Applied boundary conditions and the expected slip-lines.
 
 The numerical simulation is performed only for one time step in a material with pure plastic von Mises rheology.
-The horizontal and vertical dimensions of the domain are set to :math:`Lx = 1` and :math:`Ly  = 0.5`.
+The horizontal and vertical dimensions of the domain are set to :math:`L_x = 1` and :math:`L_y  = 0.5`.
 The left and right boundaries are set to free slip and the bottom to no slip. 
-At the top boundary, the velocity is prescribed as (0,-1) in the center of the domain, in the interval :math:`Lx/2-\delta_x` and :math:`Lx/2+\delta_x` with :math:`delta_x = 0.08`. Outside this interval, the velocity on the top boundary was set free.
+At the top boundary, the velocity is prescribed as (0,-1) in the center of the domain, in the interval :math:`L_x/2-\delta_x` and :math:`L_x/2+\delta_x` with :math:`\delta_x = 0.08`. Outside this interval, the velocity on the top boundary was set free.
 The minimum and maximum effective viscosity were set as :math:`10^{-2}` and :math:`10^4`, respectively.
 
 
@@ -231,7 +231,7 @@ The results presented in the following figures were obtained from a numerical si
 
 
 .. figure:: figs/punch_V_abs.png
-	:width: 80%
+	:width: 90%
 	:align: center
 	:alt: Absolute value
 
@@ -239,7 +239,7 @@ The results presented in the following figures were obtained from a numerical si
 
 
 .. figure:: figs/punch_strain_rate.png
-	:width: 80%
+	:width: 90%
 	:align: center
 	:alt: strain rate
 
@@ -247,7 +247,7 @@ The results presented in the following figures were obtained from a numerical si
 
 
 .. figure:: figs/punch_viscosity.png
-	:width: 80%
+	:width: 90%
 	:align: center
 	:alt: viscosity
 
@@ -262,15 +262,15 @@ The slab detachment benchmark
 
 
 .. figure:: figs/slab_visc_0.png
-	:width: 80%
+	:width: 90%
 	:align: center
 	:alt: viscosity 0
 
-	Viscosity structure - :math:`\log_{10} (\eta)` in Pa s.
+	Viscosity structure - :math:`\log_{10} (\eta)`, with :math:`\eta` in Pa s.
 
 
 .. figure:: figs/slab_visc_100.png
-	:width: 80%
+	:width: 90%
 	:align: center
 	:alt: viscosity 100
 
@@ -278,7 +278,7 @@ The slab detachment benchmark
 
 
 .. figure:: figs/slab_visc_500.png
-	:width: 80%
+	:width: 90%
 	:align: center
 	:alt: viscosity 500
 
@@ -287,7 +287,7 @@ The slab detachment benchmark
 
 
 .. figure:: figs/slab_visc_1000.png
-	:width: 80%
+	:width: 90%
 	:align: center
 	:alt: viscosity 1000
 
@@ -297,7 +297,7 @@ The slab detachment benchmark
 
 
 .. figure:: figs/slab_compare_widths.png
-	:width: 80%
+	:width: 90%
 	:align: center
 	:alt: necking
 
