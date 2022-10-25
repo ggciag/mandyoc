@@ -266,7 +266,7 @@ The slab detachment benchmark
 	:align: center
 	:alt: viscosity 0
 
-	Viscosity structure
+	Viscosity structure - :math:`\log_{10} (\eta)` in Pa s.
 
 
 .. figure:: figs/slab_visc_100.png
@@ -274,7 +274,7 @@ The slab detachment benchmark
 	:align: center
 	:alt: viscosity 100
 
-	Viscosity structure
+	Viscosity structure - :math:`\log_{10} (\eta)` in Pa s.
 
 
 .. figure:: figs/slab_visc_500.png
@@ -282,7 +282,7 @@ The slab detachment benchmark
 	:align: center
 	:alt: viscosity 500
 
-	Viscosity structure
+	Viscosity structure - :math:`\log_{10} (\eta)` in Pa s.
 
 
 
@@ -291,7 +291,17 @@ The slab detachment benchmark
 	:align: center
 	:alt: viscosity 1000
 
-	Viscosity structure
+	Viscosity structure - :math:`\log_{10} (\eta)` in Pa s.
+
+
+
+
+.. figure:: slab_compare_widths.png
+	:width: 80%
+	:align: center
+	:alt: viscosity 1000
+
+	Necking width through time
 
 
 
