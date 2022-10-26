@@ -283,8 +283,8 @@ Under the lithosphere, the mantle presents constant viscosity (:math:`\eta_{mant
 
 The domain width is 1000 km and the domain height is 660 km. The lithosphere on the top of the domain is 80 km thick. In the center of the domain, a vertical slab 80-km thick and 250-km long is attached to the base of the lithosphere.
 
-The density of the rocks are not dependent on temperature, assumed constant during all the numerical simulation: 3300 kg/m:math:`^3` for the lithosphere and 3150 kg/m:math:`^3` for the sublithospheric mantle.
-The gravity acceleration is 9.81 m/s:math:`^2`.
+The density of the rocks are not dependent on temperature, assumed constant during all the numerical simulation: 3300 kg/m\ :sup:`3` for the lithosphere and 3150 kg/m\ :sup:`3` for the sublithospheric mantle.
+The gravity acceleration is 9.81 m/s\ :sup:`2`.
 
 Snapshots in different moments are shown below:
 
