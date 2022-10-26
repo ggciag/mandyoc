@@ -225,11 +225,11 @@ The yield function :math:`F` is
 
 :math:`F = 2 \eta \dot\varepsilon_{II} - 1`
 
-where :math:`\eta` is the viscosity and :math:`\dot\varepsilon_{II}}` is the square root of the second invariant of the deviatoric strain rate tensor.
+where :math:`\eta` is the viscosity and :math:`\dot\varepsilon_{II}` is the square root of the second invariant of the deviatoric strain rate tensor.
 
 If :math:`F>0`, the stress is outside the yield surface, and the effective viscosity :math:`\eta_{eff}` is
 
-:math:`\eta_{eff} = \frac{1}{2\dot\varepsilon_{II}}`.
+:math:`\eta_{eff} = \frac{1}{2\dot\varepsilon_{II}`.
 
 
 
@@ -273,11 +273,11 @@ The slab detachment benchmark
 -----------------------------
 
 Here we test the slab detachment model proposed by Schmalholz (2011) :cite:`schmalholz2011simple`.
-It assumes a nonlinear viscous rheology for the lithosphere, with the viscosity :math:`\eta` function of the square root of the second invariant of the deviatoric strain rate tensor :math:`\dot\varepsilon_{II}}`:
+It assumes a nonlinear viscous rheology for the lithosphere, with the viscosity :math:`\eta` function of the square root of the second invariant of the deviatoric strain rate tensor :math:`\dot\varepsilon_{II}`:
 
-:math:`\eta = \eta_0 \dot\varepsilon_{II}}^{(1/n-1)}`
+:math:`\eta = \eta_0 \dot\varepsilon_{II}^{(1/n-1)}`
 
-where  :math:`\eta_0 = 4.75 \times 10^{11}` Pa s:math:`^{1/n}` and :math:`n=4`.
+where  :math:`\eta_0 = 4.75 \times 10^{11}` Pa s\ :sup:`1/n` and :math:`n=4`.
 
 Under the lithosphere, the mantle presents constant viscosity (:math:`\eta_{mantle} = 10^{21}` Pa s).
 
