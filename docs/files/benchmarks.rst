@@ -286,6 +286,8 @@ The domain width is 1000 km and the domain height is 660 km. The lithosphere on 
 The density of the rocks are not dependent on temperature, assumed constant during all the numerical simulation: 3300 kg/m\ :sup:`3` for the lithosphere and 3150 kg/m\ :sup:`3` for the sublithospheric mantle.
 The gravity acceleration is 9.81 m/s\ :sup:`2`.
 
+During the numerical simulation, the slab is stretched by its own weight, resulting in the necking in the upper portion of the slab.
+
 Snapshots in different moments are shown below:
 
 
@@ -323,9 +325,10 @@ Snapshots in different moments are shown below:
 
 
 
+To study the evolution of the necking of the slab and compare with previous works, we normalized the necking width to the initial thickness of the slab (80 km).
+Additionally, the time was divided by the characteristic time :math:`t_c = 7.1158\times10^{14}` s (Glerum et al., 2008 :cite:`glerum2018nonlinear`).
 
-
-
+The following figure shows the necking width through time, compared with the results from Schmalholz (2011) :cite:`schmalholz2011simple` and Glerum et al. (2008) :cite:`glerum2018nonlinear`:
 
 
 .. figure:: figs/slab_compare_widths.png
