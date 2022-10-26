@@ -220,10 +220,22 @@ In this problem, a rigid punch vertically indents a rigid plastic half space. Th
 
 	Applied boundary conditions and the expected slip-lines.
 
-The numerical simulation is performed only for one time step in a material with pure plastic von Mises rheology.
-The horizontal and vertical dimensions of the domain are set to :math:`Lx = 1` and :math:`Ly  = 0.5`.
+The numerical simulation is performed only for one time step in a material with pure plastic von Mises rheology :cite:`thieulot2008`.
+The yield function :math:`F` is
+
+:math:`F = 2 \eta \dot\varepsilon_{II} - 1`
+
+where :math:`\eta` is the viscosity and :math:`\dot\varepsilon_{II}}` is the square root of the second invariant of the deviatoric strain rate tensor.
+
+If :math:`F>0`, the stress is outside the yield surface, and the effective viscosity :math:`\eta_{eff}` is
+
+:math:`\eta_{eff} = \frac{1}{2\dot\varepsilon_{II}}`.
+
+
+
+The horizontal and vertical dimensions of the domain are set to :math:`L_x = 1` and :math:`L_y  = 0.5`.
 The left and right boundaries are set to free slip and the bottom to no slip. 
-At the top boundary, the velocity is prescribed as (0,-1) in the center of the domain, in the interval :math:`Lx/2-\delta_x` and :math:`Lx/2+\delta_x` with :math:`delta_x = 0.08`. Outside this interval, the velocity on the top boundary was set free.
+At the top boundary, the velocity is prescribed as (0,-1) in the center of the domain, in the interval :math:`L_x/2-\delta_x` and :math:`L_x/2+\delta_x` with :math:`\delta_x = 0.08`. Outside this interval, the velocity on the top boundary was set free.
 The minimum and maximum effective viscosity were set as :math:`10^{-2}` and :math:`10^4`, respectively.
 
 
@@ -231,7 +243,7 @@ The results presented in the following figures were obtained from a numerical si
 
 
 .. figure:: figs/punch_V_abs.png
-	:width: 80%
+	:width: 90%
 	:align: center
 	:alt: Absolute value
 
@@ -239,7 +251,7 @@ The results presented in the following figures were obtained from a numerical si
 
 
 .. figure:: figs/punch_strain_rate.png
-	:width: 80%
+	:width: 90%
 	:align: center
 	:alt: strain rate
 
@@ -247,11 +259,11 @@ The results presented in the following figures were obtained from a numerical si
 
 
 .. figure:: figs/punch_viscosity.png
-	:width: 80%
+	:width: 90%
 	:align: center
 	:alt: viscosity
 
-	Viscosity field.
+	Logarithm of the Viscosity field.
 
 The shear bands obtained with the numerical simulation follows the slip lines at :math:`\pi/4` angle, as predicted by the analytical solution (indicated by the white lines in the figure for the velocity field), separating the three rigid bodies.
 
@@ -260,44 +272,67 @@ The shear bands obtained with the numerical simulation follows the slip lines at
 The slab detachment benchmark
 -----------------------------
 
+Here we test the slab detachment model proposed by Schmalholz (2011) :cite:`schmalholz2011simple`.
+It assumes a nonlinear viscous rheology for the lithosphere, with the viscosity :math:`\eta` function of the square root of the second invariant of the deviatoric strain rate tensor :math:`\dot\varepsilon_{II}}`:
+
+:math:`\eta = \eta_0 \dot\varepsilon_{II}}^{(1/n-1)}`
+
+where  :math:`\eta_0 = 4.75 \times 10^{11}` Pa s:math:`^{1/n}` and :math:`n=4`.
+
+Under the lithosphere, the mantle presents constant viscosity (:math:`\eta_{mantle} = 10^{21}` Pa s).
+
+The domain width is 1000 km and the domain height is 660 km. The lithosphere on the top of the domain is 80 km thick. In the center of the domain, a vertical slab 80-km thick and 250-km long is attached to the base of the lithosphere.
+
+The density of the rocks are not dependent on temperature, assumed constant during all the numerical simulation: 3300 kg/m\ :sup:`3` for the lithosphere and 3150 kg/m\ :sup:`3` for the sublithospheric mantle.
+The gravity acceleration is 9.81 m/s\ :sup:`2`.
+
+During the numerical simulation, the slab is stretched by its own weight, resulting in the necking in the upper portion of the slab.
+
+Snapshots in different moments are shown below:
+
 
 .. figure:: figs/slab_visc_0.png
-	:width: 80%
+	:width: 90%
 	:align: center
 	:alt: viscosity 0
 
-	Viscosity structure - :math:`\log_{10} (\eta)` in Pa s.
+	Viscosity structure - :math:`\log_{10} (\eta)`, with :math:`\eta` in Pa s.
 
 
 .. figure:: figs/slab_visc_100.png
-	:width: 80%
+	:width: 90%
 	:align: center
 	:alt: viscosity 100
 
-	Viscosity structure - :math:`\log_{10} (\eta)` in Pa s.
+	Viscosity structure - :math:`\log_{10} (\eta)`, with :math:`\eta` in Pa s.
 
 
 .. figure:: figs/slab_visc_500.png
-	:width: 80%
+	:width: 90%
 	:align: center
 	:alt: viscosity 500
 
-	Viscosity structure - :math:`\log_{10} (\eta)` in Pa s.
+	Viscosity structure - :math:`\log_{10} (\eta)`, with :math:`\eta` in Pa s.
 
 
 
 .. figure:: figs/slab_visc_1000.png
-	:width: 80%
+	:width: 90%
 	:align: center
 	:alt: viscosity 1000
 
-	Viscosity structure - :math:`\log_{10} (\eta)` in Pa s.
+	Viscosity structure - :math:`\log_{10} (\eta)`, with :math:`\eta` in Pa s.
 
 
+
+To study the evolution of the necking of the slab and compare with previous works, we normalized the necking width to the initial thickness of the slab (80 km).
+Additionally, the time was divided by the characteristic time :math:`t_c = 7.1158\times10^{14}` s (Glerum et al., 2008 :cite:`glerum2018nonlinear`).
+
+The following figure shows the necking width through time, compared with the results from Schmalholz (2011) :cite:`schmalholz2011simple` and Glerum et al. (2008) :cite:`glerum2018nonlinear`:
 
 
 .. figure:: figs/slab_compare_widths.png
-	:width: 80%
+	:width: 90%
 	:align: center
 	:alt: necking
 
