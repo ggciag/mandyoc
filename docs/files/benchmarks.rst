@@ -220,7 +220,7 @@ In this problem, a rigid punch vertically indents a rigid plastic half space. Th
 
 	Applied boundary conditions and the expected slip-lines.
 
-The numerical simulation is performed only for one time step in a material with pure plastic von Mises rheology :cite:`thieulot2008`.
+The numerical simulation is performed only for one time step in a material with pure plastic von Mises rheology (Thieulot et al., 2008):cite:`thieulot2008adaptive`.
 The yield function :math:`F` is
 
 :math:`F = 2 \eta \dot\varepsilon_{II} - 1`
@@ -229,7 +229,7 @@ where :math:`\eta` is the viscosity and :math:`\dot\varepsilon_{II}` is the squa
 
 If :math:`F>0`, the stress is outside the yield surface, and the effective viscosity :math:`\eta_{eff}` is
 
-:math:`\eta_{eff} = \frac{1}{2\dot\varepsilon_{II}`.
+:math:`\eta_{eff} = \frac{1}{2\dot\varepsilon_{II}}`.
 
 
 
