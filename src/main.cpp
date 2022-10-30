@@ -328,6 +328,10 @@ int main(int argc,char **args)
 
 	PetscTime(&Tempo2);
 
+	free(phase_pressure);
+	free(phase_temperature);
+	free(phase_density);
+
 	ierr = PetscFinalize();
 
 	return 0;

@@ -5,9 +5,118 @@
 // Prototypes
 int check_a_b(char tkn_w[], char tkn_v[], const char str_a[], const char str_b[]);
 PetscBool check_a_b_bool(char tkn_w[], char tkn_v[], const char str_a[], const char str_b[]);
-PetscInt read_phase_file(char *fname, float phase_pressure[SPHASE], float phase_temperature[SPHASE], float phase_density[SPHASE][SPHASE]);
+// PetscInt read_phase_file(char *fname, float phase_pressure[SPHASE], float phase_temperature[SPHASE], float phase_density[SPHASE][SPHASE]);
 //void ErrorInterfaces(int rank, const char fname[], int flag);
 void ErrorInterfaces();
+
+void print_vec(float *vec, int s_vec)
+{
+	int i;
+	for (i=0; i<s_vec; i+=1)
+	{
+		fprintf(stderr, "%f ", vec[i]);
+	}
+	fprintf(stderr, "\n");
+}
+
+void print_mat(float *mat, int s_i, int s_j)
+{
+	int i, j;
+	for (j=0; j<s_j; j+=1)
+	{
+		for (i=0; i<s_i; i+=1)
+		{
+			fprintf(stderr, "%f ", mat[i+j*s_j]);
+		}
+		fprintf(stderr, "\n");
+	}
+	fprintf(stderr, "\n");
+}
+
+// Read phase change file
+PetscInt read_phase_file(
+	char *fname, 
+	int *u_number, 
+	float *phase_pressure, 
+	float *phase_temperature, 
+	float *phase_density)
+{
+	FILE *file;
+	int size = 1024;
+	char line[size];
+	void *nread;
+	char *tkn_0, *tkn_1;
+	float aux[2];
+	int i, j = 0;
+	int sz_p = 101, sz_t = 101;
+	bool mk_density = true;
+
+	file = fopen(fname, "r");
+	if (file == NULL) return -1;
+	while (!feof(file))
+	{
+		nread = fgets(line, size, file);
+		if ((nread == NULL) || (line[0] == '\n') || (line[0] == '#')) continue;
+		tkn_0 = strtok(line, " \t\n");
+		if (tkn_0[0] == '#') continue;
+		if (strcmp(tkn_0, "u") == 0)
+		{
+			tkn_1 = strtok(NULL, " \t\n");
+			*u_number = atoi(tkn_1);
+
+		}
+		else if (strcmp(tkn_0, "p") == 0)
+		{
+			for (i=0; i<3; i+=1)
+			{
+				tkn_1 = strtok(NULL, " \t\n");
+				if (i<2) {aux[i] = atof(tkn_1);}
+				else {sz_p = atoi(tkn_1);}
+			}
+			phase_pressure = (float*)malloc(sz_p*sizeof(float));
+			for (i=0; i<sz_p; i+=1) {phase_pressure[i] = aux[0] + i * (aux[1] - aux[0]) / (sz_p - 1);}
+			// fprintf(stderr, "Pressure read!\n");
+		}
+		else if (strcmp(tkn_0, "t") == 0)
+		{
+			for (i=0; i<3; i+=1)
+			{
+				tkn_1 = strtok(NULL, " \t\n");
+				if (i<2) {aux[i] = atof(tkn_1);}
+				else {sz_t = atoi(tkn_1);}
+			}
+			phase_temperature = (float*)malloc(sz_t*sizeof(float));
+			for (i=0; i<sz_t; i+=1) {phase_temperature[i] = aux[0] + i * (aux[1] - aux[0]) / (sz_t - 1);}
+			// fprintf(stderr, "Temperature read!\n");
+		}
+		else
+		{	
+			if (mk_density) 
+			{
+				phase_density = (float*)malloc(sz_t*sz_p*sizeof(float));
+				mk_density = false;
+			}
+			else
+			{
+				for (i=0; i<sz_p; i+=1)
+				{
+					phase_density[sz_t*j+i] = atof(tkn_0);
+					tkn_0 = strtok(NULL, " \t\n");
+				}
+				j += 1;
+				// fprintf(stderr, "Density line read!\n");
+			}
+		}
+	}
+	fclose(file);
+	// fprintf(stderr, "Printing pressure\n");
+	// print_vec(phase_pressure, sz_p);
+	// fprintf(stderr, "Printing temperature\n");
+	// print_vec(phase_temperature, sz_t);
+	// fprintf(stderr, "Printing density\n");
+	// print_mat(phase_density, sz_p, sz_t);
+	return 0;
+}
 
 // Parameter file variables
 extern int dimensions;
@@ -102,9 +211,9 @@ extern PetscBool a2l;
 // Phase change paramenters
 extern PetscInt phase_change;
 extern PetscInt phase_change_unit_number;
-extern float phase_pressure[SPHASE];
-extern float phase_temperature[SPHASE];
-extern float phase_density[SPHASE][SPHASE];
+extern float *phase_pressure;
+extern float *phase_temperature;
+extern float *phase_density;
 
 // Removed from parameter file
 extern double H_lito;
@@ -299,7 +408,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 
 			// Phase change reading
 			else if (strcmp(tkn_w, "phase_change") == 0) {phase_change = check_a_b(tkn_w, tkn_v, "True", "False");}
-			else if (strcmp(tkn_w, "phase_change_unit_number") == 0) {phase_change_unit_number = atoi(tkn_v);}
+			// else if (strcmp(tkn_w, "phase_change_unit_number") == 0) {phase_change_unit_number = atoi(tkn_v);}
 
 
 			/*else if (strcmp(tkn_w, "h0_scaled") == 0) {h0_scaled = atof(tkn_v);}
@@ -462,7 +571,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&non_dim,1,MPI_INT,0,PETSC_COMM_WORLD);
 
 	MPI_Bcast(&phase_change,1,MPI_INT,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&phase_change_unit_number,1,MPI_LONG,0,PETSC_COMM_WORLD);
+	
 
 	if (non_dim==1){
 		h0_scaled = depth;
@@ -719,9 +828,10 @@ PetscErrorCode reader(int rank, const char fName[]){
 
 	// Phase change
 	if ((phase_change==1) && (rank==0)){
-		// fprintf(stderr, "Phase change parameters\n");
-		read_phase_file("models/olivine_phase.txt", phase_pressure, phase_temperature, phase_density);
+		read_phase_file("models/olivine_phase.txt", &phase_change_unit_number, phase_pressure, phase_temperature, phase_density);
+		// fprintf(stderr, "Unit number: %d\n", phase_change_unit_number);
 	}
+	MPI_Bcast(&phase_change_unit_number,1,MPI_LONG,0,PETSC_COMM_WORLD);
 	MPI_Bcast(phase_pressure,SPHASE,MPI_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(phase_temperature,SPHASE,MPI_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(phase_density,SPHASE*SPHASE,MPI_REAL,0,PETSC_COMM_WORLD);
@@ -940,59 +1050,3 @@ PetscBool check_a_b_bool(char tkn_w[], char tkn_v[], const char str_a[], const c
 	return value;
 }
 
-// Read phase change file
-PetscInt read_phase_file(char *fname, float phase_pressure[SPHASE], float phase_temperature[SPHASE], float phase_density[SPHASE][SPHASE])
-{
-	FILE *file;
-	int size = 1024;
-	char line[size];
-	void *nread;
-	char *tkn_0, *tkn_1;
-	int i, j = 0;
-
-	file = fopen(fname, "r");
-	if (file == NULL) return -1;
-	while (!feof(file))
-	{
-		nread = fgets(line, size, file);
-		if ((nread == NULL) || (line[0] == '\n') || (line[0] == '#')) continue;
-		// Dealing with the first two lines
-		tkn_0 = strtok(line, " \t\n");
-		if (tkn_0[0] == '#') continue;
-		if (strcmp(tkn_0, "p") == 0)
-		{
-			for (i=0; i<2; i+=1)
-			{
-				tkn_1 = strtok(NULL, " \t\n");
-				phase_pressure[i*(SPHASE-1)] = atof(tkn_1);
-			}
-			for (i=1; i<SPHASE-1; i+=1)
-			{
-				phase_pressure[i] = phase_pressure[0] + i * (phase_pressure[SPHASE-1] - phase_pressure[0]) / SPHASE;
-			}
-		}
-		else if (strcmp(tkn_0, "t") == 0)
-		{
-			for (i=0; i<2; i+=1)
-			{
-				tkn_1 = strtok(NULL, " \t\n");
-				phase_temperature[i*(SPHASE-1)] = atof(tkn_1);
-			}
-			for (i=1; i<SPHASE-1; i+=1)
-			{
-				phase_temperature[i] = phase_temperature[0] + i * (phase_temperature[SPHASE-1] - phase_temperature[0]) / SPHASE;
-			}
-		}
-		else
-		{
-			for (i=0; i<SPHASE; i+=1)
-			{
-				phase_density[i][j] = atof(tkn_0);
-				tkn_0 = strtok(NULL, " \t\n");
-			}
-			j += 1;
-		}
-	}
-	fclose(file);
-	return 0;
-}

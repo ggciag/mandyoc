@@ -2,8 +2,6 @@
 #define GIT_VERSION "git-version-unavailable"
 #endif
 
-#define SPHASE 6
-
 // Parameter file numerical variables
 PetscReal rtol = PETSC_DEFAULT;
 PetscReal denok_min = 1.0E-4;
@@ -103,9 +101,9 @@ int bcT_right;
 // End of parameter file variables
 
 // Phase change variables
-float phase_pressure[SPHASE];
-float phase_temperature[SPHASE];
-float phase_density[SPHASE][SPHASE];
+float *phase_pressure;
+float *phase_temperature;
+float *phase_density;
 
 PetscInt Px = PETSC_DECIDE;
 PetscInt Py = PETSC_DECIDE;
