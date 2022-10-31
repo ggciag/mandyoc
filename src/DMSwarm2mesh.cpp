@@ -2,32 +2,32 @@
 #include <petscdmda.h>
 #include <petscdmswarm.h>
 
-#define SPHASE 6
+PetscErrorCode mean_value_periodic_boundary_2d(DM da,Vec F,Vec local_F, PetscScalar **ff,int esc);
+float find_density(float p, float t);
 
-void print_vec(float vec[SPHASE])
+void print_vec(PetscScalar *vec, int s_vec)
 {
 	int i;
-	for (i=0; i<SPHASE; i+=1)
+	for (i=0; i<s_vec; i+=1)
 	{
-		fprintf(stderr, "%.1f ", vec[i]);
+		fprintf(stderr, "%f ", vec[i]);
 	}
 	fprintf(stderr, "\n");
 }
 
-void print_mat(float mat[SPHASE][SPHASE])
+void print_mat(PetscScalar *mat, int s_i, int s_j)
 {
 	int i, j;
-	for (j=0; j<SPHASE; j+=1)
+	for (j=0; j<s_j; j+=1)
 	{
-		for (i=0; i<SPHASE; i+=1)
+		for (i=0; i<s_i; i+=1)
 		{
-			fprintf(stderr, "%.1f ", mat[i][j]);
+			fprintf(stderr, "%f ", mat[i+j*s_j]);
 		}
 		fprintf(stderr, "\n");
 	}
+	fprintf(stderr, "\n");
 }
-
-PetscErrorCode mean_value_periodic_boundary_2d(DM da,Vec F,Vec local_F, PetscScalar **ff,int esc);
 
 extern DM dms;
 
@@ -68,9 +68,14 @@ extern PetscReal rho0_scaled;
 
 extern PetscReal epsilon_x;
 
-extern float phase_density[SPHASE][SPHASE];
-extern float phase_pressure[SPHASE];
-extern float phase_temperature[SPHASE];
+// Phase change paramenters
+extern PetscInt phase_change;
+extern PetscInt phase_change_unit_number;
+extern PetscScalar *phase_pressure;
+extern PetscScalar *phase_temperature;
+extern PetscScalar *phase_density;
+extern int sz_p;
+extern int sz_t;
 
 
 PetscErrorCode Swarm2Mesh_2d(){
@@ -180,31 +185,50 @@ PetscErrorCode Swarm2Mesh_2d(){
 		if (rz<0 || rz>1) {printf("weird rz=%f , Swarm2Mesh\n",rz); exit(1);}
 
 
+		// fprintf(stderr, "u: %d, sz_p: %d, sz_t: %d\n", phase_change_unit_number, sz_p, sz_t);
+		// fprintf(stderr, "Printing pressure\n");
+		// print_vec(phase_pressure, sz_p);
+		// fprintf(stderr, "Printing temperature\n");
+		// print_vec(phase_temperature, sz_t);
+		// fprintf(stderr, "Printing density\n");
+		// print_mat(phase_density, sz_p, sz_t);
 
+		// //Aqui!
+		// if (phase_change == 1) and layer_array[p] 
+		// {
+		// 	rho_aux = find_density()
+		// }
+		// else
+		// {
+		// 	rho_aux = inter_rho[layer_array[p]];
+		// 	Lembrar de fazer para o 3D
+		// }
+		PetscReal rho_aux = inter_rho[layer_array[p]];
+		find_density(9000, 2500);
 
 		rfac = (1.0-rx)*(1.0-rz);
-		qq_rho	[k][i] += rfac*inter_rho[layer_array[p]];
+		qq_rho	[k][i] += rfac*rho_aux;
 		qq_H	[k][i] += rfac*inter_H[layer_array[p]];
 		qq_strain[k][i] += rfac*strain_fac[p];
 		qq_strain_rate[k][i] += rfac*strain_rate_fac[p];
 		qq_cont	[k][i] += rfac;
 
 		rfac = (rx)*(1.0-rz);
-		qq_rho	[k][i+1] += rfac*inter_rho[layer_array[p]];
+		qq_rho	[k][i+1] += rfac*rho_aux;
 		qq_H	[k][i+1] += rfac*inter_H[layer_array[p]];
 		qq_strain[k][i+1] += rfac*strain_fac[p];
 		qq_strain_rate[k][i+1] += rfac*strain_rate_fac[p];
 		qq_cont	[k][i+1] += rfac;
 
 		rfac = (1.0-rx)*(rz);
-		qq_rho	[k+1][i] += rfac*inter_rho[layer_array[p]];
+		qq_rho	[k+1][i] += rfac*rho_aux;
 		qq_H	[k+1][i] += rfac*inter_H[layer_array[p]];
 		qq_strain[k+1][i] += rfac*strain_fac[p];
 		qq_strain_rate[k+1][i] += rfac*strain_rate_fac[p];
 		qq_cont	[k+1][i] += rfac;
 
 		rfac = (rx)*(rz);
-		qq_rho	[k+1][i+1] += rfac*inter_rho[layer_array[p]];
+		qq_rho	[k+1][i+1] += rfac*rho_aux;
 		qq_H	[k+1][i+1] += rfac*inter_H[layer_array[p]];
 		qq_strain[k+1][i+1] += rfac*strain_fac[p];
 		qq_strain_rate[k+1][i+1] += rfac*strain_rate_fac[p];
@@ -1047,4 +1071,18 @@ PetscErrorCode Swarm2Mesh_3d(){
 
 	PetscFunctionReturn(0);
 
+}
+
+
+// Find density given pressure and temperature
+float find_density(float p, float t)
+{
+	int idx_p = round((sz_p-1) * (p - phase_pressure[0]) / (phase_pressure[sz_p-1] - phase_pressure[0]));
+	int idx_t = round((sz_t-1) * (t - phase_temperature[0]) / (phase_temperature[sz_t-1] - phase_temperature[0]));
+	if (idx_p < 0) idx_p = 0;
+	if (idx_p >= sz_p) idx_p = sz_p - 1;
+	if (idx_t < 0) idx_t = 0;
+	if (idx_t >= sz_p) idx_t = sz_t - 1;
+	fprintf(stderr, "p:%f, t:%f, idx_p: %d, idx_t: %d, tho: %f\n", p, t, idx_p, idx_t, phase_density[idx_p+(sz_t*idx_t)]);
+	return phase_density[idx_p+(sz_t*idx_t)];
 }

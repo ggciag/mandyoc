@@ -24,7 +24,6 @@ PetscScalar sea_level = 0.0;
 PetscScalar basal_heat = -1.0;
 PetscReal sp_dt = 0.0;
 PetscScalar sp_d_c = 0.0;
-PetscInt phase_change_unit_number = 0;
 // Parameter file boolean variables
 PetscInt WITH_NON_LINEAR = 0; // 1=True, 0=False
 PetscInt WITH_ADIABATIC_H = 0; // 1=True, 0=False
@@ -101,9 +100,13 @@ int bcT_right;
 // End of parameter file variables
 
 // Phase change variables
-float *phase_pressure;
-float *phase_temperature;
-float *phase_density;
+PetscInt phase_change_unit_number = -1;
+int sz_p = 101;
+int sz_t = 101;
+PetscScalar *phase_pressure;
+PetscScalar *phase_temperature;
+PetscScalar *phase_density;
+
 
 PetscInt Px = PETSC_DECIDE;
 PetscInt Py = PETSC_DECIDE;
