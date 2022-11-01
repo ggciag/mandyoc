@@ -11,6 +11,7 @@ declare -a scenarios=(
     "Crameri2012_case2"
     "continental_rift"
     "punch"
+    "Schmalholz_2011"
 )
 
 # Run scenarios
