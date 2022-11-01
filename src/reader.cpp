@@ -1,6 +1,5 @@
+#include <stdio.h>
 #include <petscksp.h>
-
-#define SPHASE 6
 
 // Prototypes
 int check_a_b(char tkn_w[], char tkn_v[], const char str_a[], const char str_b[]);
@@ -108,6 +107,14 @@ extern PetscScalar *phase_temperature;
 extern PetscScalar *phase_density;
 extern int sz_p;
 extern int sz_t;
+// extern PetscInt 	phase_change;
+extern PetscInt		n_files2read;
+// extern PetscInt 	*phase_change_unit_number;
+// extern PetscInt 	*sz_p;
+// extern PetscInt 	*sz_t;
+// extern PetscScalar 	*phase_pressure;
+// extern PetscScalar 	*phase_temperature;
+// extern PetscScalar 	*phase_density;
 
 // Removed from parameter file
 extern double H_lito;
@@ -302,6 +309,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 
 			// Phase change reading
 			else if (strcmp(tkn_w, "phase_change") == 0) {phase_change = check_a_b(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "number_of_phase_change_files") == 0) {n_files2read = atoi(tkn_v);}
 			// else if (strcmp(tkn_w, "phase_change_unit_number") == 0) {phase_change_unit_number = atoi(tkn_v);}
 
 
@@ -465,7 +473,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&non_dim,1,MPI_INT,0,PETSC_COMM_WORLD);
 
 	MPI_Bcast(&phase_change,1,MPI_INT,0,PETSC_COMM_WORLD);
-	
+	MPI_Bcast(&n_files2read,1,MPI_INT,0,PETSC_COMM_WORLD);
 
 	if (non_dim==1){
 		h0_scaled = depth;
@@ -722,7 +730,29 @@ PetscErrorCode reader(int rank, const char fName[]){
 
 	// Phase change
 	if ((phase_change==1) && (rank==0)){
-		char fname[100] = "models/phase_change_00.txt";
+		// char fname[100];
+		// char str_s[50] = "models/phase_change_";
+		// char str_i[10];
+		// char str_e[10] = ".txt";
+		// strcpy(fname, str_s);
+		// for (int i=0; i<n_files2read; i+=1)
+		// {
+			
+		// // 	char str_0[30] = "models/phase_change_";
+			
+		// 	sprintf(str_i, "%d", i);
+		// // 	char str_2[5] = ".txt";
+		// // 	char fname[100];
+		// 	// strcpy(fname, str_0);
+			
+		// 	strcat(fname, str_i);
+		// 	strcat(fname, str_e);
+			// fprintf(stderr, "Reading phase change densities.\n", );
+			// char fname[100] = "models/phase_change_0.txt";
+			// read_phase_file(fname);
+			// fprintf(stderr, "%s read.\n", fname);
+		// }
+		char fname[100] = "models/phase_change_0.txt";
 		read_phase_file(fname);
 	}
 	
@@ -734,7 +764,6 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(phase_density,sz_p*sz_t,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 
 	// fprintf(stderr, "Printing pressure\n");
-	// fprintf(stderr, "P[1]: %f\n", phase_pressure[1]);
 	// print_vec2(phase_pressure, sz_p);
 	// fprintf(stderr, "Printing temperature\n");
 	// print_vec2(phase_temperature, sz_t);
@@ -1031,7 +1060,6 @@ PetscInt read_phase_file(char *fname)
 			}
 		}
 	}
-	fprintf(stderr, "P[1]: %f\n", phase_pressure[1]);
 	fclose(file);
 	return 0;
 }

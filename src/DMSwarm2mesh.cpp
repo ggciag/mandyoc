@@ -76,6 +76,14 @@ extern PetscScalar *phase_temperature;
 extern PetscScalar *phase_density;
 extern int sz_p;
 extern int sz_t;
+// extern PetscInt 	phase_change;
+// extern PetscInt		n_files2read;
+// extern PetscInt 	*phase_change_unit_number;
+// extern PetscInt 	*sz_p;
+// extern PetscInt 	*sz_t;
+// extern PetscScalar 	*phase_pressure;
+// extern PetscScalar 	*phase_temperature;
+// extern PetscScalar 	*phase_density;
 
 
 PetscErrorCode Swarm2Mesh_2d(){
@@ -193,18 +201,19 @@ PetscErrorCode Swarm2Mesh_2d(){
 		// fprintf(stderr, "Printing density\n");
 		// print_mat(phase_density, sz_p, sz_t);
 
-		// //Aqui!
-		// if (phase_change == 1) and layer_array[p] 
-		// {
-		// 	rho_aux = find_density()
-		// }
-		// else
-		// {
-		// 	rho_aux = inter_rho[layer_array[p]];
-		// 	Lembrar de fazer para o 3D
-		// }
-		PetscReal rho_aux = inter_rho[layer_array[p]];
-		find_density(9000, 2500);
+		// Apply phase change density // Lembrar de fazer para o 3D
+		PetscReal rho_aux;
+		if (phase_change == 1)// and layer_array[p] 
+		{
+			// rho_aux = find_density(p, t);
+			rho_aux = inter_rho[layer_array[p]];
+		}
+		else
+		{
+			rho_aux = inter_rho[layer_array[p]];
+		}
+		find_density(3999, 2900);
+		find_density(33000, 600);
 
 		rfac = (1.0-rx)*(1.0-rz);
 		qq_rho	[k][i] += rfac*rho_aux;
@@ -1078,11 +1087,11 @@ PetscErrorCode Swarm2Mesh_3d(){
 float find_density(float p, float t)
 {
 	int idx_p = round((sz_p-1) * (p - phase_pressure[0]) / (phase_pressure[sz_p-1] - phase_pressure[0]));
-	int idx_t = round((sz_t-1) * (t - phase_temperature[0]) / (phase_temperature[sz_t-1] - phase_temperature[0]));
+	int idx_t = (sz_t-1) - round((sz_t-1) * (t - phase_temperature[0]) / (phase_temperature[sz_t-1] - phase_temperature[0]));
 	if (idx_p < 0) idx_p = 0;
 	if (idx_p >= sz_p) idx_p = sz_p - 1;
 	if (idx_t < 0) idx_t = 0;
 	if (idx_t >= sz_p) idx_t = sz_t - 1;
-	fprintf(stderr, "p:%f, t:%f, idx_p: %d, idx_t: %d, tho: %f\n", p, t, idx_p, idx_t, phase_density[idx_p+(sz_t*idx_t)]);
+	// fprintf(stderr, "p:%f, t:%f, idx_p: %d, idx_t: %d, rho: %f\n", p, t, idx_p, idx_t, phase_density[idx_p+(sz_t*idx_t)]);
 	return phase_density[idx_p+(sz_t*idx_t)];
 }
