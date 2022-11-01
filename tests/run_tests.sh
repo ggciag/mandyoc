@@ -10,6 +10,7 @@ declare -a scenarios=(
     "vanKeken1997_case1a"
     "Crameri2012_case2"
     "continental_rift"
+    "punch"
 )
 
 # Run scenarios
