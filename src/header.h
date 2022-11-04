@@ -100,19 +100,14 @@ int bcT_right;
 // End of parameter file variables
 
 // Phase change variables
-PetscInt phase_change_unit_number = -1;
-int sz_p = 101;
-int sz_t = 101;
+PetscInt    *phase_change_unit_number;
+PetscInt    *phase_change_unit_flags;
+PetscInt    *sz_p;
+PetscInt    *sz_t;
 PetscScalar *phase_pressure;
 PetscScalar *phase_temperature;
 PetscScalar *phase_density;
 PetscInt	n_files2read = 100;
-// PetscInt 	*phase_change_unit_number;
-// PetscInt 	*sz_p;
-// PetscInt 	*sz_t;
-// PetscScalar *phase_pressure;
-// PetscScalar *phase_temperature;
-// PetscScalar *phase_density;
 
 PetscInt Px = PETSC_DECIDE;
 PetscInt Py = PETSC_DECIDE;
