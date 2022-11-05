@@ -8,6 +8,30 @@ PetscBool check_a_b_bool(char tkn_w[], char tkn_v[], const char str_a[], const c
 void ErrorInterfaces();
 PetscInt read_phase_file(char *fname, int f_num);
 
+void print_vec(PetscScalar *vec, PetscInt s_vec)
+{
+	int i;
+	for (i=0; i<s_vec; i+=1)
+	{
+		fprintf(stderr, "%.0f ", vec[i]);
+	}
+	fprintf(stderr, "\n");
+}
+
+void print_mat(PetscScalar *mat, PetscInt s_i, PetscInt s_j)
+{
+	int i, j;
+	for (j=0; j<s_j; j+=1)
+	{
+		for (i=0; i<s_i; i+=1)
+		{
+			fprintf(stderr, "%.0f ", mat[(s_j-1)*j+i]);
+		}
+		fprintf(stderr, "\n");
+	}
+	fprintf(stderr, "\n");
+}
+
 // Parameter file variables
 extern int dimensions;
 extern long Nx, Ny, Nz;
@@ -103,7 +127,11 @@ extern PetscInt 	phase_change;
 extern PetscInt 	*phase_change_unit_number;
 extern PetscInt     *phase_change_unit_flags;
 extern PetscInt 	*sz_p;
+extern PetscInt 	*sz_p_idx;
 extern PetscInt 	*sz_t;
+extern PetscInt 	*sz_t_idx;
+extern PetscInt     *sz_d;
+extern PetscInt     *sz_d_idx;
 extern PetscScalar 	*phase_pressure;
 extern PetscScalar 	*phase_temperature;
 extern PetscScalar 	*phase_density;
@@ -722,18 +750,19 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(inter_V,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 
 	// Phase change
-	fprintf(stderr, "Começou\n");
+	fprintf(stderr, "Started phase-change reading\n");
 	PetscCalloc1(n_interfaces+1,&phase_change_unit_flags);
-	fprintf(stderr, "Alocou 1\n");
 	for (int i=0; i<n_interfaces+1; i+=1) phase_change_unit_flags[i] = 0;
 	PetscCalloc1(n_files2read,&phase_change_unit_number);
-	fprintf(stderr, "Alocou 2\n");
 	PetscCalloc1(n_files2read+1,&sz_p);
-	fprintf(stderr, "Alocou 3\n");
-	sz_p[0] = 0;
+	PetscCalloc1(n_files2read+1,&sz_p_idx);
+	sz_p_idx[0] = 0;
 	PetscCalloc1(n_files2read+1,&sz_t);
-	fprintf(stderr, "Alocou 4\n");
-	sz_t[0] = 0;
+	PetscCalloc1(n_files2read+1,&sz_t_idx);
+	sz_t_idx[0] = 0;
+	PetscCalloc1(n_files2read+1,&sz_d);
+	PetscCalloc1(n_files2read+1,&sz_d_idx);
+	sz_d_idx[0] = 0;
 	if ((phase_change==1) && (rank==0))
 	{
 		for (int i=0; i<n_files2read; i+=1)
@@ -741,7 +770,6 @@ PetscErrorCode reader(int rank, const char fName[]){
 			char fname[100] = "models/phase_change_";
 			char str_i[10];
 			char str_e[10] = ".txt";
-
 
 			sprintf(str_i, "%d", i);
 			strcat(fname, str_i);
@@ -751,19 +779,24 @@ PetscErrorCode reader(int rank, const char fName[]){
 		}
 	}
 	
-	// MPI_Bcast(&phase_change_unit_number,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);
-	// MPI_Bcast(&sz_p,1,MPIU_INT,0,PETSC_COMM_WORLD);
-	// MPI_Bcast(&sz_t,1,MPIU_INT,0,PETSC_COMM_WORLD);
-	// MPI_Bcast(phase_pressure,sz_p,MPIU_SCALAR,0,PETSC_COMM_WORLD);
-	// MPI_Bcast(phase_temperature,sz_t,MPIU_SCALAR,0,PETSC_COMM_WORLD);
-	// MPI_Bcast(phase_density,sz_p*sz_t,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&phase_change_unit_flags,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&phase_change_unit_number,n_files2read,MPIU_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&sz_p,n_files2read+1,MPIU_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&sz_p_idx,n_files2read+1,MPIU_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&sz_t,n_files2read+1,MPIU_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&sz_t_idx,n_files2read+1,MPIU_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&sz_d,n_files2read+1,MPIU_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&sz_d_idx,n_files2read+1,MPIU_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(phase_pressure,sz_p_idx[n_files2read],MPIU_SCALAR,0,PETSC_COMM_WORLD);
+	MPI_Bcast(phase_temperature,sz_t_idx[n_files2read],MPIU_SCALAR,0,PETSC_COMM_WORLD);
+	MPI_Bcast(phase_density,sz_p_idx[n_files2read]*sz_t_idx[n_files2read],MPIU_SCALAR,0,PETSC_COMM_WORLD);
 
-	// fprintf(stderr, "Printing pressure\n");
-	// print_vec2(phase_pressure, sz_p);
-	// fprintf(stderr, "Printing temperature\n");
-	// print_vec2(phase_temperature, sz_t);
-	// fprintf(stderr, "Printing density\n");
-	// print_mat2(phase_density, sz_p, sz_t);
+	// fprintf(stderr, "Printing pressure with size %d\n", sz_p_idx[n_files2read]);
+	// print_vec(phase_pressure, sz_p_idx[n_files2read]);
+	// fprintf(stderr, "Printing temperature with size %d\n", sz_t_idx[n_files2read]);
+	// print_vec(phase_temperature, sz_t_idx[n_files2read]);
+	fprintf(stderr, "Printing density\n");
+	print_vec(phase_density, sz_d_idx[n_files2read]);
 
 
 	// Read phase change matrix
@@ -983,17 +1016,18 @@ PetscBool check_a_b_bool(char tkn_w[], char tkn_v[], const char str_a[], const c
 PetscInt read_phase_file(char *fname, int f_num)
 {
 	FILE *file;
-	PetscInt idx;
 	PetscInt size = 2048;
 	char line[size];
 	void *nread;
 	char *tkn_0, *tkn_1;
 	PetscScalar aux[2];
-	PetscInt i, j = 0;
-	// int sz_p = 101, sz_t = 101;
+	PetscInt i;
+	PetscInt j = 0;
 	PetscBool mk_density = PETSC_TRUE;
 	PetscScalar *phase_pressure_aux;
-	PetscInt count=0;
+	PetscScalar *phase_temperature_aux;
+	PetscScalar *phase_density_aux;
+	PetscInt ix, corr_i, corr_j;
 
 	file = fopen(fname, "r");
 	if (file == NULL) return -1;
@@ -1003,76 +1037,91 @@ PetscInt read_phase_file(char *fname, int f_num)
 		if ((nread == NULL) || (strlen(line) == 0) || (line[0] == '\n') || (line[0] == '#')) continue;
 		tkn_0 = strtok(line, " \t\n");
 		if (tkn_0[0] == '#') continue;
-		if (strcmp(tkn_0, "u") == 0)
+		if (strcmp(tkn_0, "unit") == 0)
 		{
 			tkn_1 = strtok(NULL, " \t\n");
 			phase_change_unit_number[f_num] = atoi(tkn_1);
 			phase_change_unit_flags[phase_change_unit_number[f_num]] = 1;
 
 		}
-		else if (strcmp(tkn_0, "p") == 0)
+		else if (strcmp(tkn_0, "pressure") == 0)
 		{
 			for (i=0; i<3; i+=1)
 			{
 				tkn_1 = strtok(NULL, " \t\n");
 				if (i<2) {aux[i] = atof(tkn_1);}
-				else {sz_p[f_num+1] = atoi(tkn_1);}
+				else 
+				{
+					sz_p[f_num+1] = atoi(tkn_1);
+					sz_p_idx[f_num+1] = sz_p[f_num+1] + sz_p_idx[f_num];
+				}
 			}
-			if (f_num == 0) PetscCalloc1(sz_p[f_num+1],&phase_pressure);
+			if (f_num == 0) PetscCalloc1(sz_p_idx[f_num+1],&phase_pressure);
 			else
 			{
-				PetscCalloc1(sz_p[f_num],&phase_pressure_aux);
-				memcpy(phase_pressure_aux,phase_pressure,sz_p[f_num]*sizeof(PetscScalar));
-				PetscFree(phase_pressure);
-				for (int k=0; k<f_num+1; k+=1) count += sz_p[k];
-				PetscCalloc1(count,&phase_pressure);
-				memcpy(phase_pressure,phase_pressure_aux,sz_p[f_num]*sizeof(PetscScalar));
-				PetscFree(phase_pressure_aux);
+				PetscCalloc1(sz_p_idx[f_num],&phase_pressure_aux); // Allocate aux
+				memcpy(phase_pressure_aux,phase_pressure,sz_p_idx[f_num]*sizeof(PetscScalar)); // Copy last to aux
+				PetscFree(phase_pressure); // Free last
+				PetscCalloc1(sz_p_idx[f_num+1],&phase_pressure); // Allocate new 
+				memcpy(phase_pressure,phase_pressure_aux,sz_p_idx[f_num]*sizeof(PetscScalar)); // Copy aux to new
+				PetscFree(phase_pressure_aux); // Free aux
 			}
-			for (i=sz_p[f_num]; i<(sz_p[f_num]+sz_p[f_num+1]); i+=1) {
-				phase_pressure[i] = aux[0] + i * (aux[1] - aux[0]) / (sz_p[f_num+1] - 1);
-				fprintf(stderr, "%d %f\n", i, phase_pressure[i]);
-			}
-			fprintf(stderr, "Pressure read!\n");
+			for (i=sz_p_idx[f_num]; i<sz_p_idx[f_num+1]; i+=1) {phase_pressure[i] = aux[0] + (i - sz_p_idx[f_num]) * (aux[1] - aux[0]) / (sz_p_idx[f_num+1] - sz_p_idx[f_num] - 1);}
 		}
-		// else if (strcmp(tkn_0, "t") == 0)
-		// {
-		// 	for (i=0; i<3; i+=1)
-		// 	{
-		// 		tkn_1 = strtok(NULL, " \t\n");
-		// 		if (i<2) {aux[i] = atof(tkn_1);}
-		// 		else {sz_t[f_num+1] = atoi(tkn_1);}
-		// 	}
-		// 	PetscCalloc1(sz_t[f_num+1],&phase_temperature);
-		// 	for (i=sz_t[f_num]; i<(sz_t[f_num]+sz_t[f_num+1]); i+=1) {phase_temperature[i] = aux[0] + i * (aux[1] - aux[0]) / (sz_t[f_num+1] - 1);}
-		// 	fprintf(stderr, "Temperature read!\n");
-		// }
-		// else
-		// {	
-		// 	// fprintf(stderr, "%s ", line);
-		// 	if (mk_density == PETSC_TRUE) 
-		// 	{
-		// 		PetscCalloc1(sz_p[f_num+1]*sz_t[f_num+1],&phase_density);
-		// 		mk_density = PETSC_FALSE;
-		// 		for (i=0; i<sz_p[f_num+1]; i+=1)
-		// 		{
-		// 			phase_density[(sz_t[f_num+1]-1)*j+i] = atof(tkn_0);
-		// 			tkn_0 = strtok(NULL, " \t\n");
-		// 		}
-		// 		j += 1;
-		// 		// fprintf(stderr, "line %d read!\n", j-1);
-		// 	}
-		// 	else
-		// 	{
-		// 		for (i=0; i<sz_p[f_num+1]; i+=1)
-		// 		{
-		// 			phase_density[(sz_t[f_num+1]-1)*j+i] = atof(tkn_0);
-		// 			tkn_0 = strtok(NULL, " \t\n");
-		// 		}
-		// 		j += 1;
-		// 		// fprintf(stderr, "line %d read!\n", j-1);
-		// 	}
-		// }
+		else if (strcmp(tkn_0, "temperature") == 0)
+		{
+			for (i=0; i<3; i+=1)
+			{
+				tkn_1 = strtok(NULL, " \t\n");
+				if (i<2) {aux[i] = atof(tkn_1);}
+				else 
+				{
+					sz_t[f_num+1] = atoi(tkn_1);
+					sz_t_idx[f_num+1] = sz_t[f_num+1] + sz_t_idx[f_num];
+				}
+			}
+			if (f_num == 0) PetscCalloc1(sz_t_idx[f_num+1],&phase_temperature);
+			else
+			{
+				PetscCalloc1(sz_t_idx[f_num],&phase_temperature_aux); // Allocate aux
+				memcpy(phase_temperature_aux,phase_temperature,sz_t_idx[f_num]*sizeof(PetscScalar)); // Copy last to aux
+				PetscFree(phase_temperature); // Free last
+				PetscCalloc1(sz_t_idx[f_num+1],&phase_temperature); // Allocate new 
+				memcpy(phase_temperature,phase_temperature_aux,sz_t_idx[f_num]*sizeof(PetscScalar)); // Copy aux to new
+				PetscFree(phase_temperature_aux); // Free aux
+			}
+			for (i=sz_t_idx[f_num]; i<sz_t_idx[f_num+1]; i+=1) {
+				phase_temperature[i] = aux[0] + (i - sz_t_idx[f_num]) * (aux[1] - aux[0]) / (sz_t_idx[f_num+1] - sz_t_idx[f_num] - 1);
+			}
+		}
+		else
+		{
+			sz_d[f_num+1] = sz_t[f_num+1] * sz_p[f_num+1];
+			sz_d_idx[f_num+1] = sz_d[f_num+1] + sz_d_idx[f_num];
+			corr_i = sz_d_idx[f_num];
+			corr_j = sz_t[f_num+1] - 1;
+			if (mk_density == PETSC_TRUE) 
+			{
+				if (f_num == 0) {PetscCalloc1(sz_d_idx[f_num+1],&phase_density);}
+				else
+				{
+					PetscCalloc1(sz_d_idx[f_num],&phase_density_aux); // Allocate aux
+					memcpy(phase_density_aux,phase_density,sz_d_idx[f_num]*sizeof(PetscScalar)); // Copy last to aux
+					PetscFree(phase_density); // Free last
+					PetscCalloc1(sz_d_idx[f_num+1],&phase_density); // Allocate new 
+					memcpy(phase_density,phase_density_aux,sz_d_idx[f_num]*sizeof(PetscScalar)); // Copy aux to new
+					PetscFree(phase_density_aux); // Free aux
+				}
+				mk_density = PETSC_FALSE;
+			}
+			for (i=0; i<sz_p[f_num+1]; i+=1)
+			{
+				ix = i + corr_i + (j * corr_j);
+				phase_density[ix] = atof(tkn_0);
+				tkn_0 = strtok(NULL, " \t\n");
+			}
+			j += 1;
+		}
 	}
 	fclose(file);
 	return 0;

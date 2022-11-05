@@ -5,29 +5,29 @@
 PetscErrorCode mean_value_periodic_boundary_2d(DM da,Vec F,Vec local_F, PetscScalar **ff,int esc);
 // float find_density(float p, float t);
 
-void print_vec(PetscScalar *vec, int s_vec)
-{
-	int i;
-	for (i=0; i<s_vec; i+=1)
-	{
-		fprintf(stderr, "%f ", vec[i]);
-	}
-	fprintf(stderr, "\n");
-}
+// void print_vec(PetscScalar *vec, int s_vec)
+// {
+// 	int i;
+// 	for (i=0; i<s_vec; i+=1)
+// 	{
+// 		fprintf(stderr, "%f ", vec[i]);
+// 	}
+// 	fprintf(stderr, "\n");
+// }
 
-void print_mat(PetscScalar *mat, int s_i, int s_j)
-{
-	int i, j;
-	for (j=0; j<s_j; j+=1)
-	{
-		for (i=0; i<s_i; i+=1)
-		{
-			fprintf(stderr, "%f ", mat[(s_j-1)*j+i]);
-		}
-		fprintf(stderr, "\n");
-	}
-	fprintf(stderr, "\n");
-}
+// void print_mat(PetscScalar *mat, int s_i, int s_j)
+// {
+// 	int i, j;
+// 	for (j=0; j<s_j; j+=1)
+// 	{
+// 		for (i=0; i<s_i; i+=1)
+// 		{
+// 			fprintf(stderr, "%f ", mat[(s_j-1)*j+i]);
+// 		}
+// 		fprintf(stderr, "\n");
+// 	}
+// 	fprintf(stderr, "\n");
+// }
 
 extern DM dms;
 
@@ -71,9 +71,13 @@ extern PetscReal epsilon_x;
 // Phase change paramenters
 extern PetscInt 	phase_change;
 extern PetscInt 	*phase_change_unit_number;
-extern PetscInt 	*phase_change_unit_flags;
+extern PetscInt     *phase_change_unit_flags;
 extern PetscInt 	*sz_p;
+extern PetscInt 	*sz_p_idx;
 extern PetscInt 	*sz_t;
+extern PetscInt 	*sz_t_idx;
+extern PetscInt     *sz_d;
+extern PetscInt     *sz_d_idx;
 extern PetscScalar 	*phase_pressure;
 extern PetscScalar 	*phase_temperature;
 extern PetscScalar 	*phase_density;
@@ -186,7 +190,11 @@ PetscErrorCode Swarm2Mesh_2d(){
 		if (rz<0 || rz>1) {printf("weird rz=%f , Swarm2Mesh\n",rz); exit(1);}
 
 
-		// fprintf(stderr, "u: %d, sz_p: %d, sz_t: %d\n", phase_change_unit_number, sz_p, sz_t);
+		// for (int i_aux=0; i<n_files2read; i+=1)
+		// {
+		// 	fprintf(stderr, "u: %d, sz_p: %d, sz_t: %d\n", phase_change_unit_number[i], sz_p[i+1]-sz_p[i], sz_t[i+1]-sz_t[i]);	
+		// }
+		
 		// fprintf(stderr, "Printing pressure\n");
 		// print_vec(phase_pressure, sz_p);
 		// fprintf(stderr, "Printing temperature\n");
