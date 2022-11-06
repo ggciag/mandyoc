@@ -102,12 +102,12 @@ int bcT_right;
 // Phase change variables
 PetscInt    *phase_change_unit_number;
 PetscInt    *phase_change_unit_flags;
-PetscInt    *sz_p;
-PetscInt    *sz_p_idx;
-PetscInt    *sz_t;
-PetscInt    *sz_t_idx;
-PetscInt    *sz_d;
-PetscInt    *sz_d_idx;
+PetscInt    *p_size;
+PetscInt    *p_cum_size;
+PetscInt    *t_size;
+PetscInt    *t_cum_size;
+PetscInt    *d_size;
+PetscInt    *d_cum_size;
 PetscScalar *phase_pressure;
 PetscScalar *phase_temperature;
 PetscScalar *phase_density;

@@ -333,8 +333,8 @@ int main(int argc,char **args)
 	PetscFree(phase_density);
 	PetscFree(phase_change_unit_number);
 	PetscFree(phase_change_unit_flags);
-	PetscFree(sz_p);
-	PetscFree(sz_t);
+	PetscFree(p_size);
+	PetscFree(t_size);
 
 
 	ierr = PetscFinalize();
