@@ -5,7 +5,8 @@ int check_a_b(char tkn_w[], char tkn_v[], const char str_a[], const char str_b[]
 PetscBool check_a_b_bool(char tkn_w[], char tkn_v[], const char str_a[], const char str_b[]);
 //void ErrorInterfaces(int rank, const char fname[], int flag);
 void ErrorInterfaces();
-PetscInt read_phase_file(char *fname, PetscInt file_index);
+PetscInt read_phase_change_file(char *fname, PetscInt file_index);
+PetscBool is_number(char tkn);
 
 // void print_vec(PetscScalar *vec, PetscInt s_vec)
 // {
@@ -748,8 +749,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(inter_Q,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_V,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 
-	// Phase change
-	fprintf(stderr, "Started phase-change reading\n");
+	// Solid state phase change
 	PetscCalloc1(n_interfaces+1,&phase_change_unit_flags);
 	PetscCalloc1(n_files2read,&phase_change_unit_number);
 	for (PetscInt k=0; k<n_files2read; k+=1) phase_change_unit_number[k] = -1;
@@ -759,6 +759,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	PetscCalloc1(n_files2read+1,&t_cum_size);
 	PetscCalloc1(n_files2read+1,&d_size);
 	PetscCalloc1(n_files2read+1,&d_cum_size);
+
 	if ((phase_change==1) && (rank==0))
 	{
 		for (PetscInt i=0; i<n_files2read; i+=1)
@@ -770,9 +771,10 @@ PetscErrorCode reader(int rank, const char fName[]){
 			sprintf(str_i, "%d", i);
 			strcat(fname, str_i);
 			strcat(fname, str_e);
-			fprintf(stderr, "Reading %s...\n", fname);
-			read_phase_file(fname, i);
+			fprintf(stderr, "Reading %s.\n", fname);
+			read_phase_change_file(fname, i);
 		}
+		fprintf(stderr, "\n");
 	}
 	
 	MPI_Bcast(&phase_change_unit_number,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);
@@ -786,19 +788,6 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(phase_pressure,p_cum_size[n_files2read],MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(phase_temperature,t_cum_size[n_files2read],MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(phase_density,p_cum_size[n_files2read]*t_cum_size[n_files2read],MPIU_SCALAR,0,PETSC_COMM_WORLD);
-
-	// fprintf(stderr, "Printing pressure with size %d\n", p_cum_size[n_files2read]);
-	// print_vec(phase_pressure, p_cum_size[n_files2read]);
-	// fprintf(stderr, "Printing temperature with size %d\n", t_cum_size[n_files2read]);
-	// print_vec(phase_temperature, t_cum_size[n_files2read]);
-	// fprintf(stderr, "Printing density\n");
-	// print_vec(phase_density, d_cum_size[n_files2read]);
-
-
-	// Read phase change matrix
-	// Read Temperature info line: T-start, T-end, dT
-	// Read Pressure info line: P-start, P_end, dP
-	// Read Temperature x Pressure matrix
 
 	// Broadcast, special cases
 //	MPI_Bcast(&n_interfaces,1,MPI_INT,0,PETSC_COMM_WORLD); // Broadcast after interfaces.txt
@@ -1008,8 +997,8 @@ PetscBool check_a_b_bool(char tkn_w[], char tkn_v[], const char str_a[], const c
 	return value;
 }
 
-// Read phase change file
-PetscInt read_phase_file(char *fname, PetscInt file_index)
+// Read solid state phase change file
+PetscInt read_phase_change_file(char *fname, PetscInt file_index)
 {
 	FILE *file;
 	PetscInt size = 2048;
@@ -1090,7 +1079,7 @@ PetscInt read_phase_file(char *fname, PetscInt file_index)
 				phase_temperature[i] = aux[0] + (i - t_cum_size[file_index]) * (aux[1] - aux[0]) / (t_cum_size[file_index+1] - t_cum_size[file_index] - 1);
 			}
 		}
-		else
+		else if (is_number(tkn_0[0]) == PETSC_TRUE)
 		{
 			d_size[file_index+1] = t_size[file_index+1] * p_size[file_index+1];
 			d_cum_size[file_index+1] = d_size[file_index+1] + d_cum_size[file_index];
@@ -1118,8 +1107,19 @@ PetscInt read_phase_file(char *fname, PetscInt file_index)
 			}
 			j += 1;
 		}
+		else
+		{
+			fprintf(stderr, "Error. Unrecognized keyword <%s> on file <%s>.\n", tkn_0, fname);
+			exit(1);
+		}
 	}
 	fclose(file);
 	return 0;
+}
+
+PetscBool is_number(char tkn)
+{
+	if (tkn=='0'||tkn=='1'||tkn=='2'||tkn=='3'||tkn=='4'||tkn=='5'||tkn=='6'||tkn=='7'||tkn=='8'||tkn=='9') return(PETSC_TRUE);
+	else return(PETSC_FALSE);
 }
 
