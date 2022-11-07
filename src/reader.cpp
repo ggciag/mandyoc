@@ -1002,6 +1002,7 @@ PetscInt read_phase_change_file(char *fname, PetscInt file_index)
 	PetscInt i;
 	PetscInt j = 0;
 	PetscBool mk_density = PETSC_TRUE;
+	// PetscBool chk_j = PETSC_FALSE;
 	PetscScalar *phase_pressure_aux;
 	PetscScalar *phase_temperature_aux;
 	PetscScalar *phase_density_aux;
@@ -1080,15 +1081,30 @@ PetscInt read_phase_change_file(char *fname, PetscInt file_index)
 		if (tkn_0[0] == '#') continue;
 		if (strcmp(tkn_0, "unit") == 0)
 		{
-			tkn_1 = strtok(NULL, " \t\n");
-			phase_change_unit_number[atoi(tkn_1)] = file_index;
-			phase_change_unit_flags[phase_change_unit_number[file_index]] = 1;
+			for (i=0; i<n_interfaces+1; i+=1)
+			{
+				tkn_1 = strtok(NULL, " \t\n");
+				if (tkn_1 == NULL && i==0) 
+				{
+					PetscPrintf(PETSC_COMM_WORLD, "Error. Insufficient values for <%s> on file <%s>.\n", tkn_0, fname);
+					exit(1);
+				}
+				if (tkn_1 == NULL) break;
+				phase_change_unit_number[atoi(tkn_1)] = file_index;
+				phase_change_unit_flags[phase_change_unit_number[file_index]] = 1;
+				// fprintf(stderr, "tkn_1: %s, %d, %d\n", tkn_1, phase_change_unit_number[atoi(tkn_1)], phase_change_unit_flags[phase_change_unit_number[file_index]]);
+			}
 		}
 		else if (strcmp(tkn_0, "pressure") == 0)
 		{
 			for (i=0; i<3; i+=1)
 			{
 				tkn_1 = strtok(NULL, " \t\n");
+				if (tkn_1 == NULL) 
+				{
+					PetscPrintf(PETSC_COMM_WORLD, "Error. Insufficient values for <%s> on file <%s>.\n", tkn_0, fname);
+					exit(1);
+				}
 				if (i<2) {aux[i] = atof(tkn_1);}
 				else 
 				{
@@ -1113,6 +1129,11 @@ PetscInt read_phase_change_file(char *fname, PetscInt file_index)
 			for (i=0; i<3; i+=1)
 			{
 				tkn_1 = strtok(NULL, " \t\n");
+				if (tkn_1 == NULL) 
+				{
+					PetscPrintf(PETSC_COMM_WORLD, "Error. Insufficient values for <%s> on file <%s>.\n", tkn_0, fname);
+					exit(1);
+				}
 				if (i<2) {aux[i] = atof(tkn_1);}
 				else 
 				{
@@ -1156,19 +1177,34 @@ PetscInt read_phase_change_file(char *fname, PetscInt file_index)
 			}
 			for (i=0; i<p_size[file_index+1]; i+=1)
 			{
+				if (tkn_0 == NULL) 
+				{
+					PetscPrintf(PETSC_COMM_WORLD, "Error. Insufficient values for <density> on file <%s>.\n", fname);
+					exit(1);
+				}
 				ix = i + corr_i + (j * corr_j);
 				phase_density[ix] = atof(tkn_0);
 				tkn_0 = strtok(NULL, " \t\n");
+			}
+			if (j>=t_size[file_index+1])
+			{
+				PetscPrintf(PETSC_COMM_WORLD, "Error. Too many values for <temperature> on file <%s>.\n", fname);
+				exit(1);
 			}
 			j += 1;
 		}
 		else
 		{
-			fprintf(stderr, "Error. Unrecognized keyword/value <%s> on file <%s>.\n", tkn_0, fname);
+			PetscPrintf(PETSC_COMM_WORLD, "Error. Unrecognized keyword/value <%s> on file <%s>.\n", tkn_0, fname);
 			exit(1);
 		}
 	}
 	fclose(file);
+	if (j<t_size[file_index+1])
+	{
+		PetscPrintf(PETSC_COMM_WORLD, "Error. Insufficient values for <density> on file <%s>.\n", fname);
+		exit(1);
+	}
 	PetscFunctionReturn(0);
 }
 
