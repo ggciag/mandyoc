@@ -10,24 +10,10 @@ void print_vec(PetscScalar *vec, PetscInt s_vec)
 	int i;
 	for (i=0; i<s_vec; i+=1)
 	{
-		fprintf(stderr, "%.0f ", vec[i]);
+		PetscPrintf(PETSC_COMM_WORLD, "%.0f ", vec[i]);
 	}
-	fprintf(stderr, "\n");
+	PetscPrintf(PETSC_COMM_WORLD, "\n");
 }
-
-// void print_mat(PetscScalar *mat, PetscInt s_i, PetscInt s_j)
-// {
-// 	int i, j;
-// 	for (j=0; j<s_j; j+=1)
-// 	{
-// 		for (i=0; i<s_i; i+=1)
-// 		{
-// 			fprintf(stderr, "%.0f ", mat[(s_j-1)*j+i]);
-// 		}
-// 		fprintf(stderr, "\n");
-// 	}
-// 	fprintf(stderr, "\n");
-// }
 
 extern DM dms;
 
@@ -81,7 +67,7 @@ extern PetscInt     *d_cum_size;
 extern PetscScalar 	*phase_pressure;
 extern PetscScalar 	*phase_temperature;
 extern PetscScalar 	*phase_density;
-extern PetscInt		n_files2read;
+// extern PetscInt		n_files2read;
 
 PetscErrorCode Swarm2Mesh_2d(){
 
@@ -190,6 +176,7 @@ PetscErrorCode Swarm2Mesh_2d(){
 		if (rz<0 || rz>1) {printf("weird rz=%f , Swarm2Mesh\n",rz); exit(1);}
 
 		// Apply phase change density // Lembrar de fazer para o 3D
+		print_vec(phase_pressure, p_cum_size[2]);
 		PetscReal rho_aux;
 		if (phase_change == 1 && phase_change_unit_flags[layer_array[p]] == 1)
 		{
@@ -1072,23 +1059,31 @@ PetscErrorCode Swarm2Mesh_3d(){
 
 }
 
-// Find density given pressure, temperature and unit_number
+// Find density given pressure, temperature and layer_number
 PetscScalar find_density(PetscScalar p_value, PetscScalar t_value, PetscInt layer_number)
 {
 	PetscInt file_index = phase_change_unit_number[layer_number];
-	// fprintf(stderr, "file_index:%d %d\n", file_index, layer_number);
 	PetscInt d_index, p_index, t_index;
+	// fprintf(stderr, "file_index:%d %d\n", file_index, layer_number);
 
+	if (p_value < phase_pressure[p_cum_size[file_index]]) p_value = phase_pressure[p_cum_size[file_index]];
+	else if (p_value > phase_pressure[p_cum_size[file_index+1]-1]) p_value = phase_pressure[p_cum_size[file_index+1]-1];
+
+	if (t_value < phase_temperature[p_cum_size[file_index]]) t_value = phase_temperature[p_cum_size[file_index]];
+	else if (t_value > phase_temperature[p_cum_size[file_index+1]-1]) t_value = phase_temperature[p_cum_size[file_index+1]-1];	
+	
 	p_index = round(
 		(p_cum_size[file_index+1]-p_cum_size[file_index]-1)*
 		(p_value-phase_pressure[p_cum_size[file_index]])/
 		(phase_pressure[p_cum_size[file_index+1]-1]-phase_pressure[p_cum_size[file_index]]));
+	// Sanity check
 	if (p_index < p_cum_size[file_index]) p_index = p_cum_size[file_index];
 	else if (p_index >= p_cum_size[file_index+1]) p_index = p_cum_size[file_index+1] - 1;
 
 	t_index = (t_size[layer_number]-1) - round((t_cum_size[file_index+1]-t_cum_size[file_index]-1)*
 	 (t_value-phase_temperature[t_cum_size[file_index]])/
 	 (phase_temperature[t_cum_size[file_index+1]-1]-phase_temperature[t_cum_size[file_index]]));
+	// Sanity check
 	if (t_index < t_cum_size[file_index]) t_index = t_cum_size[file_index];
 	else if (t_index >= t_cum_size[file_index+1]) t_index = t_cum_size[file_index+1] - 1;
 	
@@ -1096,5 +1091,5 @@ PetscScalar find_density(PetscScalar p_value, PetscScalar t_value, PetscInt laye
 
 	// fprintf(stderr, "p:%.2f, t:%.2f, u:%d, idx_p:%d, idx_t:%d, ix:%d, density:%f\n", p, t, idx, p_index, t_index, d_index, phase_density[d_index]);
 	
-	return phase_density[d_index];
+	PetscFunctionReturn(phase_density[d_index]);
 }

@@ -111,7 +111,7 @@ PetscInt    *d_cum_size;
 PetscScalar *phase_pressure;
 PetscScalar *phase_temperature;
 PetscScalar *phase_density;
-PetscInt	n_files2read = 100;
+// PetscInt	n_files2read = 100;
 
 PetscInt Px = PETSC_DECIDE;
 PetscInt Py = PETSC_DECIDE;
