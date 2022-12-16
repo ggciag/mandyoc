@@ -19,6 +19,7 @@ extern long print_step;
 extern double visco_r;
 extern double visc_MAX;
 extern double visc_MIN;
+extern double visc_damper;
 extern int geoq_on;
 extern double escala_viscosidade;
 extern double veloc_superf;
@@ -207,6 +208,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "viscosity_reference") == 0) {visco_r = atof(tkn_v);}
 			else if (strcmp(tkn_w, "viscosity_max") == 0) {visc_MAX = atof(tkn_v);}
 			else if (strcmp(tkn_w, "viscosity_min") == 0) {visc_MIN = atof(tkn_v);}
+			else if (strcmp(tkn_w, "viscosity_damper") == 0) {visc_damper = atof(tkn_v);}
 			else if (strcmp(tkn_w, "n_interfaces") == 0) {n_interfaces = atoi(tkn_v);}
 			else if (strcmp(tkn_w, "geoq_fac") == 0) {escala_viscosidade = atof(tkn_v);}
 			else if (strcmp(tkn_w, "surface_velocity") == 0) {veloc_superf = atof(tkn_v);}
@@ -294,7 +296,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 
 			else if (strcmp(tkn_w, "diffusivity0_scaled") == 0) {kappa0_scaled = atof(tkn_v);}
 			else if (strcmp(tkn_w, "temperature0_scaled") == 0) {temperature0_scaled = atof(tkn_v);}*/
-			
+
 
 
 			// Else
@@ -351,6 +353,8 @@ PetscErrorCode reader(int rank, const char fName[]){
 
 	}
 
+	PetscPrintf(PETSC_COMM_WORLD, "\n[INFO] viscosity damper: %lg\n", visc_damper);
+
 	// Broadcast every parameter from the parameter file.
 	MPI_Bcast(&dimensions,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&Nx,1,MPI_LONG,0,PETSC_COMM_WORLD);
@@ -367,6 +371,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&visco_r,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&visc_MAX,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&visc_MIN,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&visc_damper,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&geoq_on,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&escala_viscosidade,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&veloc_superf,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
@@ -457,6 +462,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 		visc_MAX /= visc0_scaled;
 		visc_MIN /= visc0_scaled;
 		visco_r /= visc0_scaled;
+		visc_damper /= visc0_scaled;
 
 		g0_scaled = gravity;
 		gravity /= g0_scaled;
@@ -501,7 +507,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	adiabatic_scaled = time0_scaled*g0_scaled*veloc0_scaled;
 
 
-	
+
 	air_threshold_density = 100.0/rho0_scaled;
 
 

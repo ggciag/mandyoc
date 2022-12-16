@@ -73,6 +73,7 @@ long print_step;
 double visco_r;
 double visc_MAX;
 double visc_MIN;
+double visc_damper = 0;
 int geoq_on = 1; // 1=on, 2=off
 double escala_viscosidade;
 double veloc_superf;
