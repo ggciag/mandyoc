@@ -4,6 +4,7 @@
 
 PetscErrorCode mean_value_periodic_boundary_2d(DM da,Vec F,Vec local_F, PetscScalar **ff,int esc);
 PetscScalar find_density(PetscScalar p, PetscScalar t, PetscInt idx);
+PetscReal linear_interpolation(PetscReal rx, PetscReal rz,PetscScalar V0, PetscScalar V1, PetscScalar V2, PetscScalar V3);
 
 void print_vec(PetscScalar *vec, PetscInt s_vec)
 {
@@ -26,7 +27,9 @@ extern Vec geoq_H,local_geoq_H;
 extern Vec geoq_strain, local_geoq_strain;
 extern Vec geoq_strain_rate, local_geoq_strain_rate;
 
-extern Vec Temper,local_Temper;
+extern Vec Temper,local_Temper; // global temperature, cpu core temperature
+extern Vec Pressure_aux, local_P_aux; // global pressure, cpu core pressure
+extern double alpha_exp_thermo;
 
 extern long Nx,Ny,Nz;
 
@@ -72,7 +75,8 @@ extern PetscScalar 	*phase_density;
 PetscErrorCode Swarm2Mesh_2d(){
 
 	PetscErrorCode ierr;
-	PetscScalar             **qq,**qq_cont,**qq_rho,**TT,**qq_H,**qq_strain;
+	PetscScalar             **qq,**qq_cont,**qq_rho,**qq_H,**qq_strain;
+	PetscScalar				**pp_aux,**tt; // array like local pressures, array like local temperatures
 	PetscScalar				**qq_strain_rate;
 
 	ierr = VecSet(geoq,0.0);CHKERRQ(ierr);
@@ -87,6 +91,7 @@ PetscErrorCode Swarm2Mesh_2d(){
 	ierr = VecZeroEntries(local_geoq_H);CHKERRQ(ierr);
 	ierr = VecZeroEntries(local_geoq_strain);CHKERRQ(ierr);
 	ierr = VecZeroEntries(local_geoq_strain_rate);CHKERRQ(ierr);
+	ierr = VecZeroEntries(local_Temper);CHKERRQ(ierr);
 
 	ierr = DMGlobalToLocalBegin(da_Thermal,geoq,INSERT_VALUES,local_geoq);
 	ierr = DMGlobalToLocalEnd(  da_Thermal,geoq,INSERT_VALUES,local_geoq);
@@ -103,13 +108,19 @@ PetscErrorCode Swarm2Mesh_2d(){
 	ierr = DMGlobalToLocalBegin(da_Thermal,geoq_strain_rate,INSERT_VALUES,local_geoq_strain_rate);
 	ierr = DMGlobalToLocalEnd(  da_Thermal,geoq_strain_rate,INSERT_VALUES,local_geoq_strain_rate);
 
+	ierr = DMGlobalToLocalBegin(da_Thermal,Temper,INSERT_VALUES,local_Temper);
+	ierr = DMGlobalToLocalEnd(  da_Thermal,Temper,INSERT_VALUES,local_Temper);
+
+	ierr = DMGlobalToLocalBegin(da_Thermal,Pressure_aux,INSERT_VALUES,local_P_aux);
+	ierr = DMGlobalToLocalEnd(  da_Thermal,Pressure_aux,INSERT_VALUES,local_P_aux);
 
 	ierr = DMDAVecGetArray(da_Thermal,local_geoq,&qq);CHKERRQ(ierr);
 	ierr = DMDAVecGetArray(da_Thermal,local_geoq_rho,&qq_rho);CHKERRQ(ierr);
 	ierr = DMDAVecGetArray(da_Thermal,local_geoq_H,&qq_H);CHKERRQ(ierr);
 	ierr = DMDAVecGetArray(da_Thermal,local_geoq_strain,&qq_strain);CHKERRQ(ierr);
 	ierr = DMDAVecGetArray(da_Thermal,local_geoq_strain_rate,&qq_strain_rate);CHKERRQ(ierr);
-
+	ierr = DMDAVecGetArray(da_Thermal,local_Temper,&tt);CHKERRQ(ierr);
+	ierr = DMDAVecGetArray(da_Thermal,local_P_aux,&pp_aux);CHKERRQ(ierr);
 
 	ierr = DMGlobalToLocalBegin(da_Thermal,geoq_cont,INSERT_VALUES,local_geoq_cont);
 	ierr = DMGlobalToLocalEnd(  da_Thermal,geoq_cont,INSERT_VALUES,local_geoq_cont);
@@ -125,6 +136,7 @@ PetscErrorCode Swarm2Mesh_2d(){
 	PetscReal *strain_fac;
 	PetscReal *strain_rate_fac;
 	PetscInt *layer_array;
+	PetscReal tt_particle, pp_particle; // temperature value for particle, pressure value for pressure
 
 	ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
 
@@ -175,21 +187,26 @@ PetscErrorCode Swarm2Mesh_2d(){
 		if (rx<0 || rx>1) {printf("weird rx=%f , Swarm2Mesh\n",rx); exit(1);}
 		if (rz<0 || rz>1) {printf("weird rz=%f , Swarm2Mesh\n",rz); exit(1);}
 
+		tt_particle = linear_interpolation(rx,rz,tt[k][i],tt[k][i+1],tt[k+1][i],tt[k+1][i+1]);
+		pp_particle = linear_interpolation(rx,rz,pp_aux[k][i],pp_aux[k][i+1],pp_aux[k+1][i],pp_aux[k+1][i+1]);
+
 		// Apply phase change density // Lembrar de fazer para o 3D
-		print_vec(phase_pressure, p_cum_size[2]);
+		// print_vec(phase_pressure, 6);
 		PetscReal rho_aux;
+		fprintf(stderr, "flag: %d\n", phase_change_unit_flags[layer_array[p]]);
 		if (phase_change == 1 && phase_change_unit_flags[layer_array[p]] == 1)
 		{
 			// fprintf(stderr, "before: %d\n", layer_array[p]);
-			find_density(5000.0, 490.0, 1);
-			find_density(11000.0, 1200.0, 2);
-			find_density(14000.0, 490.0, 3);
-			// rho_aux = find_density(p, t, layer_array[p]);
-			rho_aux = inter_rho[layer_array[p]];
+			// find_density(5000.0, 490.0, 1);
+			// find_density(11000.0, 1200.0, 2);
+			// find_density(14000.0, 490.0, 3);
+			fprintf(stderr, "p:%.2f [MPa], t:%.g [C]\n", pp_particle/1.0e6, tt_particle);
+			rho_aux = find_density(pp_particle, tt_particle, layer_array[p]);
+			// rho_aux = inter_rho[layer_array[p]];
 		}
 		else
 		{
-			rho_aux = inter_rho[layer_array[p]];
+			rho_aux = inter_rho[layer_array[p]] * (1.0 - alpha_exp_thermo * tt_particle);
 		}
 
 		rfac = (1.0-rx)*(1.0-rz);
@@ -359,6 +376,9 @@ PetscErrorCode Swarm2Mesh_2d(){
 	ierr = DMLocalToGlobalBegin(da_Thermal,local_geoq_cont,ADD_VALUES,geoq_cont);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalEnd(da_Thermal,local_geoq_cont,ADD_VALUES,geoq_cont);CHKERRQ(ierr);
 
+	ierr = DMDAVecRestoreArray(da_Thermal,local_Temper,&tt);CHKERRQ(ierr);
+	ierr = DMDAVecRestoreArray(da_Thermal,local_P_aux,&pp_aux);CHKERRQ(ierr);
+
 	if (periodic_boundary==1){
 		ierr = mean_value_periodic_boundary_2d(da_Thermal,geoq_rho,local_geoq_rho,qq_rho,1);
 		ierr = mean_value_periodic_boundary_2d(da_Thermal,geoq_H,local_geoq_H,qq_H,1);
@@ -446,7 +466,7 @@ PetscErrorCode Swarm2Mesh_2d(){
 	ierr = DMGlobalToLocalBegin(da_Thermal,Temper,INSERT_VALUES,local_Temper);
 	ierr = DMGlobalToLocalEnd(  da_Thermal,Temper,INSERT_VALUES,local_Temper);
 
-	ierr = DMDAVecGetArray(da_Thermal,local_Temper,&TT);CHKERRQ(ierr);
+	ierr = DMDAVecGetArray(da_Thermal,local_Temper,&tt);CHKERRQ(ierr);
 
 	ierr = DMGlobalToLocalBegin(da_Thermal,geoq_rho,INSERT_VALUES,local_geoq_rho);
 	ierr = DMGlobalToLocalEnd(  da_Thermal,geoq_rho,INSERT_VALUES,local_geoq_rho);
@@ -463,14 +483,14 @@ PetscErrorCode Swarm2Mesh_2d(){
 	for (k=sz; k<sz+mmz; k++) {
 		for (i=sx; i<sx+mmx; i++) {
 			if (qq_rho[k][i]<air_threshold_density){ //check: force temperature zero for low density material
-				TT[k][i]=0.0;
+				tt[k][i]=0.0;
 			}
 		}
 	}
 
 	ierr = DMDAVecRestoreArray(da_Thermal,local_geoq_rho,&qq_rho);CHKERRQ(ierr);
 
-	ierr = DMDAVecRestoreArray(da_Thermal,local_Temper,&TT);CHKERRQ(ierr);
+	ierr = DMDAVecRestoreArray(da_Thermal,local_Temper,&tt);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalBegin(da_Thermal,local_Temper,INSERT_VALUES,Temper);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalEnd(da_Thermal,local_Temper,INSERT_VALUES,Temper);CHKERRQ(ierr);
 
@@ -513,7 +533,7 @@ PetscErrorCode Swarm2Mesh_2d(){
 PetscErrorCode Swarm2Mesh_3d(){
 
 	PetscErrorCode ierr;
-	PetscScalar             ***qq,***qq_cont,***qq_rho,***TT,***qq_H,***qq_strain;
+	PetscScalar             ***qq,***qq_cont,***qq_rho,***tt,***qq_H,***qq_strain;
 	PetscScalar				***qq_strain_rate;
 
 	ierr = VecSet(geoq,0.0);CHKERRQ(ierr);
@@ -988,7 +1008,7 @@ PetscErrorCode Swarm2Mesh_3d(){
 	ierr = DMGlobalToLocalBegin(da_Thermal,Temper,INSERT_VALUES,local_Temper);
 	ierr = DMGlobalToLocalEnd(  da_Thermal,Temper,INSERT_VALUES,local_Temper);
 
-	ierr = DMDAVecGetArray(da_Thermal,local_Temper,&TT);CHKERRQ(ierr);
+	ierr = DMDAVecGetArray(da_Thermal,local_Temper,&tt);CHKERRQ(ierr);
 
 	ierr = DMGlobalToLocalBegin(da_Thermal,geoq_rho,INSERT_VALUES,local_geoq_rho);
 	ierr = DMGlobalToLocalEnd(  da_Thermal,geoq_rho,INSERT_VALUES,local_geoq_rho);
@@ -1006,7 +1026,7 @@ PetscErrorCode Swarm2Mesh_3d(){
 		for (j=sy; j<sy+mmy; j++) {
 			for (i=sx; i<sx+mmx; i++) {
 				if (qq_rho[k][j][i]<air_threshold_density){
-					TT[k][j][i]=0.0;
+					tt[k][j][i]=0.0;
 				}
 			}
 		}
@@ -1014,7 +1034,7 @@ PetscErrorCode Swarm2Mesh_3d(){
 
 	ierr = DMDAVecRestoreArray(da_Thermal,local_geoq_rho,&qq_rho);CHKERRQ(ierr);
 
-	ierr = DMDAVecRestoreArray(da_Thermal,local_Temper,&TT);CHKERRQ(ierr);
+	ierr = DMDAVecRestoreArray(da_Thermal,local_Temper,&tt);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalBegin(da_Thermal,local_Temper,INSERT_VALUES,Temper);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalEnd(da_Thermal,local_Temper,INSERT_VALUES,Temper);CHKERRQ(ierr);
 
@@ -1089,7 +1109,7 @@ PetscScalar find_density(PetscScalar p_value, PetscScalar t_value, PetscInt laye
 	
 	d_index = p_index + d_cum_size[file_index] + (t_index*(t_size[file_index+1]-1));
 
-	// fprintf(stderr, "p:%.2f, t:%.2f, u:%d, idx_p:%d, idx_t:%d, ix:%d, density:%f\n", p, t, idx, p_index, t_index, d_index, phase_density[d_index]);
+	// fprintf(stderr, "p:%.2f, t:%.2f, u:%d, idx_p:%d, idx_t:%d, ix:%d, density:%f\n", p_value, t_value, layer_number, p_index, t_index, d_index, phase_density[d_index]);
 	
 	PetscFunctionReturn(phase_density[d_index]);
 }

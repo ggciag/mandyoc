@@ -13,13 +13,17 @@ PetscErrorCode calc_drho()
 {
 	PetscErrorCode ierr=0;
 
-	VecCopy(Temper, dRho); CHKERRQ(ierr);
+	VecCopy(geoq_rho,dRho);
 
-	PetscScalar a;
+	VecScale(dRho,-gravity);
 
-	a=alpha_exp_thermo*gravity*RHOM; CHKERRQ(ierr);//check: replace RHOM by geoq_rho
+	// VecCopy(Temper, dRho); CHKERRQ(ierr);
 
-	VecAXPBY(dRho,-gravity,a,geoq_rho); CHKERRQ(ierr);
+	// PetscScalar a;
+
+	// a=alpha_exp_thermo*gravity*RHOM; CHKERRQ(ierr);//check: replace RHOM by geoq_rho
+
+	// VecAXPBY(dRho,-gravity,a,geoq_rho); CHKERRQ(ierr);
 
 	return ierr;
 
