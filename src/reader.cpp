@@ -750,12 +750,12 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(inter_V,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 
 	// Solid state phase change
-	PetscCalloc1(n_interfaces+1,&phase_change_unit_flags);
-	PetscCalloc1(n_interfaces+1,&phase_change_unit_number);
-	for (PetscInt k=0; k<n_interfaces+1; k+=1) phase_change_unit_number[k] = -1;
-
 	if ((phase_change==1) && (rank==0))
 	{
+		PetscCalloc1(n_interfaces+1,&phase_change_unit_flags);
+		PetscCalloc1(n_interfaces+1,&phase_change_unit_number);
+		for (PetscInt k=0; k<n_interfaces+1; k+=1) phase_change_unit_number[k] = -1;
+
 		for (PetscInt i=0; i<n_interfaces+1; i+=1)
 		{
 			char fname[100] = "models/phase_change_";
@@ -768,19 +768,19 @@ PetscErrorCode reader(int rank, const char fName[]){
 			read_phase_change_file(fname, i);
 		}
 		PetscPrintf(PETSC_COMM_WORLD, "\n");
+
+		MPI_Bcast(&phase_change_unit_number,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);
+		MPI_Bcast(&phase_change_unit_flags,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);	
+		MPI_Bcast(&p_size,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);
+		MPI_Bcast(&p_cum_size,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);
+		MPI_Bcast(&t_size,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);
+		MPI_Bcast(&t_cum_size,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);
+		MPI_Bcast(&d_size,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);
+		MPI_Bcast(&d_cum_size,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);
+		MPI_Bcast(phase_pressure,p_cum_size[n_interfaces],MPIU_SCALAR,0,PETSC_COMM_WORLD);
+		MPI_Bcast(phase_temperature,t_cum_size[n_interfaces],MPIU_SCALAR,0,PETSC_COMM_WORLD);
+		MPI_Bcast(phase_density,p_cum_size[n_interfaces]*t_cum_size[n_interfaces],MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	}
-	
-	MPI_Bcast(&phase_change_unit_number,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&phase_change_unit_flags,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);	
-	MPI_Bcast(&p_size,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&p_cum_size,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&t_size,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&t_cum_size,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&d_size,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&d_cum_size,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);
-	MPI_Bcast(phase_pressure,p_cum_size[n_interfaces],MPIU_SCALAR,0,PETSC_COMM_WORLD);
-	MPI_Bcast(phase_temperature,t_cum_size[n_interfaces],MPIU_SCALAR,0,PETSC_COMM_WORLD);
-	MPI_Bcast(phase_density,p_cum_size[n_interfaces]*t_cum_size[n_interfaces],MPIU_SCALAR,0,PETSC_COMM_WORLD);
 
 	// Broadcast, special cases
 //	MPI_Bcast(&n_interfaces,1,MPI_INT,0,PETSC_COMM_WORLD); // Broadcast after interfaces.txt

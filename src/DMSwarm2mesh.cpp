@@ -191,18 +191,11 @@ PetscErrorCode Swarm2Mesh_2d(){
 		pp_particle = linear_interpolation(rx,rz,pp_aux[k][i],pp_aux[k][i+1],pp_aux[k+1][i],pp_aux[k+1][i+1]);
 
 		// Apply phase change density // Lembrar de fazer para o 3D
-		// print_vec(phase_pressure, 6);
 		PetscReal rho_aux;
-		fprintf(stderr, "flag: %d\n", phase_change_unit_flags[layer_array[p]]);
 		if (phase_change == 1 && phase_change_unit_flags[layer_array[p]] == 1)
 		{
-			// fprintf(stderr, "before: %d\n", layer_array[p]);
-			// find_density(5000.0, 490.0, 1);
-			// find_density(11000.0, 1200.0, 2);
-			// find_density(14000.0, 490.0, 3);
-			fprintf(stderr, "p:%.2f [MPa], t:%.g [C]\n", pp_particle/1.0e6, tt_particle);
 			rho_aux = find_density(pp_particle, tt_particle, layer_array[p]);
-			// rho_aux = inter_rho[layer_array[p]];
+			// fprintf(stderr, "p:%.2f [MPa], t:%.2f [C], r:%.2f\n", pp_particle/1.0e6, tt_particle, rho_aux);
 		}
 		else
 		{
@@ -1085,6 +1078,7 @@ PetscScalar find_density(PetscScalar p_value, PetscScalar t_value, PetscInt laye
 	PetscInt file_index = phase_change_unit_number[layer_number];
 	PetscInt d_index, p_index, t_index;
 	// fprintf(stderr, "file_index:%d %d\n", file_index, layer_number);
+	fprintf(stderr, "p:%.2f\n", p_value);
 
 	if (p_value < phase_pressure[p_cum_size[file_index]]) p_value = phase_pressure[p_cum_size[file_index]];
 	else if (p_value > phase_pressure[p_cum_size[file_index+1]-1]) p_value = phase_pressure[p_cum_size[file_index+1]-1];
