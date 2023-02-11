@@ -1078,7 +1078,7 @@ PetscScalar find_density(PetscScalar p_value, PetscScalar t_value, PetscInt laye
 	PetscInt file_index = phase_change_unit_number[layer_number];
 	PetscInt d_index, p_index, t_index;
 	// fprintf(stderr, "file_index:%d %d\n", file_index, layer_number);
-	fprintf(stderr, "p:%.2f\n", p_value);
+	// fprintf(stderr, "p:%.2f\n", p_value);
 
 	if (p_value < phase_pressure[p_cum_size[file_index]]) p_value = phase_pressure[p_cum_size[file_index]];
 	else if (p_value > phase_pressure[p_cum_size[file_index+1]-1]) p_value = phase_pressure[p_cum_size[file_index+1]-1];
