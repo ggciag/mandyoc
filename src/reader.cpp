@@ -29,20 +29,6 @@ void print_vec_int(PetscInt *vec, PetscInt s_vec)
 	PetscPrintf(PETSC_COMM_WORLD, "\n");
 }
 
-// void print_mat(PetscScalar *mat, PetscInt s_i, PetscInt s_j)
-// {
-// 	int i, j;
-// 	for (j=0; j<s_j; j+=1)
-// 	{
-// 		for (i=0; i<s_i; i+=1)
-// 		{
-// 			fprintf(stderr, "%.0f ", mat[(s_j-1)*j+i]);
-// 		}
-// 		fprintf(stderr, "\n");
-// 	}
-// 	fprintf(stderr, "\n");
-// }
-
 // Parameter file variables
 extern int dimensions;
 extern long Nx, Ny, Nz;
@@ -137,7 +123,6 @@ extern PetscBool a2l;
 extern PetscInt 	phase_change;
 extern PetscInt     num_phase_change_files;
 extern PetscInt 	*phase_change_unit_number;
-extern PetscInt     *phase_change_unit_flags;
 extern PetscInt 	*p_size, *p_size_0;
 extern PetscInt 	*p_cum_size, *p_cum_size_0;
 extern PetscInt 	*t_size, *t_size_0;
@@ -147,7 +132,6 @@ extern PetscInt     *d_cum_size, *d_cum_size_0;
 extern PetscScalar 	*phase_pressure, *phase_pressure_0;
 extern PetscScalar 	*phase_temperature, *phase_temperature_0;
 extern PetscScalar 	*phase_density, *phase_density_0;
-// extern PetscInt		n_files2read;
 
 // Removed from parameter file
 extern double H_lito;
@@ -215,7 +199,6 @@ PetscErrorCode load_topo_var(int rank);
 
 // Reads input ASCII files
 PetscErrorCode reader(int rank, const char fName[]){
-	PetscErrorCode ierr;
 	int nline;
 	int size = 1024;
 	void *nread;
@@ -340,11 +323,8 @@ PetscErrorCode reader(int rank, const char fName[]){
 
 			else if (strcmp(tkn_w, "nondimensionalization") == 0) {non_dim = check_a_b(tkn_w, tkn_v, "True", "False");}
 
-
 			// Phase change reading
 			else if (strcmp(tkn_w, "phase_change") == 0) {phase_change = check_a_b(tkn_w, tkn_v, "True", "False");}
-			// else if (strcmp(tkn_w, "number_of_phase_change_files") == 0) {n_files2read = atoi(tkn_v);}
-			// else if (strcmp(tkn_w, "phase_change_unit_number") == 0) {phase_change_unit_number = atoi(tkn_v);}
 
 
 			/*else if (strcmp(tkn_w, "h0_scaled") == 0) {h0_scaled = atof(tkn_v);}
@@ -762,7 +742,6 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(inter_V,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 
 	// Read phase change files
-	PetscCalloc1(n_interfaces+1,&phase_change_unit_flags);
 	PetscCalloc1(n_interfaces+1,&phase_change_unit_number);
 	for (PetscInt k=0; k<n_interfaces+1; k+=1) phase_change_unit_number[k] = -1;
 
@@ -771,7 +750,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 		for (PetscInt i=0; i<n_interfaces+1; i+=1)
 		{
 			char fname[100] = "models/phase_change_";
-			char str_i[10];
+			char str_i[11];
 			char str_e[10] = ".txt";
 
 			sprintf(str_i, "%d", i);
@@ -784,15 +763,11 @@ PetscErrorCode reader(int rank, const char fName[]){
 
 	// Broadcast number of phase files
 	MPI_Bcast(&num_phase_change_files,1,MPI_INT,0,PETSC_COMM_WORLD);
-	PetscPrintf(PETSC_COMM_SELF, "num_phase_change_files\n", num_phase_change_files);
 
 	// Broadcast flag files
-	PetscPrintf(PETSC_COMM_SELF, "broadcasting flags\n");
 	MPI_Bcast(phase_change_unit_number,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);
-	MPI_Bcast(phase_change_unit_flags,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);
 
 	// Allocate size arrays
-	PetscPrintf(PETSC_COMM_SELF, "allocating sizes\n");
 	PetscCalloc1(num_phase_change_files+1,&p_size);
 	PetscCalloc1(num_phase_change_files+1,&p_cum_size);
 	PetscCalloc1(num_phase_change_files+1,&t_size);
@@ -800,10 +775,10 @@ PetscErrorCode reader(int rank, const char fName[]){
 	PetscCalloc1(num_phase_change_files+1,&d_size);
 	PetscCalloc1(num_phase_change_files+1,&d_cum_size);
 
-	// Copying from rank 0 to new arrays
+	// Copy from rank 0 to global arrays
 	if (rank==0)
 	{
-		memcpy(p_size,p_size_0,(num_phase_change_files+1)*sizeof(PetscScalar)); // Copy _0 to global
+		memcpy(p_size,p_size_0,(num_phase_change_files+1)*sizeof(PetscScalar)); // Copy from rank 0 to global
 		memcpy(p_cum_size,p_cum_size_0,(num_phase_change_files+1)*sizeof(PetscScalar));
 		memcpy(t_size,t_size_0,(num_phase_change_files+1)*sizeof(PetscScalar));
 		memcpy(t_cum_size,t_cum_size_0,(num_phase_change_files+1)*sizeof(PetscScalar));
@@ -811,6 +786,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 		memcpy(d_cum_size,d_cum_size_0,(num_phase_change_files+1)*sizeof(PetscScalar));
 	}
 
+	// Broadcast size arrays
 	MPI_Bcast(p_size,num_phase_change_files+1,MPIU_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(p_cum_size,num_phase_change_files+1,MPIU_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(t_size,num_phase_change_files+1,MPIU_INT,0,PETSC_COMM_WORLD);
@@ -818,45 +794,34 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(d_size,num_phase_change_files+1,MPIU_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(d_cum_size,num_phase_change_files+1,MPIU_INT,0,PETSC_COMM_WORLD);
 
-	PetscPrintf(PETSC_COMM_SELF, "Allocating pressure and temperature\n");
+	// Allocate data arrays
 	PetscCalloc1(p_cum_size[num_phase_change_files],&phase_pressure);
 	PetscCalloc1(t_cum_size[num_phase_change_files],&phase_temperature);
-	PetscInt kk = 0;
-	for (PetscInt k=1; k<=num_phase_change_files;k+=1) kk += p_size[k]*t_size[k];
-	PetscCalloc1(kk,&phase_density);
+	PetscCalloc1(d_cum_size[num_phase_change_files],&phase_density);
 	
+	// Copy from rank 0 to global data arrays
 	if (rank==0)
 	{
-		memcpy(phase_pressure,phase_pressure_0,(p_cum_size[num_phase_change_files])*sizeof(PetscScalar)); // Copy _0 to global
-		memcpy(phase_temperature,phase_temperature_0,(t_cum_size[num_phase_change_files])*sizeof(PetscScalar)); // Copy _0 to global
-		memcpy(phase_density,phase_density_0,(kk)*sizeof(PetscScalar)); // Copy _0 to global
+		memcpy(phase_pressure,phase_pressure_0,(p_cum_size[num_phase_change_files])*sizeof(PetscScalar)); // Copy from rank 0 to global
+		memcpy(phase_temperature,phase_temperature_0,(t_cum_size[num_phase_change_files])*sizeof(PetscScalar)); 
+		memcpy(phase_density,phase_density_0,(d_cum_size[num_phase_change_files])*sizeof(PetscScalar)); 
 	}
 
+	// Broadcast data arrays
 	MPI_Bcast(phase_pressure,p_cum_size[num_phase_change_files],MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(phase_temperature,t_cum_size[num_phase_change_files],MPIU_SCALAR,0,PETSC_COMM_WORLD);
-	MPI_Bcast(phase_density,kk,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+	MPI_Bcast(phase_density,d_cum_size[num_phase_change_files],MPIU_SCALAR,0,PETSC_COMM_WORLD);
 
-
-
-
-	// PetscPrintf(PETSC_COMM_SELF, "boradcasting density)\n");
-	// PetscInt kk = 0;
-	// for (PetscInt k=1; k<=num_phase_change_files;k+=1) kk += p_size[k]*t_size[k];
-	// PetscPrintf(PETSC_COMM_SELF, "%d (%d)\n", kk, rank);
-	// PetscCalloc1(kk,&phase_density);
-
-	
-	// MPI_Bcast(phase_density,kk,MPIU_SCALAR,0,PETSC_COMM_WORLD);
-
-	// PetscPrintf(PETSC_COMM_SELF, "num_phase_change_files: %d\n", num_phase_change_files);
-	// broadcast dos tamanhaos
-	// if (rank!=0)
-	// {
-	// 	// alocar 
-	// 	// broadcast
-	// }
-
-
+	// Free rank 0
+	PetscFree(p_size_0);
+	PetscFree(p_cum_size_0);
+	PetscFree(t_size_0);
+	PetscFree(t_cum_size_0);
+	PetscFree(d_size_0);
+	PetscFree(d_cum_size_0);
+	PetscFree(phase_pressure_0);
+	PetscFree(phase_temperature_0);
+	PetscFree(phase_density_0);
 
 	// Broadcast, special cases
 	//	MPI_Bcast(&n_interfaces,1,MPI_INT,0,PETSC_COMM_WORLD); // Broadcast after interfaces.txt
@@ -1078,23 +1043,13 @@ PetscInt read_phase_change_file(char *fname, PetscInt file_index)
 	PetscInt i;
 	PetscInt j = 0;
 	PetscBool mk_density = PETSC_TRUE;
-	PetscScalar *phase_pressure_aux;
-	PetscScalar *phase_temperature_aux;
-	PetscScalar *phase_density_aux;
-	PetscScalar *p_size_aux;
-	PetscScalar *p_cum_size_aux;
-	PetscScalar *t_size_aux;
-	PetscScalar *t_cum_size_aux;
-	PetscScalar *d_size_aux;
-	PetscScalar *d_cum_size_aux;
 	PetscInt ix, corr_i, corr_j;
 
 	file = fopen(fname, "r");
-	if (file == NULL) {
-		// PetscPrintf(PETSC_COMM_WORLD, "File <%s> is NULL\n", fname);
-		PetscFunctionReturn(-1);
-	}
+
+	if (file == NULL) PetscFunctionReturn(-1);
 	else num_phase_change_files += 1;
+
 	PetscPrintf(PETSC_COMM_WORLD, "Reading file <%s>\n", fname);
 	if (file_index == 0)
 	{
@@ -1107,54 +1062,14 @@ PetscInt read_phase_change_file(char *fname, PetscInt file_index)
 	}
 	else
 	{
-		PetscPrintf(PETSC_COMM_SELF, "HERE\n");
-
-		PetscCalloc1(file_index+1,&p_size_aux);
-		memcpy(p_size_aux,p_size_0,(file_index+1)*sizeof(PetscScalar));
-		PetscFree(p_size_0);
-		PetscCalloc1(file_index+2,&p_size_0);
-		memcpy(p_size_0,p_size_aux,(file_index+2)*sizeof(PetscScalar));
-		PetscFree(p_size_aux);
-
-		PetscCalloc1(file_index+1,&p_cum_size_aux);
-		memcpy(p_cum_size_aux,p_cum_size_0,(file_index+1)*sizeof(PetscScalar));
-		PetscFree(p_cum_size_0);
-		PetscCalloc1(file_index+2,&p_cum_size_0);
-		memcpy(p_cum_size_0,p_cum_size_aux,(file_index+2)*sizeof(PetscScalar));
-		PetscFree(p_cum_size_aux);
-
-		PetscCalloc1(file_index+1,&t_size_aux);
-		memcpy(t_size_aux,t_size_0,(file_index+1)*sizeof(PetscScalar));
-		PetscFree(t_size_0);
-		PetscCalloc1(file_index+2,&t_size_0);
-		memcpy(t_size_0,t_size_aux,(file_index+2)*sizeof(PetscScalar));
-		PetscFree(t_size_aux);
-
-		PetscPrintf(PETSC_COMM_SELF, "HERE 2\n");
-
-		PetscCalloc1(file_index+1,&t_cum_size_aux);
-		memcpy(t_cum_size_aux,t_cum_size_0,(file_index+1)*sizeof(PetscScalar));
-		PetscFree(t_cum_size_0);
-		PetscCalloc1(file_index+2,&t_cum_size_0);
-		memcpy(t_cum_size_0,t_cum_size_aux,(file_index+2)*sizeof(PetscScalar));
-		PetscFree(t_cum_size_aux);
-
-		PetscCalloc1(file_index+1,&d_size_aux);
-		memcpy(d_size_aux,d_size_0,(file_index+1)*sizeof(PetscScalar));
-		PetscFree(d_size_0);
-		PetscCalloc1(file_index+2,&d_size_0);
-		memcpy(d_size_0,d_size_aux,(file_index+2)*sizeof(PetscScalar));
-		PetscFree(d_size_aux);
-
-		PetscCalloc1(file_index+1,&d_cum_size_aux);
-		memcpy(d_cum_size_aux,d_cum_size_0,(file_index+1)*sizeof(PetscScalar));
-		PetscFree(d_cum_size_0);
-		PetscCalloc1(file_index+2,&d_cum_size_0);
-		memcpy(d_cum_size_0,d_cum_size_aux,(file_index+2)*sizeof(PetscScalar));
-		PetscFree(d_cum_size_aux);
-
-		PetscPrintf(PETSC_COMM_SELF, "HERE 3\n");
+		PetscRealloc((file_index+2)*sizeof(PetscInt),&p_size_0); 
+		PetscRealloc((file_index+2)*sizeof(PetscInt),&p_cum_size_0); 
+		PetscRealloc((file_index+2)*sizeof(PetscInt),&t_size_0); 
+		PetscRealloc((file_index+2)*sizeof(PetscInt),&t_cum_size_0); 
+		PetscRealloc((file_index+2)*sizeof(PetscInt),&d_size_0); 
+		PetscRealloc((file_index+2)*sizeof(PetscInt),&d_cum_size_0); 
 	}
+
 	while (!feof(file))
 	{
 		nread = fgets(line, size, file);
@@ -1173,7 +1088,6 @@ PetscInt read_phase_change_file(char *fname, PetscInt file_index)
 				}
 				if (tkn_1 == NULL) break;
 				phase_change_unit_number[atoi(tkn_1)] = file_index;
-				phase_change_unit_flags[phase_change_unit_number[file_index]] = 1;
 			}
 		}
 		else if (strcmp(tkn_0, "pressure") == 0)
@@ -1193,17 +1107,10 @@ PetscInt read_phase_change_file(char *fname, PetscInt file_index)
 					p_cum_size_0[file_index+1] = p_size_0[file_index+1] + p_cum_size_0[file_index];
 				}
 			}
+
 			if (file_index == 0) PetscCalloc1(p_cum_size_0[file_index+1],&phase_pressure_0);
-			else
-			{
-				// PetscRealloc(phase_pressure,p_cum_size[file_index+1]*sizeof(PetscScalar),NULL,__FILE__,__LINE__);
-				PetscCalloc1(p_cum_size_0[file_index],&phase_pressure_aux); // Allocate aux
-				memcpy(phase_pressure_aux,phase_pressure_0,p_cum_size_0[file_index]*sizeof(PetscScalar)); // Copy last to aux
-				PetscFree(phase_pressure_0); // Free last
-				PetscCalloc1(p_cum_size_0[file_index+1],&phase_pressure_0); // Allocate new 
-				memcpy(phase_pressure_0,phase_pressure_aux,p_cum_size_0[file_index]*sizeof(PetscScalar)); // Copy aux to new
-				PetscFree(phase_pressure_aux); // Free aux
-			}
+			else PetscRealloc(p_cum_size_0[file_index+1]*sizeof(PetscScalar), &phase_pressure_0);
+
 			for (i=p_cum_size_0[file_index]; i<p_cum_size_0[file_index+1]; i+=1) {phase_pressure_0[i] = aux[0] + (i - p_cum_size_0[file_index]) * (aux[1] - aux[0]) / (p_cum_size_0[file_index+1] - p_cum_size_0[file_index] - 1);}
 		}
 		else if (strcmp(tkn_0, "temperature") == 0)
@@ -1223,16 +1130,10 @@ PetscInt read_phase_change_file(char *fname, PetscInt file_index)
 					t_cum_size_0[file_index+1] = t_size_0[file_index+1] + t_cum_size_0[file_index];
 				}
 			}
+
 			if (file_index == 0) PetscCalloc1(t_cum_size_0[file_index+1],&phase_temperature_0);
-			else
-			{
-				PetscCalloc1(t_cum_size_0[file_index],&phase_temperature_aux); // Allocate aux
-				memcpy(phase_temperature_aux,phase_temperature_0,t_cum_size_0[file_index]*sizeof(PetscScalar)); // Copy last to aux
-				PetscFree(phase_temperature_0); // Free last
-				PetscCalloc1(t_cum_size_0[file_index+1],&phase_temperature_0); // Allocate new 
-				memcpy(phase_temperature_0,phase_temperature_aux,t_cum_size_0[file_index]*sizeof(PetscScalar)); // Copy aux to new
-				PetscFree(phase_temperature_aux); // Free aux
-			}
+			else PetscRealloc(t_cum_size_0[file_index+1]*sizeof(PetscScalar), &phase_temperature_0);
+
 			for (i=t_cum_size_0[file_index]; i<t_cum_size_0[file_index+1]; i+=1) {
 				phase_temperature_0[i] = aux[0] + (i - t_cum_size_0[file_index]) * (aux[1] - aux[0]) / (t_cum_size_0[file_index+1] - t_cum_size_0[file_index] - 1);
 			}
@@ -1246,15 +1147,7 @@ PetscInt read_phase_change_file(char *fname, PetscInt file_index)
 			if (mk_density == PETSC_TRUE) 
 			{
 				if (file_index == 0) {PetscCalloc1(d_cum_size_0[file_index+1],&phase_density_0);}
-				else
-				{
-					PetscCalloc1(d_cum_size_0[file_index],&phase_density_aux); // Allocate aux
-					memcpy(phase_density_aux,phase_density_0,d_cum_size_0[file_index]*sizeof(PetscScalar)); // Copy last to aux
-					PetscFree(phase_density_0); // Free last
-					PetscCalloc1(d_cum_size_0[file_index+1],&phase_density_0); // Allocate new 
-					memcpy(phase_density_0,phase_density_aux,d_cum_size_0[file_index]*sizeof(PetscScalar)); // Copy aux to new
-					PetscFree(phase_density_aux); // Free aux
-				}
+				else PetscRealloc(d_cum_size_0[file_index+1]*sizeof(PetscScalar), &phase_density_0); 
 				mk_density = PETSC_FALSE;
 			}
 			for (i=0; i<p_size_0[file_index+1]; i+=1)
@@ -1282,6 +1175,7 @@ PetscInt read_phase_change_file(char *fname, PetscInt file_index)
 		}
 	}
 	fclose(file);
+
 	if (j<t_size_0[file_index+1])
 	{
 		PetscPrintf(PETSC_COMM_WORLD, "Error. Insufficient values for <density> on file <%s>.\n", fname);

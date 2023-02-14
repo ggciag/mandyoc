@@ -102,7 +102,6 @@ int bcT_right;
 // Phase change variables
 PetscInt    num_phase_change_files = 0;
 PetscInt    *phase_change_unit_number;
-PetscInt    *phase_change_unit_flags;
 PetscInt    *p_size, *p_size_0;
 PetscInt    *p_cum_size, *p_cum_size_0;
 PetscInt    *t_size, *t_size_0;

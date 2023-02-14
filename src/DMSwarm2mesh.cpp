@@ -60,7 +60,6 @@ extern PetscReal epsilon_x;
 // Phase change paramenters
 extern PetscInt 	phase_change;
 extern PetscInt 	*phase_change_unit_number;
-extern PetscInt     *phase_change_unit_flags;
 extern PetscInt 	*p_size;
 extern PetscInt 	*p_cum_size;
 extern PetscInt 	*t_size;
@@ -70,7 +69,6 @@ extern PetscInt     *d_cum_size;
 extern PetscScalar 	*phase_pressure;
 extern PetscScalar 	*phase_temperature;
 extern PetscScalar 	*phase_density;
-// extern PetscInt		n_files2read;
 
 PetscErrorCode Swarm2Mesh_2d(){
 
@@ -192,15 +190,9 @@ PetscErrorCode Swarm2Mesh_2d(){
 
 		// Apply phase change density // Lembrar de fazer para o 3D
 		PetscReal rho_aux;
-		if (phase_change == 1 && phase_change_unit_flags[layer_array[p]] == 1)
-		{
-			rho_aux = find_density(pp_particle, tt_particle, layer_array[p]);
-			// fprintf(stderr, "p:%.2f [MPa], t:%.2f [C], r:%.2f\n", pp_particle/1.0e6, tt_particle, rho_aux);
-		}
-		else
-		{
-			rho_aux = inter_rho[layer_array[p]] * (1.0 - alpha_exp_thermo * tt_particle);
-		}
+
+		if (phase_change == 1 && phase_change_unit_number[layer_array[p]] >= 0) rho_aux = find_density(pp_particle, tt_particle, layer_array[p]);
+		else rho_aux = inter_rho[layer_array[p]] * (1.0 - alpha_exp_thermo * tt_particle);
 
 		rfac = (1.0-rx)*(1.0-rz);
 		qq_rho	[k][i] += rfac*rho_aux;
