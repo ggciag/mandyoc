@@ -6,15 +6,15 @@ PetscErrorCode mean_value_periodic_boundary_2d(DM da,Vec F,Vec local_F, PetscSca
 PetscScalar find_density(PetscScalar p, PetscScalar t, PetscInt idx);
 PetscReal linear_interpolation(PetscReal rx, PetscReal rz,PetscScalar V0, PetscScalar V1, PetscScalar V2, PetscScalar V3);
 
-void print_vec(PetscScalar *vec, PetscInt s_vec)
-{
-	int i;
-	for (i=0; i<s_vec; i+=1)
-	{
-		PetscPrintf(PETSC_COMM_WORLD, "%.0f ", vec[i]);
-	}
-	PetscPrintf(PETSC_COMM_WORLD, "\n");
-}
+// void print_vec(PetscScalar *vec, PetscInt s_vec)
+// {
+// 	int i;
+// 	for (i=0; i<s_vec; i+=1)
+// 	{
+// 		PetscPrintf(PETSC_COMM_WORLD, "%.0f ", vec[i]);
+// 	}
+// 	PetscPrintf(PETSC_COMM_WORLD, "\n");
+// }
 
 extern DM dms;
 
@@ -1077,16 +1077,14 @@ PetscScalar find_density(PetscScalar p_value, PetscScalar t_value, PetscInt laye
 {
 	PetscInt file_index = phase_change_unit_number[layer_number];
 	PetscInt d_index, p_index, t_index;
-	// fprintf(stderr, "file_index:%d %d\n", file_index, layer_number);
-	// fprintf(stderr, "p:%.2f\n", p_value);
-
+	
 	if (p_value < phase_pressure[p_cum_size[file_index]]) p_value = phase_pressure[p_cum_size[file_index]];
 	else if (p_value > phase_pressure[p_cum_size[file_index+1]-1]) p_value = phase_pressure[p_cum_size[file_index+1]-1];
 
 	if (t_value < phase_temperature[p_cum_size[file_index]]) t_value = phase_temperature[p_cum_size[file_index]];
 	else if (t_value > phase_temperature[p_cum_size[file_index+1]-1]) t_value = phase_temperature[p_cum_size[file_index+1]-1];	
 	
-	p_index = round(
+	p_index = p_cum_size[file_index] + round(
 		(p_cum_size[file_index+1]-p_cum_size[file_index]-1)*
 		(p_value-phase_pressure[p_cum_size[file_index]])/
 		(phase_pressure[p_cum_size[file_index+1]-1]-phase_pressure[p_cum_size[file_index]]));
@@ -1094,16 +1092,20 @@ PetscScalar find_density(PetscScalar p_value, PetscScalar t_value, PetscInt laye
 	if (p_index < p_cum_size[file_index]) p_index = p_cum_size[file_index];
 	else if (p_index >= p_cum_size[file_index+1]) p_index = p_cum_size[file_index+1] - 1;
 
-	t_index = (t_size[layer_number]-1) - round((t_cum_size[file_index+1]-t_cum_size[file_index]-1)*
-	 (t_value-phase_temperature[t_cum_size[file_index]])/
-	 (phase_temperature[t_cum_size[file_index+1]-1]-phase_temperature[t_cum_size[file_index]]));
+	t_index = t_cum_size[file_index] + round(
+		(t_cum_size[file_index+1]-t_cum_size[file_index]-1)*
+		(t_value-phase_temperature[t_cum_size[file_index]])/
+		(phase_temperature[t_cum_size[file_index+1]-1]-phase_temperature[t_cum_size[file_index]]));
 	// Sanity check
 	if (t_index < t_cum_size[file_index]) t_index = t_cum_size[file_index];
 	else if (t_index >= t_cum_size[file_index+1]) t_index = t_cum_size[file_index+1] - 1;
 	
-	d_index = p_index + d_cum_size[file_index] + (t_index*(t_size[file_index+1]-1));
+	d_index = (p_index-p_cum_size[file_index]) + d_cum_size[file_index] + ((t_index-t_cum_size[file_index])*(t_size[file_index+1]));
 
-	// fprintf(stderr, "p:%.2f, t:%.2f, u:%d, idx_p:%d, idx_t:%d, ix:%d, density:%f\n", p_value, t_value, layer_number, p_index, t_index, d_index, phase_density[d_index]);
-	
+	// PetscPrintf(PETSC_COMM_WORLD, "p:%.5g, t:%.2f, layer_number:%d, file_idx:%d, idx_p:%d, idx_t:%d, idx_d:%d, density:%f\n", p_value, t_value, layer_number, file_index, p_index, t_index, d_index, phase_density[d_index]);
+	// PetscPrintf(PETSC_COMM_WORLD, "p_cum_size: %d\n", p_cum_size[file_index]);
+	// PetscPrintf(PETSC_COMM_WORLD, "p: %.5g -> p[%d]: %.5g\n", p_value, p_index, phase_pressure[p_index]);
+	// PetscPrintf(PETSC_COMM_WORLD, "t: %.5g -> t[%d]: %.5g\n", t_value, t_index, phase_temperature[t_index]);
+	// PetscPrintf(PETSC_COMM_WORLD, "d[%d]: %.5g\n", d_index, phase_density[d_index]);
 	PetscFunctionReturn(phase_density[d_index]);
 }

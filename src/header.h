@@ -100,18 +100,18 @@ int bcT_right;
 // End of parameter file variables
 
 // Phase change variables
+PetscInt    num_phase_change_files = 0;
 PetscInt    *phase_change_unit_number;
 PetscInt    *phase_change_unit_flags;
-PetscInt    *p_size;
-PetscInt    *p_cum_size;
-PetscInt    *t_size;
-PetscInt    *t_cum_size;
-PetscInt    *d_size;
-PetscInt    *d_cum_size;
-PetscScalar *phase_pressure;
-PetscScalar *phase_temperature;
-PetscScalar *phase_density;
-// PetscInt	n_files2read = 100;
+PetscInt    *p_size, *p_size_0;
+PetscInt    *p_cum_size, *p_cum_size_0;
+PetscInt    *t_size, *t_size_0;
+PetscInt    *t_cum_size, *t_cum_size_0;
+PetscInt    *d_size, *d_size_0;
+PetscInt    *d_cum_size, *d_cum_size_0;
+PetscScalar *phase_pressure, *phase_pressure_0;
+PetscScalar *phase_temperature, *phase_temperature_0;
+PetscScalar *phase_density, *phase_density_0;
 
 PetscInt Px = PETSC_DECIDE;
 PetscInt Py = PETSC_DECIDE;
