@@ -128,6 +128,13 @@ PetscScalar *inter_A;
 PetscScalar *inter_n;
 PetscScalar *inter_Q;
 PetscScalar *inter_V;
+PetscScalar weakening_min = 0.05; // Beaumont
+PetscScalar weakening_max = 1.05; // Beaumont
+PetscScalar *weakening_seed;
+PetscScalar *cohesion_min;
+PetscScalar *cohesion_max;
+PetscScalar *friction_angle_min;
+PetscScalar *friction_angle_max;
 
 int tcont=0;
 
