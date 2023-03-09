@@ -5,6 +5,7 @@
 #include <petsc/private/dmimpl.h>
 #include <petscmath.h>
 #include "petscsys.h"
+#include <math.h>
 
 typedef struct {
 	PetscScalar u;

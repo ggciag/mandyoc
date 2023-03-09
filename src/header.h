@@ -50,6 +50,7 @@ PetscInt checkered = 0; // 1=True, 0=False
 PetscInt initial_dynamic_range = 0; // 1=True, 0=False
 PetscInt periodic_boundary = 0; // 1=True, 0=False
 PetscInt high_kappa_in_asthenosphere = 0; // 1=True, 0=False
+PetscInt phase_change = 0; // 1=True, 0=False
 // Will be added to param.txt
 PetscBool sp_surface_tracking = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
 PetscBool sp_surface_processes = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
@@ -98,6 +99,19 @@ int bcT_bot;
 int bcT_left;
 int bcT_right;
 // End of parameter file variables
+
+// Phase change variables
+PetscInt    num_phase_change_files = 0;
+PetscInt    *phase_change_unit_number;
+PetscInt    *p_size, *p_size_0;
+PetscInt    *p_cum_size, *p_cum_size_0;
+PetscInt    *t_size, *t_size_0;
+PetscInt    *t_cum_size, *t_cum_size_0;
+PetscInt    *d_size, *d_size_0;
+PetscInt    *d_cum_size, *d_cum_size_0;
+PetscScalar *phase_pressure, *phase_pressure_0;
+PetscScalar *phase_temperature, *phase_temperature_0;
+PetscScalar *phase_density, *phase_density_0;
 
 PetscInt Px = PETSC_DECIDE;
 PetscInt Py = PETSC_DECIDE;
