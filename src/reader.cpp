@@ -742,86 +742,89 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(inter_V,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 
 	// Read phase change files
-	PetscCalloc1(n_interfaces+1,&phase_change_unit_number);
-	for (PetscInt k=0; k<n_interfaces+1; k+=1) phase_change_unit_number[k] = -1;
-
-	if ((phase_change==1) && (rank==0))
+	if (phase_change==1)
 	{
-		for (PetscInt i=0; i<n_interfaces+1; i+=1)
+		PetscCalloc1(n_interfaces+1,&phase_change_unit_number);
+		for (PetscInt k=0; k<n_interfaces+1; k+=1) phase_change_unit_number[k] = -1;
+
+		if (rank==0)
 		{
-			char fname[100] = "models/phase_change_";
-			char str_i[11];
-			char str_e[10] = ".txt";
+			for (PetscInt i=0; i<n_interfaces+1; i+=1)
+			{
+				char fname[100] = "models/phase_change_";
+				char str_i[11];
+				char str_e[10] = ".txt";
 
-			sprintf(str_i, "%d", i);
-			strcat(fname, str_i);
-			strcat(fname, str_e);
-			read_phase_change_file(fname, i);
+				sprintf(str_i, "%d", i);
+				strcat(fname, str_i);
+				strcat(fname, str_e);
+				read_phase_change_file(fname, i);
+			}
+			PetscPrintf(PETSC_COMM_WORLD, "\n");
 		}
-		PetscPrintf(PETSC_COMM_WORLD, "\n");
+
+		// Broadcast number of phase files
+		MPI_Bcast(&num_phase_change_files,1,MPIU_INT,0,PETSC_COMM_WORLD);
+
+		// Broadcast flag files
+		MPI_Bcast(phase_change_unit_number,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);
+
+		// Allocate size arrays
+		PetscCalloc1(num_phase_change_files+1,&p_size);
+		PetscCalloc1(num_phase_change_files+1,&p_cum_size);
+		PetscCalloc1(num_phase_change_files+1,&t_size);
+		PetscCalloc1(num_phase_change_files+1,&t_cum_size);
+		PetscCalloc1(num_phase_change_files+1,&d_size);
+		PetscCalloc1(num_phase_change_files+1,&d_cum_size);
+
+		// Copy from rank 0 to global arrays
+		if (rank==0)
+		{
+			memcpy(p_size,p_size_0,(num_phase_change_files+1)*sizeof(PetscScalar)); 
+			memcpy(p_cum_size,p_cum_size_0,(num_phase_change_files+1)*sizeof(PetscScalar));
+			memcpy(t_size,t_size_0,(num_phase_change_files+1)*sizeof(PetscScalar));
+			memcpy(t_cum_size,t_cum_size_0,(num_phase_change_files+1)*sizeof(PetscScalar));
+			memcpy(d_size,d_size_0,(num_phase_change_files+1)*sizeof(PetscScalar));
+			memcpy(d_cum_size,d_cum_size_0,(num_phase_change_files+1)*sizeof(PetscScalar));
+		}
+
+		// Broadcast size arrays
+		MPI_Bcast(p_size,num_phase_change_files+1,MPIU_INT,0,PETSC_COMM_WORLD);
+		MPI_Bcast(p_cum_size,num_phase_change_files+1,MPIU_INT,0,PETSC_COMM_WORLD);
+		MPI_Bcast(t_size,num_phase_change_files+1,MPIU_INT,0,PETSC_COMM_WORLD);
+		MPI_Bcast(t_cum_size,num_phase_change_files+1,MPIU_INT,0,PETSC_COMM_WORLD);
+		MPI_Bcast(d_size,num_phase_change_files+1,MPIU_INT,0,PETSC_COMM_WORLD);
+		MPI_Bcast(d_cum_size,num_phase_change_files+1,MPIU_INT,0,PETSC_COMM_WORLD);
+
+		// Allocate data arrays
+		PetscCalloc1(p_cum_size[num_phase_change_files],&phase_pressure);
+		PetscCalloc1(t_cum_size[num_phase_change_files],&phase_temperature);
+		PetscCalloc1(d_cum_size[num_phase_change_files],&phase_density);
+		
+		// Copy from rank 0 to global data arrays
+		if (rank==0)
+		{
+			memcpy(phase_pressure,phase_pressure_0,(p_cum_size[num_phase_change_files])*sizeof(PetscScalar)); 
+			memcpy(phase_temperature,phase_temperature_0,(t_cum_size[num_phase_change_files])*sizeof(PetscScalar)); 
+			memcpy(phase_density,phase_density_0,(d_cum_size[num_phase_change_files])*sizeof(PetscScalar)); 
+		}
+
+		// Broadcast data arrays
+		MPI_Bcast(phase_pressure,p_cum_size[num_phase_change_files],MPIU_SCALAR,0,PETSC_COMM_WORLD);
+		MPI_Bcast(phase_temperature,t_cum_size[num_phase_change_files],MPIU_SCALAR,0,PETSC_COMM_WORLD);
+		MPI_Bcast(phase_density,d_cum_size[num_phase_change_files],MPIU_SCALAR,0,PETSC_COMM_WORLD);
+
+		// Free rank 0
+		PetscFree(p_size_0);
+		PetscFree(p_cum_size_0);
+		PetscFree(t_size_0);
+		PetscFree(t_cum_size_0);
+		PetscFree(d_size_0);
+		PetscFree(d_cum_size_0);
+		PetscFree(phase_pressure_0);
+		PetscFree(phase_temperature_0);
+		PetscFree(phase_density_0);
 	}
-
-	// Broadcast number of phase files
-	MPI_Bcast(&num_phase_change_files,1,MPI_INT,0,PETSC_COMM_WORLD);
-
-	// Broadcast flag files
-	MPI_Bcast(phase_change_unit_number,n_interfaces+1,MPIU_INT,0,PETSC_COMM_WORLD);
-
-	// Allocate size arrays
-	PetscCalloc1(num_phase_change_files+1,&p_size);
-	PetscCalloc1(num_phase_change_files+1,&p_cum_size);
-	PetscCalloc1(num_phase_change_files+1,&t_size);
-	PetscCalloc1(num_phase_change_files+1,&t_cum_size);
-	PetscCalloc1(num_phase_change_files+1,&d_size);
-	PetscCalloc1(num_phase_change_files+1,&d_cum_size);
-
-	// Copy from rank 0 to global arrays
-	if (rank==0)
-	{
-		memcpy(p_size,p_size_0,(num_phase_change_files+1)*sizeof(PetscScalar)); // Copy from rank 0 to global
-		memcpy(p_cum_size,p_cum_size_0,(num_phase_change_files+1)*sizeof(PetscScalar));
-		memcpy(t_size,t_size_0,(num_phase_change_files+1)*sizeof(PetscScalar));
-		memcpy(t_cum_size,t_cum_size_0,(num_phase_change_files+1)*sizeof(PetscScalar));
-		memcpy(d_size,d_size_0,(num_phase_change_files+1)*sizeof(PetscScalar));
-		memcpy(d_cum_size,d_cum_size_0,(num_phase_change_files+1)*sizeof(PetscScalar));
-	}
-
-	// Broadcast size arrays
-	MPI_Bcast(p_size,num_phase_change_files+1,MPIU_INT,0,PETSC_COMM_WORLD);
-	MPI_Bcast(p_cum_size,num_phase_change_files+1,MPIU_INT,0,PETSC_COMM_WORLD);
-	MPI_Bcast(t_size,num_phase_change_files+1,MPIU_INT,0,PETSC_COMM_WORLD);
-	MPI_Bcast(t_cum_size,num_phase_change_files+1,MPIU_INT,0,PETSC_COMM_WORLD);
-	MPI_Bcast(d_size,num_phase_change_files+1,MPIU_INT,0,PETSC_COMM_WORLD);
-	MPI_Bcast(d_cum_size,num_phase_change_files+1,MPIU_INT,0,PETSC_COMM_WORLD);
-
-	// Allocate data arrays
-	PetscCalloc1(p_cum_size[num_phase_change_files],&phase_pressure);
-	PetscCalloc1(t_cum_size[num_phase_change_files],&phase_temperature);
-	PetscCalloc1(d_cum_size[num_phase_change_files],&phase_density);
-	
-	// Copy from rank 0 to global data arrays
-	if (rank==0)
-	{
-		memcpy(phase_pressure,phase_pressure_0,(p_cum_size[num_phase_change_files])*sizeof(PetscScalar)); // Copy from rank 0 to global
-		memcpy(phase_temperature,phase_temperature_0,(t_cum_size[num_phase_change_files])*sizeof(PetscScalar)); 
-		memcpy(phase_density,phase_density_0,(d_cum_size[num_phase_change_files])*sizeof(PetscScalar)); 
-	}
-
-	// Broadcast data arrays
-	MPI_Bcast(phase_pressure,p_cum_size[num_phase_change_files],MPIU_SCALAR,0,PETSC_COMM_WORLD);
-	MPI_Bcast(phase_temperature,t_cum_size[num_phase_change_files],MPIU_SCALAR,0,PETSC_COMM_WORLD);
-	MPI_Bcast(phase_density,d_cum_size[num_phase_change_files],MPIU_SCALAR,0,PETSC_COMM_WORLD);
-
-	// Free rank 0
-	PetscFree(p_size_0);
-	PetscFree(p_cum_size_0);
-	PetscFree(t_size_0);
-	PetscFree(t_cum_size_0);
-	PetscFree(d_size_0);
-	PetscFree(d_cum_size_0);
-	PetscFree(phase_pressure_0);
-	PetscFree(phase_temperature_0);
-	PetscFree(phase_density_0);
 
 	// Broadcast, special cases
 	//	MPI_Bcast(&n_interfaces,1,MPI_INT,0,PETSC_COMM_WORLD); // Broadcast after interfaces.txt

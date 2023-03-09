@@ -185,11 +185,11 @@ PetscErrorCode Swarm2Mesh_2d(){
 		if (rx<0 || rx>1) {printf("weird rx=%f , Swarm2Mesh\n",rx); exit(1);}
 		if (rz<0 || rz>1) {printf("weird rz=%f , Swarm2Mesh\n",rz); exit(1);}
 
+		// Apply phase change density from ascii file
+		PetscReal rho_aux;
+		
 		tt_particle = linear_interpolation(rx,rz,tt[k][i],tt[k][i+1],tt[k+1][i],tt[k+1][i+1]);
 		pp_particle = linear_interpolation(rx,rz,pp_aux[k][i],pp_aux[k][i+1],pp_aux[k+1][i],pp_aux[k+1][i+1]);
-
-		// Apply phase change density // Lembrar de fazer para o 3D
-		PetscReal rho_aux;
 
 		if (phase_change == 1 && phase_change_unit_number[layer_array[p]] >= 0) rho_aux = find_density(pp_particle, tt_particle, layer_array[p]);
 		else rho_aux = inter_rho[layer_array[p]] * (1.0 - alpha_exp_thermo * tt_particle);
