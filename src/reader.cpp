@@ -113,6 +113,13 @@ extern PetscScalar *inter_A;
 extern PetscScalar *inter_n;
 extern PetscScalar *inter_Q;
 extern PetscScalar *inter_V;
+extern PetscScalar weakening_min;
+extern PetscScalar weakening_max;
+extern PetscScalar *weakening_seed;
+extern PetscScalar *cohesion_min;
+extern PetscScalar *cohesion_max;
+extern PetscScalar *friction_angle_min;
+extern PetscScalar *friction_angle_max;
 
 extern PetscScalar *mv_time;
 extern PetscInt n_mv;
@@ -240,6 +247,8 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "basal_heat") == 0) {basal_heat = atof(tkn_v);}
 			else if (strcmp(tkn_w, "sp_dt") == 0) {sp_dt = atof(tkn_v);}
 			else if (strcmp(tkn_w, "sp_d_c") == 0) {sp_d_c = atof(tkn_v);}
+			else if (strcmp(tkn_w, "weakening_min") == 0) {weakening_min = atof(tkn_v);}
+			else if (strcmp(tkn_w, "weakening_max") == 0) {weakening_max = atof(tkn_v);}
 
 			// Boolean parameters
 			else if (strcmp(tkn_w, "geoq") == 0) {geoq_on = check_a_b(tkn_w, tkn_v, "on", "off");}
@@ -444,6 +453,8 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&set_sp_d_c,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&plot_sediment,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&a2l,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&weakening_min,1,MPI_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&weakening_max,1,MPI_REAL,0,PETSC_COMM_WORLD);
 
 	MPI_Bcast(&non_dim,1,MPI_INT,0,PETSC_COMM_WORLD);
 
@@ -547,6 +558,12 @@ PetscErrorCode reader(int rank, const char fName[]){
 	PetscCalloc1(n_interfaces+1,&inter_n);
 	PetscCalloc1(n_interfaces+1,&inter_Q);
 	PetscCalloc1(n_interfaces+1,&inter_V);
+	PetscCalloc1(n_interfaces+1,&weakening_seed);
+	PetscCalloc1(n_interfaces+1,&cohesion_min);
+	PetscCalloc1(n_interfaces+1,&cohesion_max);
+	PetscCalloc1(n_interfaces+1,&friction_angle_min);
+	PetscCalloc1(n_interfaces+1,&friction_angle_max);
+
 
 	// Read interfaces.txt
 	if ((interfaces_from_ascii==1) && (rank==0)){
@@ -647,6 +664,40 @@ PetscErrorCode reader(int rank, const char fName[]){
 				fscanf(f_interfaces,"%lf",&inter_V[i]);
 		else { ErrorInterfaces(); exit(1);}
 
+		// Strain softening
+		if (WITH_NON_LINEAR == 1 && PLASTICITY == 1)
+		{
+			fscanf(f_interfaces,"%s",str);
+			if (strcmp (str,"weakening_seed") == 0)
+				for (PetscInt i=0;i<n_interfaces+1;i++)
+					fscanf(f_interfaces,"%lf",&weakening_seed[i]);
+			else { ErrorInterfaces(); exit(1);}
+
+			fscanf(f_interfaces,"%s",str);
+			if (strcmp (str,"cohesion_min") == 0)
+				for (PetscInt i=0;i<n_interfaces+1;i++)
+					fscanf(f_interfaces,"%lf",&cohesion_min[i]);
+			else { ErrorInterfaces(); exit(1);}
+
+			fscanf(f_interfaces,"%s",str);
+			if (strcmp (str,"cohesion_max") == 0)
+				for (PetscInt i=0;i<n_interfaces+1;i++)
+					fscanf(f_interfaces,"%lf",&cohesion_max[i]);
+			else { ErrorInterfaces(); exit(1);}
+
+			fscanf(f_interfaces,"%s",str);
+			if (strcmp (str,"friction_angle_min") == 0)
+				for (PetscInt i=0;i<n_interfaces+1;i++)
+					fscanf(f_interfaces,"%lf",&friction_angle_min[i]);
+			else { ErrorInterfaces(); exit(1);}
+
+			fscanf(f_interfaces,"%s",str);
+			if (strcmp (str,"friction_angle_max") == 0)
+				for (PetscInt i=0;i<n_interfaces+1;i++)
+					fscanf(f_interfaces,"%lf",&friction_angle_max[i]);
+			else { ErrorInterfaces(); exit(1);}
+		}
+
 		if (dimensions == 2) {
 			for (PetscInt i=0; i<Nx; i++){
 				for (PetscInt j=0; j<n_interfaces; j++){
@@ -688,6 +739,24 @@ PetscErrorCode reader(int rank, const char fName[]){
 		printf("\n   V: ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
 			printf("%.3e ",inter_V[i]);
+		if (WITH_NON_LINEAR==1 && PLASTICITY==1)
+		{
+			printf("\nseed: ");
+			for (PetscInt i=0;i<n_interfaces+1;i++)
+				printf("%.3f ", weakening_seed[i]);
+			printf("\ncmin: ");
+			for (PetscInt i=0;i<n_interfaces+1;i++)
+				printf("%.3f ", cohesion_min[i]);
+			printf("\ncmax: ");
+			for (PetscInt i=0;i<n_interfaces+1;i++)
+				printf("%.3f ", cohesion_max[i]);
+			printf("\nfmin: ");
+			for (PetscInt i=0;i<n_interfaces+1;i++)
+				printf("%.3f ", friction_angle_min[i]);
+			printf("\nfmax: ");
+			for (PetscInt i=0;i<n_interfaces+1;i++)
+				printf("%.3f ", friction_angle_max[i]);
+		}
 		printf("\n\n");
 
 		fclose(f_interfaces); // Close file
@@ -707,6 +776,11 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(inter_n,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_Q,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_V,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+	MPI_Bcast(weakening_seed,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+	MPI_Bcast(cohesion_min,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+	MPI_Bcast(cohesion_max,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+	MPI_Bcast(friction_angle_min,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+	MPI_Bcast(friction_angle_max,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 
 	// Broadcast, special cases
 //	MPI_Bcast(&n_interfaces,1,MPI_INT,0,PETSC_COMM_WORLD); // Broadcast after interfaces.txt
