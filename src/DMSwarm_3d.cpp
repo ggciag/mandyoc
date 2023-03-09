@@ -65,6 +65,10 @@ extern PetscInt print_step_files;
 
 extern PetscReal random_initial_strain;
 
+// From param.txt and interfaces.txt
+extern PetscInt WITH_NON_LINEAR;
+extern PetscInt PLASTICITY;
+extern PetscScalar *weakening_seed;
 
 extern PetscInt *seed_layer;
 extern PetscInt seed_layer_size;
@@ -496,6 +500,15 @@ PetscErrorCode createSwarm_3d()
 								}
 							}
 						}
+					}
+				}
+				else 
+				{
+					if (WITH_NON_LINEAR==1 && PLASTICITY==1)
+					{
+						if (weakening_seed[p] >= 0) {
+							strain_array[p] = weakening_seed[p];
+						} 
 					}
 				}
 				/////!!!!

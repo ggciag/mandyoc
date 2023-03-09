@@ -64,6 +64,11 @@ extern PetscInt seed_layer_size;
 extern PetscBool seed_layer_set;
 extern PetscBool strain_seed_constant;
 
+// From param.txt and interfaces.txt
+extern PetscInt WITH_NON_LINEAR;
+extern PetscInt PLASTICITY;
+extern PetscScalar *weakening_seed;
+
 extern PetscReal *strain_seed_layer;
 extern PetscInt strain_seed_layer_size;
 extern PetscBool strain_seed_layer_set;
@@ -463,6 +468,15 @@ PetscErrorCode createSwarm_2d()
 								}
 							}
 						}
+					}
+				}
+				else 
+				{
+					if (WITH_NON_LINEAR==1 && PLASTICITY==1)
+					{
+						if (weakening_seed[p] >= 0) {
+							strain_array[p] = weakening_seed[p];
+						} 
 					}
 				}
 
