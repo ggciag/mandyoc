@@ -562,6 +562,12 @@ PetscErrorCode reader(int rank, const char fName[]){
 	PetscCalloc1(n_interfaces+1,&inter_n);
 	PetscCalloc1(n_interfaces+1,&inter_Q);
 	PetscCalloc1(n_interfaces+1,&inter_V);
+	PetscCalloc1(n_interfaces+1,&weakening_seed);
+	PetscCalloc1(n_interfaces+1,&cohesion_min);
+	PetscCalloc1(n_interfaces+1,&cohesion_max);
+	PetscCalloc1(n_interfaces+1,&friction_angle_min);
+	PetscCalloc1(n_interfaces+1,&friction_angle_max);
+
 
 	PetscCalloc1(n_interfaces+1,&weakening_seed);
 	PetscCalloc1(n_interfaces+1,&cohesion_min);
