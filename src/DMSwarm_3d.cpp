@@ -488,7 +488,6 @@ PetscErrorCode createSwarm_3d()
 				{
 					strain_array[p] = random_initial_strain*(float)rand_r(&seed_strain)/RAND_MAX;
 				}
-
 				/////!!!!
 				/*if (rank==0){
 					printf("\n");
