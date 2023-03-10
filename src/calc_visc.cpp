@@ -30,6 +30,8 @@ extern PetscScalar *cohesion_max;
 extern PetscScalar *friction_angle_min;
 extern PetscScalar *friction_angle_max;
 
+extern PetscBool seed_layer_set;
+
 double strain_softening(double strain, double f1, double f2)
 {
 	double fac;
@@ -207,18 +209,27 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		//double mu = 0.01;//
 		//double c0 = 22.0E6;// 
 		//double mu = 0.58778;//
-		
-		// double c0 = strain_softening(strain_cumulate,20.0E6,4.0E6);
-		double c0 = strain_softening(strain_cumulate,cohesion_max[layer_number],cohesion_min[layer_number]);
-		// double mu = strain_softening(strain_cumulate,0.261799,0.034906);
-		double mu = strain_softening(strain_cumulate,friction_angle_max[layer_number],friction_angle_min[layer_number]);
+		double c0;
+		double mu;
+
+		if (seed_layer_set == PETSC_TRUE)
+		{
+			// Beaumont deafult values from command line
+			c0 = strain_softening(strain_cumulate, 20.0E6, 4.0E6);
+			mu = strain_softening(strain_cumulate, 0.261799, 0.034906);
+		}
+		else
+		{
+			c0 = strain_softening(strain_cumulate, cohesion_max[layer_number], cohesion_min[layer_number]);
+			mu = strain_softening(strain_cumulate, friction_angle_max[layer_number], friction_angle_min[layer_number]);
+		}
+
 		double tau_yield;
-		if (pressure_in_rheol==0){
+
+		if (pressure_in_rheol==0)
 			tau_yield = c0*cos(mu) + sin(mu)*10.0*3300.*(depth);
-		}
-		else {
+		else
 			tau_yield = c0*cos(mu) + sin(mu)*P;
-		}
 		
 		double visco_yield = visc_MAX;
 		
@@ -227,15 +238,13 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		if (visco_real>visco_yield) visco_real = visco_yield;
 
 
-		if (rheol == 70){
+		if (rheol == 70)
+		{
 			visco_real = visco_ref;
-			if (2*visco_real*e2_inva-1.0>0){
+			if (2*visco_real*e2_inva-1.0>0)
 				visco_real = 1.0/(2*(e2_inva));
-			}
 		}
-		
 	}
-
 
 	//printf("%lf %lg %lg %lg\n",z,P,e2_inva,visco_real);
 	visco_real /=visc0_scaled;
