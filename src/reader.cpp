@@ -689,7 +689,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 					fscanf(f_interfaces,"%lf",&friction_angle_max[i]);
 			else { ErrorInterfaces(); exit(1);}
 		}
-
+		
 		if (dimensions == 2) {
 			for (PetscInt i=0; i<Nx; i++){
 				for (PetscInt j=0; j<n_interfaces; j++){
@@ -706,48 +706,53 @@ PetscErrorCode reader(int rank, const char fName[]){
 			}
 		}
 
-		printf("Layers:\n  ");
+		printf("Layers:\n    ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
 			printf("%9d ",i);
 
-		printf("\nGeoq: ");
+		printf("\n  Geoq: ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
 			printf("%.3e ",inter_geoq[i]);
-		printf("\n Rho: ");
+		printf("\n   Rho: ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
 			printf("%.3e ",inter_rho[i]);
-		printf("\n   H: ");
+		printf("\n     H: ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
 			printf("%.3e ",inter_H[i]);
-		printf("\n   A: ");
+		printf("\n     A: ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
 			printf("%.3e ",inter_A[i]);
-		printf("\n   n: ");
+		printf("\n     n: ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
 			printf(" %lf ",inter_n[i]);
-		printf("\n   Q: ");
+		printf("\n     Q: ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
 			printf("%.3e ",inter_Q[i]);
-		printf("\n   V: ");
+		printf("\n     V: ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
 			printf("%.3e ",inter_V[i]);
 		if (WITH_NON_LINEAR==1 && PLASTICITY==1)
 		{
-			printf("\nseed: ");
+			printf("\nw_seed: ");
 			for (PetscInt i=0;i<n_interfaces+1;i++)
-				printf("%.3f ", weakening_seed[i]);
-			printf("\ncmin: ");
+			{
+				if (weakening_seed[i] >= 0)
+					printf("%.7lf ", weakening_seed[i]);
+				else
+					printf("%.6lf ", weakening_seed[i]);
+			}
+			printf("\n c_min: ");
 			for (PetscInt i=0;i<n_interfaces+1;i++)
-				printf("%.3f ", cohesion_min[i]);
-			printf("\ncmax: ");
+				printf("%.3e ", cohesion_min[i]);
+			printf("\n c_max: ");
 			for (PetscInt i=0;i<n_interfaces+1;i++)
-				printf("%.3f ", cohesion_max[i]);
-			printf("\nfmin: ");
+				printf("%.3e ", cohesion_max[i]);
+			printf("\n f_min: ");
 			for (PetscInt i=0;i<n_interfaces+1;i++)
-				printf("%.3f ", friction_angle_min[i]);
-			printf("\nfmax: ");
+				printf("%.3e ", friction_angle_min[i]);
+			printf("\n f_max: ");
 			for (PetscInt i=0;i<n_interfaces+1;i++)
-				printf("%.3f ", friction_angle_max[i]);
+				printf("%.3e ", friction_angle_max[i]);
 		}
 		printf("\n\n");
 
@@ -768,11 +773,14 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(inter_n,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_Q,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(inter_V,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
-	MPI_Bcast(weakening_seed,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
-	MPI_Bcast(cohesion_min,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
-	MPI_Bcast(cohesion_max,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
-	MPI_Bcast(friction_angle_min,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
-	MPI_Bcast(friction_angle_max,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+	if (WITH_NON_LINEAR==1 && PLASTICITY==1)
+	{
+		MPI_Bcast(weakening_seed,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+		MPI_Bcast(cohesion_min,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+		MPI_Bcast(cohesion_max,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+		MPI_Bcast(friction_angle_min,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+		MPI_Bcast(friction_angle_max,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+	}
 
 	// Broadcast, special cases
 //	MPI_Bcast(&n_interfaces,1,MPI_INT,0,PETSC_COMM_WORLD); // Broadcast after interfaces.txt
