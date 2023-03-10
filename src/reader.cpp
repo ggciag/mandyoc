@@ -703,7 +703,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 				}
 			else { ErrorInterfaces(); exit(1);}
 		}
-
+		
 		if (dimensions == 2) {
 			for (PetscInt i=first_index; i<Nx; i++){
 				for (PetscInt j=0; j<n_interfaces; j++){

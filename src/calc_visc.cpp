@@ -230,7 +230,6 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		if (rheol == 70)
 		{
 			visco_real = visco_ref;
-
 			if (2*visco_real*e2_inva-1.0>0)
 				visco_real = 1.0/(2*(e2_inva));
 		}
