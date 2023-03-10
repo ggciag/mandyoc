@@ -474,8 +474,8 @@ PetscErrorCode createSwarm_2d()
 				{
 					if (WITH_NON_LINEAR==1 && PLASTICITY==1)
 					{
-						if (weakening_seed[p] >= 0) {
-							strain_array[p] = weakening_seed[p];
+						if (weakening_seed[layer_array[p]] >= 0) {
+							strain_array[p] = weakening_seed[layer_array[p]];
 						} 
 					}
 				}
