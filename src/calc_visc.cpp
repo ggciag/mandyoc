@@ -38,14 +38,14 @@ double strain_softening(double strain, double f1, double f2)
 	double st1 = weakening_min;
 	double st2 = weakening_max;
 
-	if (strain<st1) {fac = f1;}
+	if (strain<st1)
+		fac = f1;
 	else
 	{
-		if (strain>st2) {fac = f2;}
+		if (strain>st2)
+			fac = f2;
 		else
-		{
-			fac = f1 - (f1-f2) * (strain-st1) / (st2-st1);
-		}
+			fac = f1 - (f1 - f2) * (strain - st1) / (st2 - st1);
 	}
 	
 	return(fac);
@@ -69,14 +69,12 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 	if (P<0.0) {P = 0.0;}
 
 	if (pressure_const>=0.0) P = pressure_const;
-
 	
 	if (e2_inva<1.0E-36) e2_inva=1.0E-36;
 	
-	
+	// Rheology model selection
 	if (rheol==0)	visco_real = visco_ref;
-	
-	if (rheol==1)
+	else if (rheol==1)
 	{
 		double r = 20.0;
 		double Q = 225.0/log(r)-0.25*log(r);
@@ -136,12 +134,10 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		double R = 8.3144;
 		double TK = T+273.0;
 		
-		if (pressure_in_rheol==0) {
+		if (pressure_in_rheol==0)
 			visco_real = visco_ref*A*exp(-(QE+VE*10.0*3300.*(depth))/(R*TK));
-		}
-		else {
+		else
 			visco_real = visco_ref*A*exp(-(QE+VE*P)/(R*TK));
-		}
 	}
 	else if (rheol==8)
 	{
@@ -156,12 +152,10 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 			double R = 8.3144;
 			double TK = T+273.;
 			
-			if (pressure_in_rheol==0) {
+			if (pressure_in_rheol==0)
 				visco_real = pow(A,-1./n_exp)*pow(e2_inva,(1.-n_exp)/(n_exp))*exp((QE+VE*10.0*3300.*(depth))/(n_exp*R*TK));
-			}
-			else {
+			else
 				visco_real = pow(A,-1./n_exp)*pow(e2_inva,(1.-n_exp)/(n_exp))*exp((QE+VE*P)/(n_exp*R*TK));
-			}
 		}
 	}
 	else if (rheol==10)
@@ -195,7 +189,8 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 				double VE1 = 5.0E-6;
 				double visc_diffu = (hb_power_m*exp((QE1+VE1*P)/(R*TK)))/(A1);
 
-				if (visco_real>visc_diffu) visco_real = visc_diffu;
+				if (visco_real>visc_diffu) 
+					visco_real = visc_diffu;
 			}
 		}
 	}
@@ -241,6 +236,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		if (rheol == 70)
 		{
 			visco_real = visco_ref;
+
 			if (2*visco_real*e2_inva-1.0>0)
 				visco_real = 1.0/(2*(e2_inva));
 		}
@@ -249,16 +245,13 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 	//printf("%lf %lg %lg %lg\n",z,P,e2_inva,visco_real);
 	visco_real /=visc0_scaled;
 	
-	
 	if (visco_real>visc_MAX) visco_real=visc_MAX;
 	if (visco_real<visc_MIN) visco_real=visc_MIN;
 
-	
 	double f1 = PetscLogReal(visc_MAX_comp/visc_MIN_comp);
 	double f2 = PetscLogReal(visc_MAX/visc_MIN);
 	double f3 = PetscLogReal(visco_real/visc_MIN);
 	visco_real = visc_MIN_comp*PetscExpReal(f1*f3/f2);
-
 	
 	return(visco_real);
 }
