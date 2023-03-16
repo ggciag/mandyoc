@@ -32,6 +32,8 @@ extern PetscScalar *friction_angle_max;
 
 extern PetscBool seed_layer_set;
 
+extern PetscInt cont_strain_softening;
+
 double strain_softening(double strain, double f1, double f2)
 {
 	double fac;
@@ -215,8 +217,16 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		}
 		else
 		{
-			c0 = strain_softening(strain_cumulate, cohesion_max[layer_number], cohesion_min[layer_number]);
-			mu = strain_softening(strain_cumulate, friction_angle_max[layer_number], friction_angle_min[layer_number]);
+			if (cont_strain_softening == 5)
+			{
+				c0 = strain_softening(strain_cumulate, cohesion_max[layer_number], cohesion_min[layer_number]);
+				mu = strain_softening(strain_cumulate, friction_angle_max[layer_number], friction_angle_min[layer_number]);
+			}
+			else
+			{
+				c0 = strain_softening(strain_cumulate, 20.0E6, 4.0E6);
+				mu = strain_softening(strain_cumulate, 0.261799, 0.034906);
+			}
 		}
 
 		double tau_yield;

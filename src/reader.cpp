@@ -120,6 +120,7 @@ extern PetscScalar *cohesion_min;
 extern PetscScalar *cohesion_max;
 extern PetscScalar *friction_angle_min;
 extern PetscScalar *friction_angle_max;
+extern PetscInt    cont_strain_softening;
 
 extern PetscScalar *mv_time;
 extern PetscInt n_mv;
@@ -661,7 +662,6 @@ PetscErrorCode reader(int rank, const char fName[]){
 		else { ErrorInterfaces(); exit(1);}
 
 		// Strain softening
-		PetscInt cont_strain_softening = 0;
 		if (WITH_NON_LINEAR == 1 && PLASTICITY == 1)
 		{
 			fscanf(f_interfaces,"%s",str);
@@ -803,6 +803,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 		MPI_Bcast(cohesion_max,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 		MPI_Bcast(friction_angle_min,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 		MPI_Bcast(friction_angle_max,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+		MPI_Bcast(&cont_strain_softening,1,MPIU_INT,0,PETSC_COMM_WORLD);
 	}
 
 	// Broadcast, special cases
