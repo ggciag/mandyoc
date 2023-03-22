@@ -228,6 +228,8 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 				mu = strain_softening(strain_cumulate, 0.261799, 0.034906);
 			}
 		}
+		// PetscPrintf(PETSC_COMM_WORLD, "#: %d, strain: %E, c0: %E, mu: %f\n", layer_number, strain_cumulate, c0, mu);
+		// PetscPrintf(PETSC_COMM_WORLD, "c1; %E, c0: %E\n", cohesion_max[layer_number], cohesion_min[layer_number]);
 
 		double tau_yield;
 

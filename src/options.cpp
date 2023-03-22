@@ -42,6 +42,7 @@ PetscErrorCode parse_options(int rank)
 		ierr = PetscCalloc1(n_interfaces, &strain_seed_layer); CHKERRQ(ierr);
 		strain_seed_layer_size = n_interfaces + 1;
 		ierr = PetscOptionsGetRealArray(NULL, NULL, "-strain_seed", strain_seed_layer, &strain_seed_layer_size, &strain_seed_layer_set); CHKERRQ(ierr);
+
 		if (strain_seed_layer_set == PETSC_TRUE && seed_layer_set == PETSC_FALSE) {
 			PetscPrintf(PETSC_COMM_WORLD, "Specify the seed layer with the flag -seed (required by -strain_seed)\n");
 			exit(1);
@@ -56,6 +57,10 @@ PetscErrorCode parse_options(int rank)
 				strain_seed_layer[k] = 0.5;
 			}
 		}
+		if (strain_seed_layer_set == PETSC_TRUE && seed_layer_set == PETSC_TRUE && seed_layer_size == strain_seed_layer_size) {
+			PetscPrintf(PETSC_COMM_WORLD, "Using strain seed parameters from command line\n\n");
+		}
+
 		PetscPrintf(PETSC_COMM_WORLD, "Number of seed layers: %d\n", seed_layer_size);
 		for (int k = 0; k < seed_layer_size; k++) {
 			PetscPrintf(PETSC_COMM_WORLD, "seed layer: %d - strain: %lf\n", seed_layer[k], strain_seed_layer[k]);
