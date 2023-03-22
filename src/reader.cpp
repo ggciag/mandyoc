@@ -714,7 +714,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 
 			if (cont_strain_softening != 0 && cont_strain_softening != 5)
 			{
-				fprintf(stderr, "Error. One or more of these keywords, and their values, are missing in the \n");
+				fprintf(stderr, "Error. One or more of these keywords and their values are missing in the \n");
 				fprintf(stderr, "interfaces.txt file:\n\n\t<weakening_seed>\n\t<cohesion_min>\n\t<cohesion_max>\n");
 				fprintf(stderr, "\t<friction_angle_min>\n\t<friction_angle_max>\n\n");
 				exit(1);
@@ -762,7 +762,8 @@ PetscErrorCode reader(int rank, const char fName[]){
 		printf("\n     V: ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
 			printf("%.3e ",inter_V[i]);
-		if (WITH_NON_LINEAR==1 && PLASTICITY==1)
+
+		if (WITH_NON_LINEAR==1 && PLASTICITY==1 && cont_strain_softening == 5)
 		{
 			printf("\nw_seed: ");
 			for (PetscInt i=0;i<n_interfaces+1;i++)
@@ -784,6 +785,12 @@ PetscErrorCode reader(int rank, const char fName[]){
 			printf("\n f_max: ");
 			for (PetscInt i=0;i<n_interfaces+1;i++)
 				printf("%.3e ", friction_angle_max[i]);
+			
+			printf("\n\nUsing strain softening parameters from <interfaces.txt>");
+		}
+		else if (WITH_NON_LINEAR==1 && PLASTICITY==1 && cont_strain_softening == 0)
+		{
+			printf("\n\nUsing default strain softening parameters from Beaumont");
 		}
 		printf("\n\n");
 
