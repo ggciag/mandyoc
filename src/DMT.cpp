@@ -81,6 +81,8 @@ extern int bcT_top;
 extern int bcT_bot;
 extern int bcT_left;
 extern int bcT_right;
+extern int bcT_front;
+extern int bcT_back;
 
 extern Vec local_FT;
 extern Vec local_Temper;
@@ -270,6 +272,10 @@ PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt
 					if (i==0   && bcT_left==1) ff3d[k][j][i] = 0.0;
 
 					if (i==M-1 && bcT_right==1)ff3d[k][j][i] = 0.0;
+
+					if (j==0   && bcT_front==1)ff3d[k][j][i] = 0.0;
+
+					if (j==N-1 && bcT_back==1) ff3d[k][j][i] = 0.0;
 
 					if (k==0   && bcT_bot==1) ff3d[k][j][i] = 0.0;
 

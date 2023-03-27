@@ -100,6 +100,8 @@ int bcT_top;
 int bcT_bot;
 int bcT_left;
 int bcT_right;
+int bcT_front = 1;
+int bcT_back = 1;
 // End of parameter file variables
 
 PetscInt Px = PETSC_DECIDE;
@@ -368,8 +370,8 @@ PetscInt n_var_climate;
 PetscInt cont_var_climate=0;
 
 
-//Rescaled variables for non-dimensional scenarios 
-//(necessary to calculate the effective viscosity using 
+//Rescaled variables for non-dimensional scenarios
+//(necessary to calculate the effective viscosity using
 //dimensional pressure, temperature, strain rate and cummulative strain)
 PetscInt non_dim = 0;
 
