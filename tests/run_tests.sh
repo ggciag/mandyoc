@@ -15,7 +15,7 @@ declare -a scenarios=(
 # Run scenarios
 for scenario in "${scenarios[@]}"
 do
-    echo -e "/n==> Running scenario: ${scenario} <===/n"
+    echo -e "\n==> Running scenario: ${scenario} <===\n"
 
     # Remove old output
     rm -rf "${SCRIPT_DIR}/data/${scenario}/output"
