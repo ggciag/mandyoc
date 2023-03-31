@@ -57,6 +57,8 @@ PetscErrorCode sp_write_surface_vec(PetscInt i);
 PetscErrorCode sp_destroy();
 PetscErrorCode rescalePrecipitation(double tempo);
 PetscErrorCode parse_options(int rank);
+PetscErrorCode load_topo_var(int rank);
+
 
 int main(int argc,char **args)
 {
@@ -93,11 +95,36 @@ int main(int argc,char **args)
 
 	seed = rank;
 
+	// Parse command line options
+	parse_options(rank);
+
 	// Read ASCII files
 	reader(rank, "param.txt");
 
-	// Parse command line options
-	parse_options(rank);
+	// Check if the number of interfaces in "param.txt" is higher than then number read from command line
+	if (seed_layer_size > n_interfaces) {
+		PetscPrintf(PETSC_COMM_WORLD, "Error: The number of layers specified in command line \"-seed\" command is higher than the number in \"param.txt\".\n");
+	}
+
+	PetscPrintf(PETSC_COMM_WORLD, "Number of seed layers: %d\n", seed_layer_size);
+	for (int k = 0; k < seed_layer_size; k++) {
+		PetscPrintf(PETSC_COMM_WORLD, "seed layer: %d - strain: %lf\n", seed_layer[k], strain_seed_layer[k]);
+	}
+	PetscPrintf(PETSC_COMM_WORLD, "\n");
+
+	if (sp_surface_processes && sp_surface_tracking && sp_mode == 1) {
+		load_topo_var(rank);
+	}
+
+	if (sp_mode == 2 && PETSC_FALSE == set_sp_d_c) {
+		ierr = PetscPrintf(PETSC_COMM_WORLD, "-sp_mode 2 (diffusion) using default value: sp_d_c %e\n", sp_d_c); CHKERRQ(ierr);
+	} else if (sp_mode == 2) {
+		ierr = PetscPrintf(PETSC_COMM_WORLD, "-sp_mode 2 (diffusion) using custom value: sp_d_c %e\n", sp_d_c); CHKERRQ(ierr);
+	} else if (sp_mode == 3) {
+		ierr = PetscPrintf(PETSC_COMM_WORLD, "-sp_mode 3 (fluvial erosion) using K_fluvial: %e and sea_level %e\n", K_fluvial, sea_level); CHKERRQ(ierr);
+	} else if (sp_mode == 4) {
+		ierr = PetscPrintf(PETSC_COMM_WORLD, "-sp_mode 4 (fluvial erosion mode 2) using K_fluvial: %e and sea_level %e\n", K_fluvial, sea_level); CHKERRQ(ierr);
+	}
 
 	// Update elements aux constants
 	if (dimensions == 3) {

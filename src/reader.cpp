@@ -294,7 +294,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 
 			else if (strcmp(tkn_w, "diffusivity0_scaled") == 0) {kappa0_scaled = atof(tkn_v);}
 			else if (strcmp(tkn_w, "temperature0_scaled") == 0) {temperature0_scaled = atof(tkn_v);}*/
-			
+
 
 
 			// Else
@@ -447,6 +447,14 @@ PetscErrorCode reader(int rank, const char fName[]){
 
 	MPI_Bcast(&non_dim,1,MPI_INT,0,PETSC_COMM_WORLD);
 
+	if (pressure_in_rheol == 0 && h_air < 0.0) {
+		PetscPrintf(PETSC_COMM_WORLD, "Specify the thickness of the air layer with the flag -h_air\n");
+		PetscPrintf(PETSC_COMM_WORLD, "(you adopted depth dependent rheology: pressure_in_rheol = 0)\n");
+		exit(1);
+	} else if (pressure_in_rheol == 1) {
+		h_air = 0.0;
+	}
+
 	if (non_dim==1){
 		h0_scaled = depth;
 		depth /= h0_scaled;
@@ -501,7 +509,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	adiabatic_scaled = time0_scaled*g0_scaled*veloc0_scaled;
 
 
-	
+
 	air_threshold_density = 100.0/rho0_scaled;
 
 
