@@ -32,6 +32,7 @@ COPY --chown=${USER}:${USER} . ${MANDYOC_DIR}
 RUN mkdir -p ${HOME}/.local/bin && \
     cd ${MANDYOC_DIR} && \
     make clear && \
+    make all && \
     make install
 
 # =============================================================================
