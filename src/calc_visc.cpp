@@ -32,7 +32,7 @@ extern PetscScalar *friction_angle_max;
 
 extern PetscBool seed_layer_set;
 
-extern PetscInt cont_strain_softening;
+extern PetscBool weakening_from_interfaces_file;
 
 double strain_softening(double strain, double f1, double f2)
 {
@@ -209,34 +209,16 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		double c0;
 		double mu;
 
-		if (seed_layer_set == PETSC_TRUE)
-		{
-			// Beaumont deafult values from command line
-			c0 = strain_softening(strain_cumulate, 20.0E6, 4.0E6);
-			mu = strain_softening(strain_cumulate, 0.261799, 0.034906);
-		}
-		else
-		{
-			if (cont_strain_softening == 5)
-			{
-				c0 = strain_softening(strain_cumulate, cohesion_max[layer_number], cohesion_min[layer_number]);
-				mu = strain_softening(strain_cumulate, friction_angle_max[layer_number], friction_angle_min[layer_number]);
-			}
-			else
-			{
-				c0 = strain_softening(strain_cumulate, 20.0E6, 4.0E6);
-				mu = strain_softening(strain_cumulate, 0.261799, 0.034906);
-			}
-		}
-		// PetscPrintf(PETSC_COMM_WORLD, "#: %d, strain: %E, c0: %E, mu: %f\n", layer_number, strain_cumulate, c0, mu);
-		// PetscPrintf(PETSC_COMM_WORLD, "c1; %E, c0: %E\n", cohesion_max[layer_number], cohesion_min[layer_number]);
+		// Compute cohesion and friction angle
+		c0 = strain_softening(strain_cumulate, cohesion_max[layer_number], cohesion_min[layer_number]);
+		mu = strain_softening(strain_cumulate, friction_angle_max[layer_number], friction_angle_min[layer_number]);
 
 		double tau_yield;
 
-		if (pressure_in_rheol==0)
-			tau_yield = c0*cos(mu) + sin(mu)*10.0*3300.*(depth);
+		if (pressure_in_rheol == 0)
+			tau_yield = c0 * cos(mu) + sin(mu) * 10.0 * 3300.0 * (depth);
 		else
-			tau_yield = c0*cos(mu) + sin(mu)*P;
+			tau_yield = c0 * cos(mu) + sin(mu) * P; // Druker-Prager criterion
 		
 		double visco_yield = visc_MAX;
 		

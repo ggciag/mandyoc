@@ -135,7 +135,7 @@ PetscScalar *cohesion_min;
 PetscScalar *cohesion_max;
 PetscScalar *friction_angle_min;
 PetscScalar *friction_angle_max;
-PetscInt    cont_strain_softening = 0;
+PetscBool   weakening_from_interfaces_file = PETSC_FALSE;
 
 int tcont=0;
 
