@@ -488,19 +488,6 @@ PetscErrorCode createSwarm_3d()
 				{
 					strain_array[p] = random_initial_strain*(float)rand_r(&seed_strain)/RAND_MAX;
 				}
-<<<<<<< HEAD
-
-=======
-				else 
-				{
-					if (WITH_NON_LINEAR==1 && PLASTICITY==1)
-					{
-						if (weakening_seed[layer_array[p]] >= 0) {
-							strain_array[p] = weakening_seed[layer_array[p]];
-						} 
-					}
-				}
->>>>>>> 1ffdf59e4044d78aac86fb293026d1f3d4c3d62a
 				/////!!!!
 				/*if (rank==0){
 					printf("\n");
