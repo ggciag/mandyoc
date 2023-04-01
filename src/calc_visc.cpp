@@ -32,7 +32,11 @@ extern PetscScalar *friction_angle_max;
 
 extern PetscBool seed_layer_set;
 
+<<<<<<< HEAD
 extern PetscBool weakening_from_interfaces_file;
+=======
+extern PetscInt cont_strain_softening;
+>>>>>>> 1ffdf59e4044d78aac86fb293026d1f3d4c3d62a
 
 double strain_softening(double strain, double f1, double f2)
 {
