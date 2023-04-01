@@ -479,38 +479,16 @@ PetscErrorCode createSwarm_3d()
 					//printf("entrei!\n");
 				}
 
+				// Load initial strain_array with weakening_seed to or random value
 				rand_r(&seed_strain);
-				strain_array[p]=random_initial_strain*(float)rand_r(&seed_strain)/RAND_MAX;
-
-				if (seed_layer_set == PETSC_TRUE) {
-					if (seed_layer_size == 1 && layer_array[p] == seed_layer[0]) {
-						if (strain_seed_constant == PETSC_TRUE) {
-							strain_array[p] = strain_seed_layer[0];
-						} else {
-							strain_array[p] += strain_seed_layer[0];
-						}
-					}
-					else {
-						for (int k = 0; k < seed_layer_size; k++) {
-							if (layer_array[p] == seed_layer[k]) {
-								if (strain_seed_constant == PETSC_TRUE) {
-									strain_array[p] = strain_seed_layer[k];
-								} else {
-									strain_array[p] += strain_seed_layer[k];
-								}
-							}
-						}
-					}
-				}
-				else 
+				if (weakening_seed[layer_array[p]] >= 0) {
+					strain_array[p] = weakening_seed[layer_array[p]];
+				} 
+				else
 				{
-					if (WITH_NON_LINEAR==1 && PLASTICITY==1)
-					{
-						if (weakening_seed[layer_array[p]] >= 0) {
-							strain_array[p] = weakening_seed[layer_array[p]];
-						} 
-					}
+					strain_array[p] = random_initial_strain*(float)rand_r(&seed_strain)/RAND_MAX;
 				}
+
 				/////!!!!
 				/*if (rank==0){
 					printf("\n");
