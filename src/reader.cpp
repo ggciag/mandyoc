@@ -122,7 +122,9 @@ extern PetscScalar *friction_angle_min;
 extern PetscScalar *friction_angle_max;
 extern PetscBool   weakening_from_interfaces_file;
 extern PetscBool   strain_seed_layer_set;
-extern PetscScalar *strain_seed_layer;
+extern PetscInt	   seed_layer_size;
+extern PetscInt    *seed_layer;
+extern PetscReal   *strain_seed_layer;
 
 extern PetscScalar *mv_time;
 extern PetscInt n_mv;
@@ -572,15 +574,16 @@ PetscErrorCode reader(int rank, const char fName[]){
 	// Set default values for arrays or copy them from the command line options
 	for (PetscInt i=0; i<n_interfaces+1;i++)
 	{
-		cohesion_min[i] = 4.0E6; // Value from Beaumont
-		cohesion_max[i] = 20.0E6; // Value from Beaumont
-		friction_angle_min[i] = 2.0 * PETSC_PI / 180.0; // Value from Beaumont
-		friction_angle_max[i] = 15.0 * PETSC_PI / 180.0; // Value from Beaumont
-		if (strain_seed_layer_set == PETSC_TRUE)
-			weakening_seed[i] = strain_seed_layer[i];
-		else
-			weakening_seed[i] = weakening_min; // Value from Beaumont
+		cohesion_min[i] 		= 4.0E6; 					// Value from Beaumont
+		cohesion_max[i] 		= 20.0E6; 					// Value from Beaumont
+		friction_angle_min[i] 	= 2.0 * PETSC_PI / 180.0; 	// Value from Beaumont
+		friction_angle_max[i] 	= 15.0 * PETSC_PI / 180.0; 	// Value from Beaumont
+		weakening_seed[i] 		= weakening_min; 			// Value from Beaumont
 	}
+
+	if (strain_seed_layer_set == PETSC_TRUE)
+		for (int k = 0; k < seed_layer_size; k++) 
+			weakening_seed[seed_layer[k]] = strain_seed_layer[k];
 
 	// Read <interfaces.txt> file
 	if ((interfaces_from_ascii==1) && (rank==0)){
