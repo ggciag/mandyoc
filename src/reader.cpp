@@ -563,15 +563,6 @@ PetscErrorCode reader(int rank, const char fName[]){
 	PetscCalloc1(n_interfaces+1,&inter_Q);
 	PetscCalloc1(n_interfaces+1,&inter_V);
 
-	if (WITH_NON_LINEAR == 1 && PLASTICITY == 1)
-	{
-		PetscCalloc1(n_interfaces+1,&weakening_seed);
-		PetscCalloc1(n_interfaces+1,&cohesion_min);
-		PetscCalloc1(n_interfaces+1,&cohesion_max);
-		PetscCalloc1(n_interfaces+1,&friction_angle_min);
-		PetscCalloc1(n_interfaces+1,&friction_angle_max);
-	}
-
 	PetscCalloc1(n_interfaces+1,&weakening_seed);
 	PetscCalloc1(n_interfaces+1,&cohesion_min);
 	PetscCalloc1(n_interfaces+1,&cohesion_max);
@@ -680,19 +671,15 @@ PetscErrorCode reader(int rank, const char fName[]){
 		{
 			fscanf(f_interfaces,"%s",str);
 			if (strcmp (str,"cohesion_min") == 0)
-			{
-				cont_strain_softening += 1;
 				for (PetscInt i=0;i<n_interfaces+1;i++)
 					fscanf(f_interfaces,"%lf",&cohesion_min[i]);
-			}
+			else { ErrorInterfaces(); exit(1);}
 
 			fscanf(f_interfaces,"%s",str);
 			if (strcmp (str,"cohesion_max") == 0)
-			{
-				cont_strain_softening += 1;
 				for (PetscInt i=0;i<n_interfaces+1;i++)
 					fscanf(f_interfaces,"%lf",&cohesion_max[i]);
-			}
+			else { ErrorInterfaces(); exit(1);}
 
 			fscanf(f_interfaces,"%s",str);
 			if (strcmp (str,"friction_angle_min") == 0)
@@ -710,7 +697,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 				}
 			else { ErrorInterfaces(); exit(1);}
 		}
-		
+
 		if (dimensions == 2) {
 			for (PetscInt i=first_index; i<Nx; i++){
 				for (PetscInt j=0; j<n_interfaces; j++){
