@@ -578,7 +578,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 		cohesion_max[i] 		= 20.0E6; 					// Value from Beaumont
 		friction_angle_min[i] 	= 2.0 * PETSC_PI / 180.0; 	// Value from Beaumont
 		friction_angle_max[i] 	= 15.0 * PETSC_PI / 180.0; 	// Value from Beaumont
-		weakening_seed[i] 		= weakening_min; 			// Value from Beaumont
+		weakening_seed[i] 		= 0.0; 			
 	}
 
 	if (strain_seed_layer_set == PETSC_TRUE)
