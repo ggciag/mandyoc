@@ -102,7 +102,7 @@ int main(int argc,char **args)
 	reader(rank, "param.txt");
 
 	// Check if the number of interfaces in "param.txt" is higher than then number read from command line
-	if (seed_layer_size > n_interfaces) {
+	if (seed_layer_set && seed_layer_size > n_interfaces) {
 		PetscPrintf(PETSC_COMM_WORLD, "Error: The number of layers specified in command line \"-seed\" command is higher than the number in \"param.txt\".\n");
 	}
 
