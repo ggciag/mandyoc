@@ -479,14 +479,12 @@ PetscErrorCode createSwarm_3d()
 					//printf("entrei!\n");
 				}
 
-				// Load initial strain_array with weakening_seed to or random value
+				// Start initial strain_array with random value and overwrite it (if set)
 				rand_r(&seed_strain);
+				strain_array[p] = random_initial_strain*(float)rand_r(&seed_strain)/RAND_MAX;
+
 				if (weakening_seed[layer_array[p]] >= 0) {
 					strain_array[p] = weakening_seed[layer_array[p]];
-				} 
-				else
-				{
-					strain_array[p] = random_initial_strain*(float)rand_r(&seed_strain)/RAND_MAX;
 				}
 				/////!!!!
 				/*if (rank==0){
