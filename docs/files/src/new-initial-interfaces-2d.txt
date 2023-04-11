@@ -1,0 +1,19 @@
+C    				1.0    1.0    1.0
+rho  				3000.0 3000.0 3000.0
+H    				0.0    0.0    0.0
+A    				0.0    0.0    0.0
+n    				0.0    0.0    0.0
+Q    				0.0    0.0    0.0
+V    				0.0    0.0    0.0
+weakeing_seed		1.0    -1.0   0.5
+cohesion_min		5.0e6  5.0e6  5.0e6
+cohesion_max		30.0e7 5.0e6  1.0e7
+friction_angle_min	0.0    0.2    10.0
+friction_angle_max	0.0    20.0   10.0
+y_1(x_0)    y_2(x_0)
+y_1(x_1)    y_2(x_1)
+y_1(x_2)    y_2(x_2)
+y_1(x_3)    y_2(x_3)
+y_1(x_4)    y_2(x_4)
+y_1(x_5)    y_2(x_5)
+y_1(x_6)    y_2(x_6)

@@ -79,7 +79,7 @@ The ``interfaces.txt`` file, for a 2-D grid, starts with seven lines of variable
 2-D Initial interfaces
 **********************
 
-Below, the example corresponds to a 2-D grid with two interfaces and, therefore, three lithological units. The first column contains the vertical positions **in meters** of every grid node :math:`y_m` that corresponds to the  **deepest** interface boundary, starting at :math:`x=x_0` on line 8, and ending at :math:`x=x_{nx-1}` on line :math:`nx+7`. The second column contains the vertical position of every :math:`y_m` that corresponds to the second interface boundary. When defining the interfaces, it is rather common for them to "touch". Because of that, all the interfaces must be provided in a "tetris" manner, where interfaces that are collinear in parts fit the interface below.
+Below, the example corresponds to a 2-D grid with two interfaces and, therefore, three lithological units. The first column contains the vertical positions **in meters** of every grid node :math:`y_m` that corresponds to the **deepest** interface boundary, starting at :math:`x=x_0` on line 8, and ending at :math:`x=x_{nx-1}` on line :math:`nx+7`. The second column contains the vertical position of every :math:`y_m` that corresponds to the second interface boundary. When defining the interfaces, it is rather common for them to "touch". Because of that, all the interfaces must be provided in a "tetris" manner, where interfaces that are collinear in parts fit the interface below.
 
 .. note::
    Because the interfaces are defined linearly between the nodes, it is important to define them properly, so every point inside the grid can be attributed to a lithological unit.
@@ -89,6 +89,16 @@ Below, the example corresponds to a 2-D grid with two interfaces and, therefore,
    :linenos:
 
 The values of the variables in the first seven lines are the values of the lithological units bound by the interfaces. For the 2-D grid with two interfaces, the first values of each variable refers to the lithological unit below the first interface, the second value of each variable refers to the lithological unit between the first and second interfaces, and the third value of each variable refers to the lithological unit above the second interface. If more interfaces are added, there will be more units bounded by an upper and a lower interface.
+
+To consider different values of internal cohesion :math:`c_0` and internal angle of friction :math:`\varphi` for each layer, the interface file can be written as the file below, where *weakening_seed*, *cohesion_min*, *cohesion_max*, *friction_angle_min*, and *friction_angle_max* are given.
+
+.. literalinclude:: src/new-initial-interfaces-2d.txt
+   :language: text
+   :linenos:
+
+The *weakening_seed* value for each layer represents its initial accumulated strain value (seed), and when it is negative, a random seed will be used instead. When *cohesion_min* and *cohesion_max* are different, that corresponding layer will be linearly softened between those values. Notice that a constant cohesion can be set if the values are simply equal. The same logic aplies to *friction_angle_min* and *friction_angle_max*.
+
+The default interval of accumualted strain where strain softening occurs is 0.05 and 1.05, cf. :cite:`salazarmora2018`. To use different values, the user must provide them in the ``param.txt`` withe the keywords *weakeing_min* and *weakening_max*.
 
 ..
    3-D Initial interfaces

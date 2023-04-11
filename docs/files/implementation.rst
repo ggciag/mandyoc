@@ -283,7 +283,7 @@ The plastic deformation can be calculated using the Byerlee Law :cite:`byerlee19
 
     \tau_{yield} = c_{0}+\mu \rho g z
 
-where :math:`c_{0}` in the internal cohesion, :math:`\mu` is the friction coefficient, :math:`\rho` is the density and :math:`z` is the depth.
+where :math:`c_{0}` in the internal cohesion of the rock, :math:`\mu` is the friction coefficient, :math:`\rho` is the density and :math:`z` is the depth.
 
 Alternatively, the user can choose to use the the Druker-Prager criterion :cite:`drucker-prager1952`, which is presented in :eq:`drucker-prager`.
 
@@ -306,7 +306,7 @@ The ductile rheology can be simulated using the Frank-Kamenetskii approximation,
 
     \eta_{visc}(T) = C \eta_r b^* \exp{(-\gamma T)}
 
-where :math:`\eta_r` is the reference viscosity, :math:`C`is a compositional factor to scale the effective viscosity, and :math:`b^*` and :math:`\gamma = E_a / RT^2_b` are constants, which in turn, :math:`E_a` is the activation energy, :math:`R` is the gas constant, and :math:`T_b` is the basal temperature.
+where :math:`\eta_r` is the reference viscosity, :math:`C` is a compositional factor to scale the effective viscosity, and :math:`b^*` and :math:`\gamma = E_a / RT^2_b` are constants, which in turn, :math:`E_a` is the activation energy, :math:`R` is the gas constant, and :math:`T_b` is the basal temperature.
 
 Additionally, the rheology can also be considered to follow a power law, as a function of the temperature :math:`T`, compositional factor :math:`C`, pressure :math:`P` and strain rate :math:`\varepsilon` as follows:
 

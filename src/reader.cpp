@@ -574,10 +574,10 @@ PetscErrorCode reader(int rank, const char fName[]){
 	// Set default values for arrays or copy them from the command line options
 	for (PetscInt i=0; i<n_interfaces+1;i++)
 	{
-		cohesion_min[i] 		= 4.0E6; 					// Value from Beaumont
-		cohesion_max[i] 		= 20.0E6; 					// Value from Beaumont
-		friction_angle_min[i] 	= 0.034906; 	// Value from Beaumont
-		friction_angle_max[i] 	= 0.261799;  	// Value from Beaumont
+		cohesion_min[i] 		= 4.0E6; 					// Value from Salazar-Mora et al. (2018)
+		cohesion_max[i] 		= 20.0E6; 					// Value from Salazar-Mora et al. (2018)
+		friction_angle_min[i] 	= 0.034906; 	// Value from Salazar-Mora et al. (2018)
+		friction_angle_max[i] 	= 0.261799;  	// Value from Salazar-Mora et al. (2018)
 		weakening_seed[i] 		= -1.0;						// Default is a random_initial_strain * rand_r()
 	}
 
@@ -772,7 +772,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 		}
 		else
 		{
-			PetscPrintf(PETSC_COMM_WORLD, "\n\nUsing default strain softening parameters from Beaumont");
+			PetscPrintf(PETSC_COMM_WORLD, "\n\nUsing default strain softening parameters from Salazar-Mora et al. (2018)");
 		}
 		PetscPrintf(PETSC_COMM_WORLD, "\n\n");
 
