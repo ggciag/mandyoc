@@ -18,7 +18,7 @@ typedef struct {
 } Stokes3d;
 
 double calc_visco_ponto(double T, double P, double x, double z,double geoq_ponto,double e2_inva,double strain_cumulate,
-						double A, double n_exp, double QE, double VE);
+						double A, double n_exp, double QE, double VE, PetscInt layer_number);
 
 extern DM dms;
 
@@ -383,7 +383,8 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 
 
 			rarray[p] = calc_visco_ponto(tp,Pp,cx,cz,inter_geoq[layer_array[p]],E2_invariant,strain_fac[p],
-										inter_A[layer_array[p]], inter_n[layer_array[p]], inter_Q[layer_array[p]], inter_V[layer_array[p]]);
+										inter_A[layer_array[p]], inter_n[layer_array[p]], inter_Q[layer_array[p]], inter_V[layer_array[p]], layer_array[p]);
+			// PetscPrintf(PETSC_COMM_WORLD, "p: %d, strain: %E\n", p, strain_fac[p]);
 
 
 
@@ -575,8 +576,10 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 
 
 			rarray[p] = calc_visco_ponto(tp,Pp,cx,cz,inter_geoq[layer_array[p]],E2_invariant,strain_fac[p],
-										inter_A[layer_array[p]], inter_n[layer_array[p]], inter_Q[layer_array[p]], inter_V[layer_array[p]]);
+										inter_A[layer_array[p]], inter_n[layer_array[p]], inter_Q[layer_array[p]], inter_V[layer_array[p]], layer_array[p]);
 
+			// PetscPrintf(PETSC_COMM_WORLD, "p: %d, strain: %E\n", p, strain_fac[p]);
+			
 			array[3*p  ] += dt * vx;
 			array[3*p+1] += dt * vy;
 			array[3*p+2] += dt * vz;

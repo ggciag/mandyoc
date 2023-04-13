@@ -64,6 +64,14 @@ extern PetscInt seed_layer_size;
 extern PetscBool seed_layer_set;
 extern PetscBool strain_seed_constant;
 
+extern PetscBool weakening_from_interfaces_file;
+
+// From param.txt and interfaces.txt
+extern PetscInt WITH_NON_LINEAR;
+extern PetscInt PLASTICITY;
+extern PetscScalar *weakening_seed;
+extern PetscScalar weakening_min;
+
 extern PetscReal *strain_seed_layer;
 extern PetscInt strain_seed_layer_size;
 extern PetscBool strain_seed_layer_set;
@@ -442,31 +450,13 @@ PetscErrorCode createSwarm_2d()
 					layer_array[p] = n_interfaces;
 				}
 
+				// Start initial strain_array with random value and overwrite it (if set)
 				rand_r(&seed_strain);
-				strain_array[p]=random_initial_strain*(float)rand_r(&seed_strain)/RAND_MAX;
+				strain_array[p] = random_initial_strain*(float)rand_r(&seed_strain)/RAND_MAX;
 
-				if (seed_layer_set == PETSC_TRUE) {
-					if (seed_layer_size == 1 && layer_array[p] == seed_layer[0]) {
-						if (strain_seed_constant == PETSC_TRUE) {
-							strain_array[p] = strain_seed_layer[0];
-						} else {
-							strain_array[p] += strain_seed_layer[0];
-						}
-					}
-					else {
-						for (int k = 0; k < seed_layer_size; k++) {
-							if (layer_array[p] == seed_layer[k]) {
-								if (strain_seed_constant == PETSC_TRUE) {
-									strain_array[p] = strain_seed_layer[k];
-								} else {
-									strain_array[p] += strain_seed_layer[k];
-								}
-							}
-						}
-					}
+				if (weakening_seed[layer_array[p]] >= 0) {
+					strain_array[p] = weakening_seed[layer_array[p]];
 				}
-
-
 			}
 		}
 

@@ -332,6 +332,19 @@ The parameter file ``param.txt`` contains the information that is necessary for 
         unit: :raw-html:`<br />`
         definition: set if radiogenic heating is active 
 
+#. Strain softening parameters
+
+    * weakeing_min                 
+        default: 0.05 :raw-html:`<br />`
+        type: real number :raw-html:`<br />`
+        unit: :raw-html:`<br />`
+        definition: value of the accumulated strain where strain softening starts :cite:`salazarmora2018`
+    * weakening_max             
+        default: 1.05 :raw-html:`<br />`
+        type: real number :raw-html:`<br />`
+        unit: :raw-html:`<br />`
+        definition: value of the accumulated strain where strain softening stops :cite:`salazarmora2018`
+
 #. Velocity boundary conditions
 
     * top_normal_velocity                 

@@ -128,6 +128,14 @@ PetscScalar *inter_A;
 PetscScalar *inter_n;
 PetscScalar *inter_Q;
 PetscScalar *inter_V;
+PetscScalar weakening_min = 0.05; // Salazar-Mora et al. (2018)
+PetscScalar weakening_max = 1.05; // Salazar-Mora et al. (2018)
+PetscScalar *weakening_seed;
+PetscScalar *cohesion_min;
+PetscScalar *cohesion_max;
+PetscScalar *friction_angle_min;
+PetscScalar *friction_angle_max;
+PetscBool   weakening_from_interfaces_file = PETSC_FALSE;
 
 int tcont=0;
 
