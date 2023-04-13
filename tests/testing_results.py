@@ -14,6 +14,8 @@ scenarios = [
     "vanKeken1997_case1a",
     "Crameri2012_case2",
     "continental_rift",
+    "punch",
+    "Schmalholz_2011"
 ]
 
 # Name of the files to compare
@@ -59,6 +61,9 @@ def test_result(scenario, field, step):
 
     if scenario == 'Crameri2012_case2' and step == 1:
         pytest.skip('Tested with only one processor')
+
+    if (scenario == 'punch' and step == 1) or (scenario == 'punch' and field == 'step_1'):
+        pytest.skip('Test with only one step')
 
     test_path = base_path / "data" / scenario/ "output"
     expected_path = base_path / "data" / scenario/ "expected"
