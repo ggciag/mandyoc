@@ -93,10 +93,16 @@ int bcv_left_normal;
 int bcv_left_slip;
 int bcv_right_normal;
 int bcv_right_slip;
+int bcv_back_normal=1;
+int bcv_back_slip=0;
+int bcv_front_normal=1;
+int bcv_front_slip=0;
 int bcT_top;
 int bcT_bot;
 int bcT_left;
 int bcT_right;
+int bcT_front = 1;
+int bcT_back = 1;
 // End of parameter file variables
 
 PetscInt Px = PETSC_DECIDE;

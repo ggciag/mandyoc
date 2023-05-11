@@ -40,10 +40,16 @@ extern int bcv_left_normal;
 extern int bcv_left_slip;
 extern int bcv_right_normal;
 extern int bcv_right_slip;
+extern int bcv_back_normal;
+extern int bcv_back_slip;
+extern int bcv_front_normal;
+extern int bcv_front_slip;
 extern int bcT_top;
 extern int bcT_bot;
 extern int bcT_left;
 extern int bcT_right;
+extern int bcT_front;
+extern int bcT_back;
 extern PetscInt WITH_NON_LINEAR;
 extern PetscInt WITH_ADIABATIC_H;
 extern PetscInt WITH_RADIOGENIC_H;
@@ -265,14 +271,20 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "bot_normal_velocity") == 0) {bcv_bot_normal = check_a_b(tkn_w, tkn_v, "fixed", "free");}
 			else if (strcmp(tkn_w, "left_normal_velocity") == 0) {bcv_left_normal = check_a_b(tkn_w, tkn_v, "fixed", "free");}
 			else if (strcmp(tkn_w, "right_normal_velocity") == 0) {bcv_right_normal = check_a_b(tkn_w, tkn_v, "fixed", "free");}
+			else if (strcmp(tkn_w, "back_normal_velocity") == 0) {bcv_back_normal = check_a_b(tkn_w, tkn_v, "fixed", "free");}
+			else if (strcmp(tkn_w, "front_normal_velocity") == 0) {bcv_front_normal = check_a_b(tkn_w, tkn_v, "fixed", "free");}
 			else if (strcmp(tkn_w, "top_tangential_velocity") == 0) {bcv_top_slip = check_a_b(tkn_w, tkn_v, "fixed", "free");}
 			else if (strcmp(tkn_w, "bot_tangential_velocity") == 0) {bcv_bot_slip = check_a_b(tkn_w, tkn_v, "fixed", "free");}
 			else if (strcmp(tkn_w, "left_tangential_velocity") == 0) {bcv_left_slip = check_a_b(tkn_w, tkn_v, "fixed", "free");}
 			else if (strcmp(tkn_w, "right_tangential_velocity") == 0) {bcv_right_slip = check_a_b(tkn_w, tkn_v, "fixed", "free");}
+			else if (strcmp(tkn_w, "back_tangential_velocity") == 0) {bcv_back_slip = check_a_b(tkn_w, tkn_v, "fixed", "free");}
+			else if (strcmp(tkn_w, "front_tangential_velocity") == 0) {bcv_front_slip = check_a_b(tkn_w, tkn_v, "fixed", "free");}
 			else if (strcmp(tkn_w, "top_temperature") == 0) {bcT_top = check_a_b(tkn_w, tkn_v, "fixed", "free");}
 			else if (strcmp(tkn_w, "bot_temperature") == 0) {bcT_bot = check_a_b(tkn_w, tkn_v, "fixed", "free");}
 			else if (strcmp(tkn_w, "left_temperature") == 0) {bcT_left = check_a_b(tkn_w, tkn_v, "fixed", "free");}
 			else if (strcmp(tkn_w, "right_temperature") == 0) {bcT_right = check_a_b(tkn_w, tkn_v, "fixed", "free");}
+			else if (strcmp(tkn_w, "front_temperature") == 0) {bcT_front = check_a_b(tkn_w, tkn_v, "fixed", "free");}
+			else if (strcmp(tkn_w, "back_temperature") == 0) {bcT_back = check_a_b(tkn_w, tkn_v, "fixed", "free");}
 			else if (strcmp(tkn_w, "interfaces_from_ascii") == 0) {interfaces_from_ascii = check_a_b(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "temperature_from_ascii") == 0) {temper_extern = check_a_b(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "velocity_from_ascii") == 0) {veloc_extern = check_a_b(tkn_w, tkn_v, "True", "False");}
@@ -403,10 +415,16 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&bcv_left_slip,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&bcv_right_normal,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&bcv_right_slip,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&bcv_back_normal,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&bcv_back_slip,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&bcv_front_normal,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&bcv_front_slip,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&bcT_top,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&bcT_bot,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&bcT_left,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&bcT_right,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&bcT_front,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&bcT_back,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&rheol,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&T_initial_cond,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&denok_min,1,MPIU_REAL,0,PETSC_COMM_WORLD);
