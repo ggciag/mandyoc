@@ -381,6 +381,8 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 			strain_fac[p]+= dt*E2_invariant;//cumulative strain
 			strain_rate_fac[p] = E2_invariant;
 
+			if (tp>450.0) strain_fac[p]=0.0;
+
 
 			rarray[p] = calc_visco_ponto(tp,Pp,cx,cz,inter_geoq[layer_array[p]],E2_invariant,strain_fac[p],
 										inter_A[layer_array[p]], inter_n[layer_array[p]], inter_Q[layer_array[p]], inter_V[layer_array[p]], layer_array[p]);
