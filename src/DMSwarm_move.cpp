@@ -80,6 +80,10 @@ extern PetscInt periodic_boundary;
 
 extern PetscReal epsilon_x;
 
+extern double tempo;
+extern PetscReal healing_time;
+
+
 PetscReal linear_interpolation(PetscReal rx, PetscReal rz,PetscScalar V0, PetscScalar V1, PetscScalar V2, PetscScalar V3){
 	PetscReal rfac,vx;
 	rfac = (1.0-rx)*(1.0-rz);
@@ -381,7 +385,7 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 			strain_fac[p]+= dt*E2_invariant;//cumulative strain
 			strain_rate_fac[p] = E2_invariant;
 
-			if (tp>450.0) strain_fac[p]=0.0;
+			if ((tp>450.0)&&(tempo>healing_time)) strain_fac[p]=0.0;
 
 
 			rarray[p] = calc_visco_ponto(tp,Pp,cx,cz,inter_geoq[layer_array[p]],E2_invariant,strain_fac[p],

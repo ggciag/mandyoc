@@ -177,6 +177,8 @@ extern PetscReal strain_rate0_scaled;
 
 extern PetscReal air_threshold_density;
 
+extern PetscReal healing_time;
+
 PetscErrorCode load_topo_var(int rank);
 
 // Reads input ASCII files
@@ -260,6 +262,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "sp_d_c") == 0) {sp_d_c = atof(tkn_v);}
 			else if (strcmp(tkn_w, "weakening_min") == 0) {weakening_min = atof(tkn_v);}
 			else if (strcmp(tkn_w, "weakening_max") == 0) {weakening_max = atof(tkn_v);}
+			else if (strcmp(tkn_w, "healing_time") == 0) {healing_time = atof(tkn_v); healing_time*=1.0E6;}
 
 			// Boolean parameters
 			else if (strcmp(tkn_w, "geoq") == 0) {geoq_on = check_a_b(tkn_w, tkn_v, "on", "off");}
@@ -478,6 +481,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&a2l,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&weakening_min,1,MPI_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&weakening_max,1,MPI_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&healing_time,1,MPI_REAL,0,PETSC_COMM_WORLD);
 
 	MPI_Bcast(&non_dim,1,MPI_INT,0,PETSC_COMM_WORLD);
 

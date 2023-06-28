@@ -405,3 +405,7 @@ PetscReal strain_rate0_scaled;
 PetscReal pressure0_scaled;
 
 PetscReal air_threshold_density;
+
+
+////
+PetscReal healing_time=1.0E20;
