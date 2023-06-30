@@ -177,7 +177,7 @@ extern PetscReal strain_rate0_scaled;
 
 extern PetscReal air_threshold_density;
 
-extern PetscReal healing_time;
+extern PetscScalar healing_time;
 
 PetscErrorCode load_topo_var(int rank);
 
