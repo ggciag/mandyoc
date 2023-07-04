@@ -464,10 +464,10 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&initial_print_max_time,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&high_kappa_in_asthenosphere,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&n_interfaces,1,MPI_INT,0,PETSC_COMM_WORLD); // Broadcast after interfaces.txt
-	MPI_Bcast(&K_fluvial,1,MPI_REAL,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&m_fluvial,1,MPI_REAL,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&sea_level,1,MPI_REAL,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&basal_heat,1,MPI_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&K_fluvial,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&m_fluvial,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&sea_level,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&basal_heat,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&sp_surface_tracking,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&sp_surface_processes,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&sp_dt,1,MPIU_REAL,0,PETSC_COMM_WORLD);
@@ -476,8 +476,8 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&set_sp_d_c,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&plot_sediment,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&a2l,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&weakening_min,1,MPI_REAL,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&weakening_max,1,MPI_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&weakening_min,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&weakening_max,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 
 	MPI_Bcast(&non_dim,1,MPI_INT,0,PETSC_COMM_WORLD);
 
@@ -600,7 +600,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	}
 
 	if (strain_seed_layer_set == PETSC_TRUE)
-		for (int k = 0; k < seed_layer_size; k++) 
+		for (int k = 0; k < seed_layer_size; k++)
 			weakening_seed[seed_layer[k]] = strain_seed_layer[k];
 
 	// Read <interfaces.txt> file
@@ -779,7 +779,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 		PetscPrintf(PETSC_COMM_WORLD, "\n f_max: ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
 			PetscPrintf(PETSC_COMM_WORLD, "%.3e ", friction_angle_max[i]*180.0/PETSC_PI);
-		
+
 		if (weakening_from_interfaces_file == PETSC_TRUE)
 		{
 			PetscPrintf(PETSC_COMM_WORLD, "\n\nUsing strain softening parameters from <interfaces.txt>");
