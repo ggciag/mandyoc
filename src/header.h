@@ -408,4 +408,4 @@ PetscReal air_threshold_density;
 
 
 ////
-PetscScalar healing_time=1.0E20;
+PetscReal healing_time=1.0E20;

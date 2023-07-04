@@ -81,7 +81,7 @@ extern PetscInt periodic_boundary;
 extern PetscReal epsilon_x;
 
 extern double tempo;
-extern PetscScalar healing_time;
+extern PetscReal healing_time;
 
 
 PetscReal linear_interpolation(PetscReal rx, PetscReal rz,PetscScalar V0, PetscScalar V1, PetscScalar V2, PetscScalar V3){

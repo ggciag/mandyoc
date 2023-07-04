@@ -177,7 +177,7 @@ extern PetscReal strain_rate0_scaled;
 
 extern PetscReal air_threshold_density;
 
-extern PetscScalar healing_time;
+extern PetscReal healing_time;
 
 PetscErrorCode load_topo_var(int rank);
 
@@ -481,7 +481,16 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&a2l,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&weakening_min,1,MPI_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&weakening_max,1,MPI_REAL,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&healing_time,1,MPI_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&healing_time,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	
+
+	printf("healing_time: %lf\n",healing_time);
+
+	MPI_Barrier(PETSC_COMM_WORLD);
+	printf("random_initial_strain: %lf\n",random_initial_strain);
+
+	MPI_Barrier(PETSC_COMM_WORLD);
+	printf("weakening_min: %lf\n",weakening_min);
 
 	MPI_Bcast(&non_dim,1,MPI_INT,0,PETSC_COMM_WORLD);
 
