@@ -142,6 +142,7 @@ PetscScalar *cohesion_max;
 PetscScalar *friction_angle_min;
 PetscScalar *friction_angle_max;
 PetscBool   weakening_from_interfaces_file = PETSC_FALSE;
+PetscScalar *conductivity;
 
 int tcont=0;
 

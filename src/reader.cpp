@@ -5,6 +5,7 @@ int check_a_b(char tkn_w[], char tkn_v[], const char str_a[], const char str_b[]
 PetscBool check_a_b_bool(char tkn_w[], char tkn_v[], const char str_a[], const char str_b[]);
 //void ErrorInterfaces(int rank, const char fname[], int flag);
 void ErrorInterfaces();
+PetscBool check_prop(char *s);
 
 // Parameter file variables
 extern int dimensions;
@@ -131,6 +132,7 @@ extern PetscBool   strain_seed_layer_set;
 extern PetscInt	   seed_layer_size;
 extern PetscInt    *seed_layer;
 extern PetscReal   *strain_seed_layer;
+extern PetscScalar *conductivity;
 
 extern PetscScalar *mv_time;
 extern PetscInt n_mv;
@@ -589,14 +591,17 @@ PetscErrorCode reader(int rank, const char fName[]){
 	PetscCalloc1(n_interfaces+1,&friction_angle_min);
 	PetscCalloc1(n_interfaces+1,&friction_angle_max);
 
+	PetscCalloc1(n_interfaces+1,&conductivity);
+
 	// Set default values for arrays or copy them from the command line options
 	for (PetscInt i=0; i<n_interfaces+1;i++)
 	{
-		cohesion_min[i] 		= 4.0E6; 					// Value from Salazar-Mora et al. (2018)
-		cohesion_max[i] 		= 20.0E6; 					// Value from Salazar-Mora et al. (2018)
+		cohesion_min[i] 		= 4.0E6; 		// Value from Salazar-Mora et al. (2018)
+		cohesion_max[i] 		= 20.0E6; 		// Value from Salazar-Mora et al. (2018)
 		friction_angle_min[i] 	= 0.034906; 	// Value from Salazar-Mora et al. (2018)
 		friction_angle_max[i] 	= 0.261799;  	// Value from Salazar-Mora et al. (2018)
-		weakening_seed[i] 		= -1.0;						// Default is a random_initial_strain * rand_r()
+		weakening_seed[i] 		= -1.0;			// Default is a random_initial_strain * rand_r()
+		conductivity[i]			= kappa;		// Defatuls value from <interfaces.txt>
 	}
 
 	if (strain_seed_layer_set == PETSC_TRUE)
@@ -607,133 +612,233 @@ PetscErrorCode reader(int rank, const char fName[]){
 	if ((interfaces_from_ascii==1) && (rank==0)){
 		nline = 0;
 		FILE *f_interfaces;
-
-		f_interfaces = fopen("interfaces.txt","r");
-		if (f_interfaces==NULL) {PetscPrintf(PETSC_COMM_WORLD, "ERROR. The <interfaces.txt> file was NOT FOUND.\n"); exit(1);}
-
 		int check_fscanf;
 
-		fscanf(f_interfaces,"%s",str);
-		if (strcmp (str,"C") == 0){
-			for (PetscInt i=0;i<n_interfaces+1;i++){
-				check_fscanf = fscanf(f_interfaces,"%lf",&inter_geoq[i]);
-				if (check_fscanf==0) {ErrorInterfaces(); exit(1);}
+		PetscBool bool_inter_geoq = PETSC_FALSE;
+		PetscBool bool_inter_rho = PETSC_FALSE;
+		PetscBool bool_inter_H = PETSC_FALSE;
+		PetscBool bool_inter_A = PETSC_FALSE;
+		PetscBool bool_inter_n = PETSC_FALSE;
+		PetscBool bool_inter_Q = PETSC_FALSE;
+		PetscBool bool_inter_V = PETSC_FALSE;
+		PetscBool bool_conductivity = PETSC_FALSE;
+		PetscBool bool_weakening_seed = PETSC_FALSE;
+		PetscBool bool_cohesion_min = PETSC_FALSE;
+		PetscBool bool_cohesion_max = PETSC_FALSE;
+		PetscBool bool_friction_angle_min = PETSC_FALSE;
+		PetscBool bool_friction_angle_max = PETSC_FALSE;
+
+		f_interfaces = fopen("interfaces.txt", "r");
+		if (f_interfaces==NULL) {PetscPrintf(PETSC_COMM_WORLD, "ERROR. The <interfaces.txt> file was NOT FOUND.\n"); exit(1);}
+
+		PetscBool read_prop;
+		for (PetscInt i = 0; i < 1000; i++)
+		{
+			fscanf(f_interfaces, "%s", str);
+			read_prop = check_prop(str);
+			if (read_prop == PETSC_TRUE)
+			{
+				if (strcmp(str, "C") == 0)
+				{
+					bool_inter_geoq = PETSC_TRUE;
+					for (PetscInt i = 0; i < n_interfaces + 1; i++)
+					{
+						check_fscanf = fscanf(f_interfaces,"%lf",&inter_geoq[i]);
+						if (check_fscanf == 0)
+						{
+							ErrorInterfaces();
+							exit(1);
+						}
+					}
+				}
+				else if (strcmp (str,"rho") == 0)
+				{
+					bool_inter_rho = PETSC_TRUE; 
+					for (PetscInt i = 0; i < n_interfaces + 1; i++)
+					{
+						check_fscanf = fscanf(f_interfaces, "%lf", &inter_rho[i]);
+						inter_rho[i] /= rho0_scaled;
+					}
+				}
+				else if (strcmp(str, "H") == 0)
+				{
+					bool_inter_H = PETSC_TRUE; 
+					for (PetscInt i = 0; i < n_interfaces + 1; i++)
+					{
+						fscanf(f_interfaces, "%lf", &inter_H[i]);
+					}
+				}
+				else if (strcmp(str, "A") == 0)
+				{
+					bool_inter_A = PETSC_TRUE; 
+					for (PetscInt i = 0; i < n_interfaces + 1; i++)
+					{
+						fscanf(f_interfaces, "%lf", &inter_A[i]);
+					}
+				}
+				else if (strcmp(str, "n") == 0)
+				{
+					bool_inter_n = PETSC_TRUE; 
+					for (PetscInt i = 0; i < n_interfaces + 1; i++)
+					{
+						fscanf(f_interfaces, "%lf", &inter_n[i]);
+					}
+				}
+				else if (strcmp(str, "Q") == 0)
+				{
+					bool_inter_Q = PETSC_TRUE; 
+					for (PetscInt i = 0; i < n_interfaces + 1; i++)
+					{
+						fscanf(f_interfaces, "%lf", &inter_Q[i]);
+					}
+				}
+				else if (strcmp(str, "V") == 0)
+				{
+					bool_inter_V = PETSC_TRUE; 
+					for (PetscInt i = 0; i < n_interfaces + 1; i++)
+					{
+						fscanf(f_interfaces, "%lf", &inter_V[i]);
+					}
+				}
+				else if (strcmp(str, "k") == 0)
+				{
+					bool_conductivity = PETSC_TRUE; 
+					for (PetscInt i = 0; i < n_interfaces + 1; i++)
+					{
+						fscanf(f_interfaces, "%lf", &conductivity[i]);
+					}
+				}
+				else if (strcmp(str, "weakening_seed") == 0)
+				{
+					bool_weakening_seed = PETSC_TRUE; 
+					for (PetscInt i = 0; i < n_interfaces + 1; i++)
+					{
+						fscanf(f_interfaces, "%lf", &weakening_seed[i]);
+					}
+				}
+				else if (strcmp(str, "cohesion_min") == 0)
+				{
+					bool_cohesion_min = PETSC_TRUE; 
+					for (PetscInt i = 0; i < n_interfaces + 1; i++)
+					{
+						fscanf(f_interfaces, "%lf", &cohesion_min[i]);
+					}
+				}
+				else if (strcmp(str, "cohesion_max") == 0)
+				{
+					bool_cohesion_max = PETSC_TRUE; 
+					for (PetscInt i = 0; i < n_interfaces + 1; i++)
+					{
+						fscanf(f_interfaces, "%lf", &cohesion_max[i]);
+					}
+				}
+				else if (strcmp(str, "friction_angle_min") == 0)
+				{
+					bool_friction_angle_min = PETSC_TRUE; 
+					for (PetscInt i = 0; i < n_interfaces + 1; i++)
+					{
+						fscanf(f_interfaces, "%lf", &friction_angle_min[i]);
+						friction_angle_min[i] = friction_angle_min[i] * PETSC_PI / 180.0;
+					}
+				}
+				else if (strcmp(str, "friction_angle_max") == 0)
+				{
+					bool_friction_angle_max = PETSC_TRUE; 
+					for (PetscInt i = 0; i < n_interfaces + 1; i++)
+					{
+						fscanf(f_interfaces, "%lf", &friction_angle_max[i]);
+						friction_angle_max[i] = friction_angle_max[i] * PETSC_PI / 180.0;
+					}
+				}
+				else
+				{
+					break;
+				}
+			}
+			else
+			{
+				break;
+			}
+			
+		}
+
+		// Checking general mandatory parameters
+		if (bool_inter_geoq == PETSC_FALSE ||
+			bool_inter_rho == PETSC_FALSE ||
+			bool_inter_H == PETSC_FALSE ||
+			bool_inter_A == PETSC_FALSE ||
+			bool_inter_n == PETSC_FALSE ||
+			bool_inter_Q == PETSC_FALSE ||
+			bool_inter_V == PETSC_FALSE)
+		{
+			PetscPrintf(PETSC_COMM_WORLD, "Mandatory properties are missing in the <interfaces.txt> file.\n");
+			exit(1);
+		}
+		// Checking strain softening mandatory parameters
+		if (bool_weakening_seed == PETSC_TRUE)
+		{
+			if (bool_cohesion_min == PETSC_FALSE ||
+				bool_cohesion_max == PETSC_FALSE || 
+				bool_friction_angle_min == PETSC_FALSE || 
+				bool_friction_angle_max == PETSC_FALSE)
+			{
+				PetscPrintf(PETSC_COMM_WORLD, "One or more weaking parameters are missing in the <interfaces.txt> file.\n");
+				exit(1);
 			}
 		}
-		else { ErrorInterfaces(); exit(1);}
 
-		fscanf(f_interfaces,"%s",str);
-		if (strcmp (str,"rho") == 0)
-			for (PetscInt i=0;i<n_interfaces+1;i++){
-				fscanf(f_interfaces,"%lf",&inter_rho[i]);
-				inter_rho[i]/=rho0_scaled;
-			}
-		else { ErrorInterfaces(); exit(1);}
-
-		fscanf(f_interfaces,"%s",str);
-		if (strcmp (str,"H") == 0)
-			for (PetscInt i=0;i<n_interfaces+1;i++)
-				fscanf(f_interfaces,"%lf",&inter_H[i]);
-		else { ErrorInterfaces(); exit(1);}
-
-		fscanf(f_interfaces,"%s",str);
-		if (strcmp (str,"A") == 0)
-			for (PetscInt i=0;i<n_interfaces+1;i++)
-				fscanf(f_interfaces,"%lf",&inter_A[i]);
-		else { ErrorInterfaces(); exit(1);}
-
-		fscanf(f_interfaces,"%s",str);
-		if (strcmp (str,"n") == 0)
-			for (PetscInt i=0;i<n_interfaces+1;i++)
-				fscanf(f_interfaces,"%lf",&inter_n[i]);
-		else { ErrorInterfaces(); exit(1);}
-
-		fscanf(f_interfaces,"%s",str);
-		if (strcmp (str,"Q") == 0)
-			for (PetscInt i=0;i<n_interfaces+1;i++)
-				fscanf(f_interfaces,"%lf",&inter_Q[i]);
-		else { ErrorInterfaces(); exit(1);}
-
-		fscanf(f_interfaces,"%s",str);
-		if (strcmp (str,"V") == 0)
-			for (PetscInt i=0;i<n_interfaces+1;i++)
-				fscanf(f_interfaces,"%lf",&inter_V[i]);
-		else { ErrorInterfaces(); exit(1);}
-
-		// Read strain softening data from <interfaces.txt> if available
-		PetscInt first_index = 0;
-
-		fscanf(f_interfaces,"%s",str);
-		if (strcmp (str,"weakening_seed") == 0)
+		// Copy <str> to the firts value of <interfaces> and read the rest of that line
+		interfaces[0] = atof(str);
+		for (PetscInt j = 1; j < n_interfaces; j++)
 		{
-			weakening_from_interfaces_file = PETSC_TRUE;
-			for (PetscInt i=0;i<n_interfaces+1;i++)
-				fscanf(f_interfaces,"%lf",&weakening_seed[i]);
+			fscanf(f_interfaces, "%lf", &interfaces[j * Nx]);
+			interfaces[j * Nx] /= h0_scaled;
+		}
+		// Read other lines into <interfaces> after checking dimension
+		if (dimensions == 2)
+		{
+			for (PetscInt i = 1; i < Nx; i++)
+			{
+				for (PetscInt j = 0; j < n_interfaces; j++)
+				{
+					fscanf(f_interfaces, "%lf", &interfaces[j * Nx + i]);
+					interfaces[j * Nx + i] /= h0_scaled;
+				}
+			}
 		}
 		else
 		{
-			first_index = 1;
-			if (dimensions == 2) {
-				interfaces[0] = atof(str) / h0_scaled;
-				for (PetscInt j=1; j<n_interfaces; j++){
-					fscanf(f_interfaces,"%lf",&interfaces[j*Nx]);
-					interfaces[j*Nx] /= h0_scaled;
-				}
-			} else {
-				interfaces[0] = atof(str) / h0_scaled;
-				for (PetscInt j=1; j<n_interfaces; j++){
-					fscanf(f_interfaces,"%lf",&interfaces[j*Nx*Ny]);
-					interfaces[j*Nx*Ny] /= h0_scaled;
+			for (PetscInt i = 1; i < Nx * Ny; i++)
+			{
+				for (PetscInt j = 0; j < n_interfaces; j++)
+				{
+					fscanf(f_interfaces, "%lf", &interfaces[j * Nx * Ny + i]);
+					interfaces[j * Nx * Ny + i] /= h0_scaled;
 				}
 			}
 		}
 
-		if (weakening_from_interfaces_file == PETSC_TRUE)
-		{
-			fscanf(f_interfaces,"%s",str);
-			if (strcmp (str,"cohesion_min") == 0)
-				for (PetscInt i=0;i<n_interfaces+1;i++)
-					fscanf(f_interfaces,"%lf",&cohesion_min[i]);
-			else { ErrorInterfaces(); exit(1);}
+		// PetscPrintf(PETSC_COMM_WORLD, "Printing interface values\n");
+		// for (PetscInt i = 0; i < Nx; i++)
+		// {
+		// 	for (PetscInt j = 0; j< n_interfaces; j++)
+		// 	{
+		// 		PetscPrintf(PETSC_COMM_WORLD, "%lf ", interfaces[j * Nx + i]);
+		// 	}
+		// 	PetscPrintf(PETSC_COMM_WORLD, "\n");
+		// }
 
-			fscanf(f_interfaces,"%s",str);
-			if (strcmp (str,"cohesion_max") == 0)
-				for (PetscInt i=0;i<n_interfaces+1;i++)
-					fscanf(f_interfaces,"%lf",&cohesion_max[i]);
-			else { ErrorInterfaces(); exit(1);}
+		// Reference
+		// fscanf(f_interfaces,"%s",str);
+		// if (strcmp (str,"C") == 0){
+		// 	for (PetscInt i=0;i<n_interfaces+1;i++){
+		// 		check_fscanf = fscanf(f_interfaces,"%lf",&inter_geoq[i]);
+		// 		if (check_fscanf==0) {ErrorInterfaces(); exit(1);}
+		// 	}
+		// }
+		// else { ErrorInterfaces(); exit(1);}
 
-			fscanf(f_interfaces,"%s",str);
-			if (strcmp (str,"friction_angle_min") == 0)
-				for (PetscInt i=0;i<n_interfaces+1;i++){
-					fscanf(f_interfaces,"%lf",&friction_angle_min[i]);
-					friction_angle_min[i] = friction_angle_min[i] * PETSC_PI / 180.0;
-				}
-			else { ErrorInterfaces(); exit(1);}
-
-			fscanf(f_interfaces,"%s",str);
-			if (strcmp (str,"friction_angle_max") == 0)
-				for (PetscInt i=0;i<n_interfaces+1;i++){
-					fscanf(f_interfaces,"%lf",&friction_angle_max[i]);
-					friction_angle_max[i] = friction_angle_max[i] * PETSC_PI / 180.0;
-				}
-			else { ErrorInterfaces(); exit(1);}
-		}
-
-		if (dimensions == 2) {
-			for (PetscInt i=first_index; i<Nx; i++){
-				for (PetscInt j=0; j<n_interfaces; j++){
-					fscanf(f_interfaces,"%lf",&interfaces[j*Nx+i]);
-					interfaces[j*Nx+i] /= h0_scaled;
-				}
-			}
-		} else {
-			for (PetscInt i=first_index; i<Nx*Ny; i++){
-				for (PetscInt j=0; j<n_interfaces; j++){
-					fscanf(f_interfaces,"%lf",&interfaces[j*Nx*Ny+i]);
-					interfaces[j*Nx*Ny+i] /= h0_scaled;
-				}
-			}
-		}
+		fclose(f_interfaces); // Close file
 
 		PetscPrintf(PETSC_COMM_WORLD, "Layers:\n    ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
@@ -779,6 +884,9 @@ PetscErrorCode reader(int rank, const char fName[]){
 		PetscPrintf(PETSC_COMM_WORLD, "\n f_max: ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
 			PetscPrintf(PETSC_COMM_WORLD, "%.3e ", friction_angle_max[i]*180.0/PETSC_PI);
+		PetscPrintf(PETSC_COMM_WORLD, "\n     k: ");
+		for (PetscInt i=0;i<n_interfaces+1;i++)
+			PetscPrintf(PETSC_COMM_WORLD, "%.3e ", conductivity[i]);
 
 		if (weakening_from_interfaces_file == PETSC_TRUE)
 		{
@@ -793,8 +901,6 @@ PetscErrorCode reader(int rank, const char fName[]){
 			PetscPrintf(PETSC_COMM_WORLD, "\n\nUsing default strain softening parameters from Salazar-Mora et al. (2018)");
 		}
 		PetscPrintf(PETSC_COMM_WORLD, "\n\n");
-
-		fclose(f_interfaces); // Close file
 	}
 
 	if (n_interfaces>0 && interfaces_from_ascii==1) {
@@ -817,6 +923,8 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(friction_angle_min,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(friction_angle_max,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&weakening_from_interfaces_file,1,MPIU_BOOL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(conductivity,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+
 
 	// Broadcast, special cases
 //	MPI_Bcast(&n_interfaces,1,MPI_INT,0,PETSC_COMM_WORLD); // Broadcast after interfaces.txt
@@ -964,7 +1072,7 @@ PetscErrorCode load_topo_var(int rank)
 
 void ErrorInterfaces(){
 	printf("\n\n\n\n");
-	printf("Problem to read interfaces_creep.txt:\n");
+	printf("Problem to read <interfaces.txt>:\n");
 	printf("Check if the number of interfaces is\n");
 	printf("compatible to the one indicated in the\n");
 	printf("parameters file.\n\n\n\n");
@@ -1024,4 +1132,33 @@ PetscBool check_a_b_bool(char tkn_w[], char tkn_v[], const char str_a[], const c
 		exit(1);
 	}
 	return value;
+}
+
+// Returns PESTC_TRUE/PETSC_FALSE if the property with name <s> is within <list>
+PetscBool check_prop(char *s)
+{
+	const char *list[] = {"C",
+						   "rho",
+						   "H",
+						   "A",
+						   "n",
+						   "Q",
+						   "V",
+						   "k",
+						   "weakening_seed",
+						   "cohesion_min",
+						   "cohesion_max",
+						   "friction_angle_min",
+						   "friction_angle_max"};
+
+	PetscInt n = 13;
+
+	for (int i = 0; i < n; i++)
+	{
+		if (strcmp(s, list[i]) == 0)
+		{
+			return PETSC_TRUE;
+		}
+	}
+	return PETSC_FALSE;
 }
