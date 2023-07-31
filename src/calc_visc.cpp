@@ -34,6 +34,12 @@ extern PetscBool seed_layer_set;
 
 extern PetscBool weakening_from_interfaces_file;
 
+extern PetscScalar viscosity_decrease_factor1;
+extern PetscScalar viscosity_decrease_factor2;
+extern PetscScalar viscous_strain_softening_min;
+extern PetscScalar viscous_strain_softening_max;
+
+
 double strain_softening(double strain, double f1, double f2)
 {
 	double fac;
@@ -49,7 +55,7 @@ double strain_softening(double strain, double f1, double f2)
 		else
 			fac = f1 - (f1 - f2) * (strain - st1) / (st2 - st1);
 	}
-	
+
 	return(fac);
 }
 
@@ -71,9 +77,9 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 	if (P<0.0) {P = 0.0;}
 
 	if (pressure_const>=0.0) P = pressure_const;
-	
+
 	if (e2_inva<1.0E-36) e2_inva=1.0E-36;
-	
+
 	// Rheology model selection
 	if (rheol==0)	visco_real = visco_ref;
 	else if (rheol==1)
@@ -81,7 +87,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		double r = 20.0;
 		double Q = 225.0/log(r)-0.25*log(r);
 		double G = 15./log(r)-0.5;
-		
+
 		return(geoq_ponto*visco_ref*exp(  Q/(T/Delta_T+G) - Q/(0.5+G)    ));
 	}
 	else if (rheol==2)
@@ -99,7 +105,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		double E = 120000.0; // J/mol
 		double Tb = 1300.0+273.0;
 		double aux = E*(1.0/(T+273.0)-1.0/Tb)/R;
-		
+
 		visco_real = visco_ref*exp(aux);
 	}
 	else if (rheol==4)
@@ -108,7 +114,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		double E = 120000.0; // J/mol
 		double Tb = Delta_T+273.0;
 		double aux = E*(1.0/(T+273.0)-1.0/Tb)/R;
-		
+
 		visco_real = visco_ref*exp(aux);
 	}
 	else if (rheol==5)
@@ -118,7 +124,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		double b = 1.0E7;
 		double Tb = Delta_T+273.0;
 		double aux = -(T+273)*E/(R*Tb*Tb);
-		
+
 		visco_real = visco_ref*b*exp(aux);
 	}
 	else if (rheol==6)
@@ -128,14 +134,14 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		double b = 1.0E7;
 		double Tb = Delta_T+273.0;
 		double aux = -(T+273)*E/(R*Tb*Tb);
-		
+
 		visco_real = visco_ref*b*exp(aux);
 	}
 	else if (rheol==7)
 	{
 		double R = 8.3144;
 		double TK = T+273.0;
-		
+
 		if (pressure_in_rheol==0)
 			visco_real = visco_ref*A*exp(-(QE+VE*10.0*3300.*(depth))/(R*TK));
 		else
@@ -144,7 +150,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 	else if (rheol==8)
 	{
 		double TK = T+273.0;
-		
+
 		visco_real = visco_ref*exp(-QE*TK + VE*(-z));
 	}
 	else if (rheol==9)
@@ -153,7 +159,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		{
 			double R = 8.3144;
 			double TK = T+273.;
-			
+
 			if (pressure_in_rheol==0)
 				visco_real = pow(A,-1./n_exp)*pow(e2_inva,(1.-n_exp)/(n_exp))*exp((QE+VE*10.0*3300.*(depth))/(n_exp*R*TK));
 			else
@@ -166,6 +172,32 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 		double DT = 1000.0;
 
 		visco_real = visco_ref * exp(-(beta*T/DT));
+	}
+	else if (rheol==11)
+	{
+		if (WITH_NON_LINEAR==1)
+		{
+			double R = 8.3144;
+			double TK = T+273.;
+			double fac;
+
+			if (strain_cumulate < viscous_strain_softening_min) {
+				fac = viscosity_decrease_factor1;
+			} else {
+				if (strain_cumulate > viscous_strain_softening_max) {
+					fac = viscosity_decrease_factor2;
+				} else {
+					fac = viscosity_decrease_factor1 - (viscosity_decrease_factor1 - viscosity_decrease_factor2) * (strain_cumulate - viscous_strain_softening_min) / (viscous_strain_softening_max - viscous_strain_softening_min);
+				}
+			}
+
+			if (pressure_in_rheol==0)
+				visco_real = pow(A,-1./n_exp)*pow(e2_inva,(1.-n_exp)/(n_exp))*exp((QE+VE*10.0*3300.*(depth))/(n_exp*R*TK));
+			else
+				visco_real = pow(A,-1./n_exp)*pow(e2_inva,(1.-n_exp)/(n_exp))*exp((QE+VE*P)/(n_exp*R*TK));
+
+			visco_real *= fac;
+		}
 	}
 	else if (rheol==19)
 	{
@@ -191,7 +223,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 				double VE1 = 5.0E-6;
 				double visc_diffu = (hb_power_m*exp((QE1+VE1*P)/(R*TK)))/(A1);
 
-				if (visco_real>visc_diffu) 
+				if (visco_real>visc_diffu)
 					visco_real = visc_diffu;
 			}
 		}
@@ -199,12 +231,12 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 
 	if (geoq_on)
 		visco_real *= geoq_ponto;
-	
+
 	if (WITH_NON_LINEAR==1 && PLASTICITY==1)
 	{
 		//double c0 = 1.0;// Petersen et al. (2010) plastic criterium
 		//double mu = 0.01;//
-		//double c0 = 22.0E6;// 
+		//double c0 = 22.0E6;//
 		//double mu = 0.58778;//
 		double c0;
 		double mu;
@@ -219,11 +251,11 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 			tau_yield = c0 * cos(mu) + sin(mu) * 10.0 * 3300.0 * (depth);
 		else
 			tau_yield = c0 * cos(mu) + sin(mu) * P; // Druker-Prager criterion
-		
+
 		double visco_yield = visc_MAX;
-		
+
 		if (e2_inva>0) visco_yield = tau_yield/(2*e2_inva);
-		
+
 		if (visco_real>visco_yield) visco_real = visco_yield;
 
 
@@ -238,7 +270,7 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 
 	//printf("%lf %lg %lg %lg\n",z,P,e2_inva,visco_real);
 	visco_real /=visc0_scaled;
-	
+
 	if (visco_real>visc_MAX) visco_real=visc_MAX;
 	if (visco_real<visc_MIN) visco_real=visc_MIN;
 
@@ -246,6 +278,6 @@ double calc_visco_ponto(double T,double P, double x, double z,double geoq_ponto,
 	double f2 = PetscLogReal(visc_MAX/visc_MIN);
 	double f3 = PetscLogReal(visco_real/visc_MIN);
 	visco_real = visc_MIN_comp*PetscExpReal(f1*f3/f2);
-	
+
 	return(visco_real);
 }

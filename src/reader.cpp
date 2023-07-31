@@ -132,6 +132,11 @@ extern PetscInt	   seed_layer_size;
 extern PetscInt    *seed_layer;
 extern PetscReal   *strain_seed_layer;
 
+extern PetscScalar viscosity_decrease_factor1;
+extern PetscScalar viscosity_decrease_factor2;
+extern PetscScalar viscous_strain_softening_min;
+extern PetscScalar viscous_strain_softening_max;
+
 extern PetscScalar *mv_time;
 extern PetscInt n_mv;
 
@@ -260,6 +265,10 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "sp_d_c") == 0) {sp_d_c = atof(tkn_v);}
 			else if (strcmp(tkn_w, "weakening_min") == 0) {weakening_min = atof(tkn_v);}
 			else if (strcmp(tkn_w, "weakening_max") == 0) {weakening_max = atof(tkn_v);}
+			else if (strcmp(tkn_w, "viscosity_decrease_factor1") == 0) {viscosity_decrease_factor1 = atof(tkn_v);}
+			else if (strcmp(tkn_w, "viscosity_decrease_factor2") == 0) {viscosity_decrease_factor2 = atof(tkn_v);}
+			else if (strcmp(tkn_w, "viscous_strain_softening_min") == 0) {viscous_strain_softening_min = atof(tkn_v);}
+			else if (strcmp(tkn_w, "viscous_strain_softening_max") == 0) {viscous_strain_softening_max = atof(tkn_v);}
 
 			// Boolean parameters
 			else if (strcmp(tkn_w, "geoq") == 0) {geoq_on = check_a_b(tkn_w, tkn_v, "on", "off");}
@@ -478,6 +487,10 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&a2l,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&weakening_min,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&weakening_max,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&viscosity_decrease_factor1,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&viscosity_decrease_factor2,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&viscous_strain_softening_min,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&viscous_strain_softening_max,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 
 	MPI_Bcast(&non_dim,1,MPI_INT,0,PETSC_COMM_WORLD);
 

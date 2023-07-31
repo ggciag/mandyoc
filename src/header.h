@@ -142,6 +142,10 @@ PetscScalar *cohesion_max;
 PetscScalar *friction_angle_min;
 PetscScalar *friction_angle_max;
 PetscBool   weakening_from_interfaces_file = PETSC_FALSE;
+PetscScalar viscosity_decrease_factor1 = 1.0; // Gernon et al. (2023, Nature)
+PetscScalar viscosity_decrease_factor2 = 0.25;
+PetscScalar viscous_strain_softening_min = 0.0;
+PetscScalar viscous_strain_softening_max = 1.0;
 
 int tcont=0;
 
