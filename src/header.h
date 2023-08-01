@@ -143,6 +143,10 @@ PetscScalar *friction_angle_min;
 PetscScalar *friction_angle_max;
 PetscBool   weakening_from_interfaces_file = PETSC_FALSE;
 
+PetscReal A_healing = 3.17E-14; // per second =  1/Myr
+PetscReal k_healing = 10.0;
+PetscReal T0_healing = 0.0;
+
 int tcont=0;
 
 double seg_per_ano = 365.0*24.0*3600.0;
@@ -340,6 +344,8 @@ PetscBool strain_seed_layer_set = PETSC_FALSE;
 
 PetscBool strain_seed_constant = PETSC_TRUE;
 PetscBool strain_seed_constant_set = PETSC_FALSE;
+
+PetscBool strain_healing = PETSC_FALSE;
 
 PetscScalar *var_bcv_time;
 PetscScalar *var_bcv_scale;

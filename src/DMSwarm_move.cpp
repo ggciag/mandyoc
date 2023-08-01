@@ -71,6 +71,12 @@ extern PetscScalar *inter_n;
 extern PetscScalar *inter_Q;
 extern PetscScalar *inter_V;
 
+extern PetscBool strain_healing;
+
+extern PetscReal A_healing;
+extern PetscReal k_healing;
+extern PetscReal T0_healing;
+
 extern double e2_aux_MAX;
 extern double e2_aux_MIN;
 
@@ -380,6 +386,11 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 
 			strain_fac[p]+= dt*E2_invariant;//cumulative strain
 			strain_rate_fac[p] = E2_invariant;
+
+			if (strain_healing==PETSC_TRUE){
+				strain_fac[p]-=dt*A_healing*exp(-k_healing*(T0_healing+273.)/(tp+273.0));
+				if (strain_fac[p]<0.0) strain_fac[p]=0.0;
+			}
 
 
 			rarray[p] = calc_visco_ponto(tp,Pp,cx,cz,inter_geoq[layer_array[p]],E2_invariant,strain_fac[p],

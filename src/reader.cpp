@@ -103,6 +103,8 @@ extern PetscInt high_kappa_in_asthenosphere;
 extern PetscBool plot_sediment;
 extern PetscBool a2l;
 
+extern PetscBool strain_healing;
+
 // Removed from parameter file
 extern double H_lito;
 extern double beta_max;
@@ -176,6 +178,10 @@ extern PetscReal pressure0_scaled;
 extern PetscReal strain_rate0_scaled;
 
 extern PetscReal air_threshold_density;
+
+extern PetscReal A_healing;
+extern PetscReal k_healing;
+extern PetscReal T0_healing;
 
 PetscErrorCode load_topo_var(int rank);
 
@@ -261,6 +267,10 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "weakening_min") == 0) {weakening_min = atof(tkn_v);}
 			else if (strcmp(tkn_w, "weakening_max") == 0) {weakening_max = atof(tkn_v);}
 
+			else if (strcmp(tkn_w, "A_healing") == 0) {A_healing = atof(tkn_v);}
+			else if (strcmp(tkn_w, "T0_healing") == 0) {T0_healing = atof(tkn_v);}
+			else if (strcmp(tkn_w, "k_healing") == 0) {k_healing = atof(tkn_v);}
+
 			// Boolean parameters
 			else if (strcmp(tkn_w, "geoq") == 0) {geoq_on = check_a_b(tkn_w, tkn_v, "on", "off");}
 			else if (strcmp(tkn_w, "non_linear_method") == 0) {WITH_NON_LINEAR = check_a_b(tkn_w, tkn_v, "on", "off");}
@@ -309,6 +319,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "sp_surface_processes") == 0) {sp_surface_processes = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "plot_sediment") == 0) {plot_sediment = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "a2l") == 0) {a2l = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "strain_healing") == 0) {strain_healing = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 
 			else if (strcmp(tkn_w, "high_kappa_in_asthenosphere") == 0) {high_kappa_in_asthenosphere = check_a_b(tkn_w, tkn_v, "True", "False");}
 
@@ -476,8 +487,13 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&set_sp_d_c,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&plot_sediment,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&a2l,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&strain_healing,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&weakening_min,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&weakening_max,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+
+	MPI_Bcast(&A_healing,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&k_healing,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&T0_healing,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 
 	MPI_Bcast(&non_dim,1,MPI_INT,0,PETSC_COMM_WORLD);
 
