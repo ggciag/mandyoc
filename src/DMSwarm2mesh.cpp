@@ -14,6 +14,7 @@ extern Vec geoq_cont,local_geoq_cont;
 extern Vec geoq_H,local_geoq_H;
 extern Vec geoq_strain, local_geoq_strain;
 extern Vec geoq_strain_rate, local_geoq_strain_rate;
+extern Vec geoq_kappa, local_geoq_kappa;
 
 extern Vec Temper,local_Temper;
 
@@ -32,6 +33,7 @@ extern PetscInt sticky_blanket_air;
 
 extern PetscScalar *inter_rho;
 extern PetscScalar *inter_H;
+extern PetscScalar *conductivity;
 
 extern PetscInt periodic_boundary;
 
@@ -46,7 +48,7 @@ extern PetscReal epsilon_x;
 PetscErrorCode Swarm2Mesh_2d(){
 
 	PetscErrorCode ierr;
-	PetscScalar             **qq,**qq_cont,**qq_rho,**TT,**qq_H,**qq_strain;
+	PetscScalar             **qq,**qq_cont,**qq_rho,**TT,**qq_H,**qq_strain,**qq_kappa;
 	PetscScalar				**qq_strain_rate;
 
 	ierr = VecSet(geoq,0.0);CHKERRQ(ierr);
@@ -55,12 +57,14 @@ PetscErrorCode Swarm2Mesh_2d(){
 	ierr = VecSet(geoq_H,0.0);CHKERRQ(ierr);
 	ierr = VecSet(geoq_strain,0.0);CHKERRQ(ierr);
 	ierr = VecSet(geoq_strain_rate,0.0);CHKERRQ(ierr);
+	ierr = VecSet(geoq_kappa,0.0);CHKERRQ(ierr);
 
 	ierr = VecZeroEntries(local_geoq);CHKERRQ(ierr);
 	ierr = VecZeroEntries(local_geoq_rho);CHKERRQ(ierr);
 	ierr = VecZeroEntries(local_geoq_H);CHKERRQ(ierr);
 	ierr = VecZeroEntries(local_geoq_strain);CHKERRQ(ierr);
 	ierr = VecZeroEntries(local_geoq_strain_rate);CHKERRQ(ierr);
+	ierr = VecZeroEntries(local_geoq_kappa);CHKERRQ(ierr);
 
 	ierr = DMGlobalToLocalBegin(da_Thermal,geoq,INSERT_VALUES,local_geoq);
 	ierr = DMGlobalToLocalEnd(  da_Thermal,geoq,INSERT_VALUES,local_geoq);
@@ -77,12 +81,16 @@ PetscErrorCode Swarm2Mesh_2d(){
 	ierr = DMGlobalToLocalBegin(da_Thermal,geoq_strain_rate,INSERT_VALUES,local_geoq_strain_rate);
 	ierr = DMGlobalToLocalEnd(  da_Thermal,geoq_strain_rate,INSERT_VALUES,local_geoq_strain_rate);
 
+	ierr = DMGlobalToLocalBegin(da_Thermal,geoq_kappa,INSERT_VALUES,local_geoq_kappa);
+	ierr = DMGlobalToLocalEnd(  da_Thermal,geoq_kappa,INSERT_VALUES,local_geoq_kappa);
+
 
 	ierr = DMDAVecGetArray(da_Thermal,local_geoq,&qq);CHKERRQ(ierr);
 	ierr = DMDAVecGetArray(da_Thermal,local_geoq_rho,&qq_rho);CHKERRQ(ierr);
 	ierr = DMDAVecGetArray(da_Thermal,local_geoq_H,&qq_H);CHKERRQ(ierr);
 	ierr = DMDAVecGetArray(da_Thermal,local_geoq_strain,&qq_strain);CHKERRQ(ierr);
 	ierr = DMDAVecGetArray(da_Thermal,local_geoq_strain_rate,&qq_strain_rate);CHKERRQ(ierr);
+	ierr = DMDAVecGetArray(da_Thermal,local_geoq_kappa,&qq_kappa);CHKERRQ(ierr);
 
 
 	ierr = DMGlobalToLocalBegin(da_Thermal,geoq_cont,INSERT_VALUES,local_geoq_cont);
@@ -157,6 +165,7 @@ PetscErrorCode Swarm2Mesh_2d(){
 		qq_H	[k][i] += rfac*inter_H[layer_array[p]];
 		qq_strain[k][i] += rfac*strain_fac[p];
 		qq_strain_rate[k][i] += rfac*strain_rate_fac[p];
+		qq_kappa	[k][i] += rfac*conductivity[layer_array[p]];
 		qq_cont	[k][i] += rfac;
 
 		rfac = (rx)*(1.0-rz);
@@ -164,6 +173,7 @@ PetscErrorCode Swarm2Mesh_2d(){
 		qq_H	[k][i+1] += rfac*inter_H[layer_array[p]];
 		qq_strain[k][i+1] += rfac*strain_fac[p];
 		qq_strain_rate[k][i+1] += rfac*strain_rate_fac[p];
+		qq_kappa	[k][i+1] += rfac*conductivity[layer_array[p]];
 		qq_cont	[k][i+1] += rfac;
 
 		rfac = (1.0-rx)*(rz);
@@ -171,6 +181,7 @@ PetscErrorCode Swarm2Mesh_2d(){
 		qq_H	[k+1][i] += rfac*inter_H[layer_array[p]];
 		qq_strain[k+1][i] += rfac*strain_fac[p];
 		qq_strain_rate[k+1][i] += rfac*strain_rate_fac[p];
+		qq_kappa	[k+1][i] += rfac*conductivity[layer_array[p]];
 		qq_cont	[k+1][i] += rfac;
 
 		rfac = (rx)*(rz);
@@ -178,6 +189,7 @@ PetscErrorCode Swarm2Mesh_2d(){
 		qq_H	[k+1][i+1] += rfac*inter_H[layer_array[p]];
 		qq_strain[k+1][i+1] += rfac*strain_fac[p];
 		qq_strain_rate[k+1][i+1] += rfac*strain_rate_fac[p];
+		qq_kappa	[k+1][i+1] += rfac*conductivity[layer_array[p]];
 		qq_cont	[k+1][i+1] += rfac;
 	}
 
@@ -319,6 +331,10 @@ PetscErrorCode Swarm2Mesh_2d(){
 	ierr = DMLocalToGlobalBegin(da_Thermal,local_geoq_cont,ADD_VALUES,geoq_cont);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalEnd(da_Thermal,local_geoq_cont,ADD_VALUES,geoq_cont);CHKERRQ(ierr);
 
+	ierr = DMDAVecRestoreArray(da_Thermal,local_geoq_kappa,&qq_kappa);CHKERRQ(ierr);
+	ierr = DMLocalToGlobalBegin(da_Thermal,local_geoq_kappa,ADD_VALUES,geoq_kappa);CHKERRQ(ierr);
+	ierr = DMLocalToGlobalEnd(da_Thermal,local_geoq_kappa,ADD_VALUES,geoq_kappa);CHKERRQ(ierr);
+
 	if (periodic_boundary==1){
 		ierr = mean_value_periodic_boundary_2d(da_Thermal,geoq_rho,local_geoq_rho,qq_rho,1);
 		ierr = mean_value_periodic_boundary_2d(da_Thermal,geoq_H,local_geoq_H,qq_H,1);
@@ -326,6 +342,7 @@ PetscErrorCode Swarm2Mesh_2d(){
 		ierr = mean_value_periodic_boundary_2d(da_Thermal,geoq_strain,local_geoq_strain,qq_strain,1);
 		ierr = mean_value_periodic_boundary_2d(da_Thermal,geoq_strain_rate,local_geoq_strain_rate,qq_strain_rate,1);
 		ierr = mean_value_periodic_boundary_2d(da_Thermal,geoq_cont,local_geoq_cont,qq_cont,1);
+		ierr = mean_value_periodic_boundary_2d(da_Thermal,geoq_kappa,local_geoq_kappa,qq_kappa,1);
 	}
 
 
@@ -336,6 +353,7 @@ PetscErrorCode Swarm2Mesh_2d(){
 	VecPointwiseDivide(geoq_H,geoq_H,geoq_cont);
 	VecPointwiseDivide(geoq_strain,geoq_strain,geoq_cont);
 	VecPointwiseDivide(geoq_strain_rate,geoq_strain_rate,geoq_cont);
+	VecPointwiseDivide(geoq_kappa,geoq_kappa,geoq_cont);
 
 	if (visc_const_per_element==1){
 		ierr = VecSet(geoq,0.0);CHKERRQ(ierr);
@@ -470,7 +488,7 @@ PetscErrorCode Swarm2Mesh_2d(){
 
 }
 
-PetscErrorCode Swarm2Mesh_3d(){
+PetscErrorCode Swarm2Mesh_3d(){ ///!!!  geoq_kappa for 3D models have to be implemented!!!
 
 	PetscErrorCode ierr;
 	PetscScalar             ***qq,***qq_cont,***qq_rho,***TT,***qq_H,***qq_strain;

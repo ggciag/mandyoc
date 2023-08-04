@@ -55,6 +55,7 @@ extern Vec local_FT;
 extern Vec local_Temper;
 
 extern Vec geoq_H,local_geoq_H;
+extern Vec geoq_kappa, local_geoq_kappa;
 
 extern Vec local_TC;
 
@@ -176,7 +177,17 @@ PetscErrorCode AssembleA_Thermal_2d(Mat A,DM thermal_da,PetscReal *TKe,PetscReal
 	ierr = DMGlobalToLocalEnd(thermal_da,Temper,INSERT_VALUES,local_Temper);
 
 	ierr = DMDAVecGetArray(thermal_da,local_Temper,&tt);CHKERRQ(ierr);
+	
+	////////
 
+	PetscScalar **qq_kappa;
+
+	ierr = VecZeroEntries(local_geoq_kappa);CHKERRQ(ierr);
+
+	ierr = DMGlobalToLocalBegin(thermal_da,geoq_kappa,INSERT_VALUES,local_geoq_kappa);
+	ierr = DMGlobalToLocalEnd(thermal_da,geoq_kappa,INSERT_VALUES,local_geoq_kappa);
+
+	ierr = DMDAVecGetArray(thermal_da,local_geoq_kappa,&qq_kappa);CHKERRQ(ierr);
 
 
 	PetscInt               M,P;
@@ -240,7 +251,13 @@ PetscErrorCode AssembleA_Thermal_2d(Mat A,DM thermal_da,PetscReal *TKe,PetscReal
 				v_vec_aux_ele[i*2+1] = VV[ind[i].j][ind[i].i].w;
 			}
 
-			kappa_eff = kappa;
+			kappa_eff = (
+				qq_kappa[ek][ei]+
+				qq_kappa[ek][ei+1]+
+				qq_kappa[ek+1][ei]+
+				qq_kappa[ek+1][ei+1])/4.0;
+
+			//kappa_eff = kappa;
 			if (high_kappa_in_asthenosphere==1){
 				tt_ele[0] = tt[ek][ei];
 				tt_ele[1] = tt[ek][ei+1];
@@ -287,6 +304,7 @@ PetscErrorCode AssembleA_Thermal_2d(Mat A,DM thermal_da,PetscReal *TKe,PetscReal
 	ierr = DMDAVecRestoreArray(veloc_da,local_V,&VV);CHKERRQ(ierr);
 	ierr = DMDAVecRestoreArray(thermal_da,local_TC,&TTC);CHKERRQ(ierr);
 	ierr = DMDAVecRestoreArray(thermal_da,local_Temper,&tt);CHKERRQ(ierr);
+	ierr = DMDAVecRestoreArray(thermal_da,local_geoq_kappa,&qq_kappa);CHKERRQ(ierr);
 
 
 	PetscFunctionReturn(0);

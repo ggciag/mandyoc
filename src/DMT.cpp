@@ -58,6 +58,7 @@ extern Vec geoq_rho,local_geoq_rho;
 extern Vec geoq_H,local_geoq_H;
 extern Vec geoq_strain,local_geoq_strain;
 extern Vec geoq_strain_rate,local_geoq_strain_rate;
+extern Vec geoq_kappa, local_geoq_kappa;
 
 extern Vec geoq_cont,local_geoq_cont;
 
@@ -201,6 +202,7 @@ PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt
 	ierr = DMCreateGlobalVector(da_Thermal,&geoq_strain);CHKERRQ(ierr);
 	ierr = DMCreateGlobalVector(da_Thermal,&geoq_strain_rate);CHKERRQ(ierr);
 	ierr = DMCreateGlobalVector(da_Thermal,&geoq_cont);CHKERRQ(ierr);
+	ierr = DMCreateGlobalVector(da_Thermal,&geoq_kappa);CHKERRQ(ierr);
 
 	ierr = DMCreateGlobalVector(da_Thermal,&dRho);CHKERRQ(ierr);
 
@@ -222,6 +224,7 @@ PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt
 	ierr = DMCreateLocalVector(da_Thermal,&local_geoq_strain);
 	ierr = DMCreateLocalVector(da_Thermal,&local_geoq_strain_rate);
 	ierr = DMCreateLocalVector(da_Thermal,&local_geoq_cont);
+	ierr = DMCreateLocalVector(da_Thermal,&local_geoq_kappa);
 
 	ierr = DMCreateLocalVector(da_Thermal,&local_dRho);
 

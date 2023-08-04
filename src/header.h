@@ -235,6 +235,8 @@ Vec local_geoq_cont;
 Vec geoq_strain;
 Vec local_geoq_strain;
 
+Vec geoq_kappa;
+Vec local_geoq_kappa;
 
 Vec geoq_strain_rate;
 Vec local_geoq_strain_rate;
