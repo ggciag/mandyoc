@@ -57,14 +57,14 @@ PetscErrorCode Swarm2Mesh_2d(){
 	ierr = VecSet(geoq_H,0.0);CHKERRQ(ierr);
 	ierr = VecSet(geoq_strain,0.0);CHKERRQ(ierr);
 	ierr = VecSet(geoq_strain_rate,0.0);CHKERRQ(ierr);
-	ierr = VecSet(geoq_kappa,0.0);CHKERRQ(ierr);
+	
 
 	ierr = VecZeroEntries(local_geoq);CHKERRQ(ierr);
 	ierr = VecZeroEntries(local_geoq_rho);CHKERRQ(ierr);
 	ierr = VecZeroEntries(local_geoq_H);CHKERRQ(ierr);
 	ierr = VecZeroEntries(local_geoq_strain);CHKERRQ(ierr);
 	ierr = VecZeroEntries(local_geoq_strain_rate);CHKERRQ(ierr);
-	ierr = VecZeroEntries(local_geoq_kappa);CHKERRQ(ierr);
+	
 
 	ierr = DMGlobalToLocalBegin(da_Thermal,geoq,INSERT_VALUES,local_geoq);
 	ierr = DMGlobalToLocalEnd(  da_Thermal,geoq,INSERT_VALUES,local_geoq);
