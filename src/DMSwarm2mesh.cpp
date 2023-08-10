@@ -195,6 +195,9 @@ PetscErrorCode Swarm2Mesh_2d(){
 
 	if (visc_const_per_element==0){
 
+		PetscPrintf(PETSC_COMM_WORLD,"\n\nThe option \nviscosity_per_element = variable \nis no longer available.\n");
+		exit(-2);
+
 		if (visc_harmonic_mean==1){
 			for (p=0; p<nlocal; p++) {
 				PetscReal cx,cz;
