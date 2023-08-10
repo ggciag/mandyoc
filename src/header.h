@@ -408,3 +408,5 @@ PetscReal strain_rate0_scaled;
 PetscReal pressure0_scaled;
 
 PetscReal air_threshold_density;
+
+PetscBool export_kappa = PETSC_FALSE;
