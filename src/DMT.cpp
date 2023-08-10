@@ -533,5 +533,8 @@ PetscErrorCode write_geoq_(int cont, PetscInt binary_out)
 	sprintf(variable_name,"strain_rate");
 	write_all_(cont,geoq_strain_rate,variable_name,binary_out);
 
+	sprintf(variable_name,"thermal_diffusivity");
+	write_all_(cont,geoq_kappa,variable_name,binary_out);
+
 	PetscFunctionReturn(0);
 }
