@@ -251,12 +251,8 @@ PetscErrorCode AssembleA_Thermal_2d(Mat A,DM thermal_da,PetscReal *TKe,PetscReal
 				v_vec_aux_ele[i*2+1] = VV[ind[i].j][ind[i].i].w;
 			}
 
-			kappa_eff = (
-				qq_kappa[ek][ei]+
-				qq_kappa[ek][ei+1]+
-				qq_kappa[ek+1][ei]+
-				qq_kappa[ek+1][ei+1])/4.0;
-
+			kappa_eff = qq_kappa[ek][ei];
+			
 			//kappa_eff = kappa;
 			if (high_kappa_in_asthenosphere==1){
 				tt_ele[0] = tt[ek][ei];
@@ -416,11 +412,7 @@ PetscErrorCode AssembleF_Thermal_2d(Vec F,DM thermal_da,PetscReal *TKe,PetscReal
 				v_vec_aux_ele[i*2+1] = VV[ind[i].j][ind[i].i].w;
 			}
 
-			kappa_eff = (
-				qq_kappa[ek][ei]+
-				qq_kappa[ek][ei+1]+
-				qq_kappa[ek+1][ei]+
-				qq_kappa[ek+1][ei+1])/4.0;
+			kappa_eff = qq_kappa[ek][ei];
 
 			//kappa_eff = kappa;
 			if (high_kappa_in_asthenosphere==1){
