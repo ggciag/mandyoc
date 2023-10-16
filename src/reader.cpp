@@ -52,6 +52,7 @@ extern int bcT_front;
 extern int bcT_back;
 extern PetscInt WITH_NON_LINEAR;
 extern PetscInt WITH_ADIABATIC_H;
+extern PetscInt WITH_SHEAR_H;
 extern PetscInt WITH_RADIOGENIC_H;
 extern PetscInt PLASTICITY;
 extern PetscReal denok_min;
@@ -265,6 +266,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "geoq") == 0) {geoq_on = check_a_b(tkn_w, tkn_v, "on", "off");}
 			else if (strcmp(tkn_w, "non_linear_method") == 0) {WITH_NON_LINEAR = check_a_b(tkn_w, tkn_v, "on", "off");}
 			else if (strcmp(tkn_w, "adiabatic_component") == 0) {WITH_ADIABATIC_H = check_a_b(tkn_w, tkn_v, "on", "off");}
+			else if (strcmp(tkn_w, "shear_heating") == 0) {WITH_SHEAR_H = check_a_b(tkn_w, tkn_v, "on", "off");}
 			else if (strcmp(tkn_w, "radiogenic_component") == 0) {WITH_RADIOGENIC_H = check_a_b(tkn_w, tkn_v, "on", "off");}
 			else if (strcmp(tkn_w, "plasticity") == 0) {PLASTICITY = check_a_b(tkn_w, tkn_v, "on", "off");}
 			else if (strcmp(tkn_w, "top_normal_velocity") == 0) {bcv_top_normal = check_a_b(tkn_w, tkn_v, "fixed", "free");}
@@ -405,6 +407,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&c_heat_capacity,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&WITH_NON_LINEAR,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&WITH_ADIABATIC_H,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&WITH_SHEAR_H,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&WITH_RADIOGENIC_H,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&PLASTICITY,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&bcv_top_normal,1,MPI_INT,0,PETSC_COMM_WORLD);

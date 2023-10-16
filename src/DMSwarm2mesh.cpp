@@ -35,6 +35,8 @@ extern PetscScalar *inter_H;
 
 extern PetscInt periodic_boundary;
 
+extern PetscInt WITH_SHEAR_H;
+
 extern double visc_MIN;
 
 extern PetscReal air_threshold_density;
