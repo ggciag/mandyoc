@@ -156,7 +156,7 @@ PetscErrorCode Swarm2Mesh_2d(){
 		if (rz<0 || rz>1) {printf("weird rz=%f , Swarm2Mesh\n",rz); exit(1);}
 
 		if (WITH_SHEAR_H == 1){
-			inter_H_aux = inter_H[layer_array[p]] + 4*geoq_fac[p]*strain_rate_fac[p]*strain_rate_fac[p];
+			inter_H_aux = inter_H[layer_array[p]] + 4*geoq_fac[p]*strain_rate_fac[p]*strain_rate_fac[p]/inter_rho[layer_array[p]];
 		}
 		else {
 			inter_H_aux = inter_H[layer_array[p]];
