@@ -36,6 +36,7 @@ extern PetscScalar *inter_H;
 extern PetscInt periodic_boundary;
 
 extern PetscInt WITH_SHEAR_H;
+extern PetscReal Xi_shear;
 
 extern double visc_MIN;
 
@@ -156,7 +157,7 @@ PetscErrorCode Swarm2Mesh_2d(){
 		if (rz<0 || rz>1) {printf("weird rz=%f , Swarm2Mesh\n",rz); exit(1);}
 
 		if (WITH_SHEAR_H == 1){
-			inter_H_aux = inter_H[layer_array[p]] + 4*geoq_fac[p]*strain_rate_fac[p]*strain_rate_fac[p]/inter_rho[layer_array[p]];
+			inter_H_aux = inter_H[layer_array[p]] + Xi_shear*4*geoq_fac[p]*strain_rate_fac[p]*strain_rate_fac[p]/inter_rho[layer_array[p]];
 		}
 		else {
 			inter_H_aux = inter_H[layer_array[p]];

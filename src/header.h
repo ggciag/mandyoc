@@ -28,6 +28,7 @@ PetscScalar sp_d_c = 0.0;
 PetscInt WITH_NON_LINEAR = 0; // 1=True, 0=False
 PetscInt WITH_ADIABATIC_H = 0; // 1=True, 0=False
 PetscInt WITH_SHEAR_H = 0; // 1=True, 0=False
+PetscReal Xi_shear = 1; //scale factor
 PetscInt WITH_RADIOGENIC_H = 0; // 1=True, 0=False
 PetscInt PLASTICITY = 1; // 1=True, 0=False
 PetscInt direct_solver = 1; // 1=direct, 0=iterative
