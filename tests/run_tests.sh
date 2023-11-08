@@ -12,6 +12,7 @@ declare -a scenarios=(
     "continental_rift"
     "punch"
     "Schmalholz_2011"
+    "two_layers_with_variable_conductivity"
 )
 
 # Run scenarios

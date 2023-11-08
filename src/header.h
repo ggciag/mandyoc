@@ -142,6 +142,7 @@ PetscScalar *cohesion_max;
 PetscScalar *friction_angle_min;
 PetscScalar *friction_angle_max;
 PetscBool   weakening_from_interfaces_file = PETSC_FALSE;
+PetscScalar *conductivity;
 
 int tcont=0;
 
@@ -234,6 +235,8 @@ Vec local_geoq_cont;
 Vec geoq_strain;
 Vec local_geoq_strain;
 
+Vec geoq_kappa;
+Vec local_geoq_kappa;
 
 Vec geoq_strain_rate;
 Vec local_geoq_strain_rate;
@@ -405,3 +408,5 @@ PetscReal strain_rate0_scaled;
 PetscReal pressure0_scaled;
 
 PetscReal air_threshold_density;
+
+PetscBool export_kappa = PETSC_FALSE;
