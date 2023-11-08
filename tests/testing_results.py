@@ -15,7 +15,8 @@ scenarios = [
     "Crameri2012_case2",
     "continental_rift",
     "punch",
-    "Schmalholz_2011"
+    "Schmalholz_2011",
+    "two_layers_with_variable_conductivity",
 ]
 
 # Name of the files to compare
@@ -30,13 +31,11 @@ fields = [
     "temperature",
     "velocity",
     "viscosity",
-    "step_0",
-    "step_1",
+    "step",
 ]
 
 # steps to compare
-steps = [0, 1]
-
+steps = [0, 1, 10000]
 
 def read(filename):
     """
@@ -65,11 +64,22 @@ def test_result(scenario, field, step):
     if (scenario == 'punch' and step == 1) or (scenario == 'punch' and field == 'step_1'):
         pytest.skip('Test with only one step')
 
+    if (scenario != 'two_layers_with_variable_conductivity' and step == 10000) or (scenario == 'two_layers_with_variable_conductivity' and step == 1):
+        pytest.skip('Test step/file not available for this scenario')
+
     test_path = base_path / "data" / scenario/ "output"
     expected_path = base_path / "data" / scenario/ "expected"
 
-    filename = f"{field}_{step}" + ".txt"
-    output = read(test_path / filename)
-    expected = read(expected_path / filename)
+    filenames = [f"{field}_{step}.txt"]
 
-    npt.assert_allclose(output, expected, rtol=2e-4, atol=1.0e-18)
+    if field == 'step':
+        if scenario in ['Crameri2012_case2']:
+            filenames = [f"step_{step}_0.txt"]
+        else:
+            filenames = [f"step_{step}_0.txt", f"step_{step}_1.txt"]
+
+    for filename in filenames:
+        output = read(test_path / filename)
+        expected = read(expected_path / filename)
+
+        npt.assert_allclose(output, expected, rtol=2e-4, atol=1.0e-18)
