@@ -37,6 +37,9 @@ extern PetscScalar *conductivity;
 
 extern PetscInt periodic_boundary;
 
+extern PetscInt WITH_SHEAR_H;
+extern PetscReal Xi_shear;
+
 extern double visc_MIN;
 
 extern PetscReal air_threshold_density;
@@ -44,6 +47,8 @@ extern PetscReal air_threshold_density;
 extern PetscReal rho0_scaled;
 
 extern PetscReal epsilon_x;
+
+//Shear heating only in 2D!!! Must be implemented for 3D!!!
 
 PetscErrorCode Swarm2Mesh_2d(){
 
@@ -103,6 +108,8 @@ PetscErrorCode Swarm2Mesh_2d(){
 	PetscReal *strain_rate_fac;
 	PetscInt *layer_array;
 
+	PetscReal inter_H_aux;
+
 	ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
 
 	ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
@@ -152,33 +159,38 @@ PetscErrorCode Swarm2Mesh_2d(){
 		if (rx<0 || rx>1) {printf("weird rx=%f , Swarm2Mesh\n",rx); exit(1);}
 		if (rz<0 || rz>1) {printf("weird rz=%f , Swarm2Mesh\n",rz); exit(1);}
 
-
+		if (WITH_SHEAR_H == 1){
+			inter_H_aux = inter_H[layer_array[p]] + Xi_shear*4*geoq_fac[p]*strain_rate_fac[p]*strain_rate_fac[p]/inter_rho[layer_array[p]];
+		}
+		else {
+			inter_H_aux = inter_H[layer_array[p]];
+		}
 
 
 		rfac = (1.0-rx)*(1.0-rz);
 		qq_rho	[k][i] += rfac*inter_rho[layer_array[p]];
-		qq_H	[k][i] += rfac*inter_H[layer_array[p]];
+		qq_H	[k][i] += rfac*inter_H_aux;
 		qq_strain[k][i] += rfac*strain_fac[p];
 		qq_strain_rate[k][i] += rfac*strain_rate_fac[p];
 		qq_cont	[k][i] += rfac;
 
 		rfac = (rx)*(1.0-rz);
 		qq_rho	[k][i+1] += rfac*inter_rho[layer_array[p]];
-		qq_H	[k][i+1] += rfac*inter_H[layer_array[p]];
+		qq_H	[k][i+1] += rfac*inter_H_aux;
 		qq_strain[k][i+1] += rfac*strain_fac[p];
 		qq_strain_rate[k][i+1] += rfac*strain_rate_fac[p];
 		qq_cont	[k][i+1] += rfac;
 
 		rfac = (1.0-rx)*(rz);
 		qq_rho	[k+1][i] += rfac*inter_rho[layer_array[p]];
-		qq_H	[k+1][i] += rfac*inter_H[layer_array[p]];
+		qq_H	[k+1][i] += rfac*inter_H_aux;
 		qq_strain[k+1][i] += rfac*strain_fac[p];
 		qq_strain_rate[k+1][i] += rfac*strain_rate_fac[p];
 		qq_cont	[k+1][i] += rfac;
 
 		rfac = (rx)*(rz);
 		qq_rho	[k+1][i+1] += rfac*inter_rho[layer_array[p]];
-		qq_H	[k+1][i+1] += rfac*inter_H[layer_array[p]];
+		qq_H	[k+1][i+1] += rfac*inter_H_aux;
 		qq_strain[k+1][i+1] += rfac*strain_fac[p];
 		qq_strain_rate[k+1][i+1] += rfac*strain_rate_fac[p];
 		qq_cont	[k+1][i+1] += rfac;
