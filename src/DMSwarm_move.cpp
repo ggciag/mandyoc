@@ -63,6 +63,10 @@ extern PetscInt *p_add_layer;
 extern PetscReal *p_add_r_strain;
 extern PetscReal *p_add_r_strain_rate;
 
+extern PetscReal *p_add_X;
+extern PetscReal *p_add_dPhi;
+extern PetscReal *p_add_Phi;
+
 extern unsigned int seed;
 
 extern PetscScalar *inter_geoq;
@@ -698,6 +702,10 @@ PetscErrorCode Swarm_add_remove_2d()
 	PetscReal *strain_fac;
 	PetscReal *strain_rate_fac;
 
+	PetscReal *X_array;
+	PetscReal *Phi_array;
+	PetscReal *dPhi_array;
+
 	ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
 
 	ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
@@ -707,6 +715,12 @@ PetscErrorCode Swarm_add_remove_2d()
 	ierr = DMSwarmGetField(dms,"geoq_fac",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_fac",&bs,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_rate_fac",&bs,NULL,(void**)&strain_rate_fac);CHKERRQ(ierr);
+
+	if (magmatism_flag==PETSC_TRUE){
+		ierr = DMSwarmGetField(dms,"X",&bs,NULL,(void**)&X_array);CHKERRQ(ierr);
+		ierr = DMSwarmGetField(dms,"Phi",&bs,NULL,(void**)&Phi_array);CHKERRQ(ierr);
+		ierr = DMSwarmGetField(dms,"dPhi",&bs,NULL,(void**)&dPhi_array);CHKERRQ(ierr);
+	}
 
 	PetscInt Mx=0,mx=10000,Mz=0,mz=10000;
 	PetscInt       sx,sz,mmx,mmz;
@@ -882,6 +896,11 @@ PetscErrorCode Swarm_add_remove_2d()
 				p_add_r_strain[cont_p_add] = strain_fac[p_prox_total];
 				p_add_r_strain_rate[cont_p_add] = strain_rate_fac[p_prox_total];
 
+				if (magmatism_flag==PETSC_TRUE){
+					p_add_X[cont_p_add] = X_array[p_prox_total];
+					p_add_Phi[cont_p_add] = Phi_array[p_prox_total];
+					p_add_dPhi[cont_p_add] = dPhi_array[p_prox_total];
+				}
 
 				cont_p_add++;
 				if (cont_p_add>particles_add_remove){
@@ -905,6 +924,12 @@ PetscErrorCode Swarm_add_remove_2d()
 	ierr = DMSwarmRestoreField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"strain_fac",&bs,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"strain_rate_fac",&bs,NULL,(void**)&strain_rate_fac);CHKERRQ(ierr);
+
+	if (magmatism_flag==PETSC_TRUE){
+		ierr = DMSwarmRestoreField(dms,"X",&bs,NULL,(void**)&X_array);CHKERRQ(ierr);
+		ierr = DMSwarmRestoreField(dms,"Phi",&bs,NULL,(void**)&Phi_array);CHKERRQ(ierr);
+		ierr = DMSwarmRestoreField(dms,"dPhi",&bs,NULL,(void**)&dPhi_array);CHKERRQ(ierr);
+	}
 
 	ierr = DMDAVecRestoreArray(da_Thermal,local_geoq_cont,&qq_cont);CHKERRQ(ierr);
 
@@ -935,6 +960,12 @@ PetscErrorCode Swarm_add_remove_2d()
 		ierr = DMSwarmGetField(dms,"strain_fac",&bs,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 		ierr = DMSwarmGetField(dms,"strain_rate_fac",&bs,NULL,(void**)&strain_rate_fac);CHKERRQ(ierr);
 
+		if (magmatism_flag==PETSC_TRUE){
+			ierr = DMSwarmGetField(dms,"X",&bs,NULL,(void**)&X_array);CHKERRQ(ierr);
+			ierr = DMSwarmGetField(dms,"Phi",&bs,NULL,(void**)&Phi_array);CHKERRQ(ierr);
+			ierr = DMSwarmGetField(dms,"dPhi",&bs,NULL,(void**)&dPhi_array);CHKERRQ(ierr);
+		}
+
 		for (pp=0; pp<cont_p_add; pp++){
 			array[(nlocal+pp)*2] = p_add_coor[pp*2];
 			array[(nlocal+pp)*2+1] = p_add_coor[pp*2+1];
@@ -946,6 +977,12 @@ PetscErrorCode Swarm_add_remove_2d()
 
 			iarray[nlocal+pp] = p_add_i[pp];
 			layer_array[nlocal+pp] = p_add_layer[pp];
+
+			if (magmatism_flag==PETSC_TRUE){
+				X_array[nlocal+pp] = p_add_X[pp];
+				Phi_array[nlocal+pp] = p_add_Phi[pp];
+				dPhi_array[nlocal+pp] = p_add_dPhi[pp];
+			}
 		}
 
 		ierr = DMSwarmRestoreField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
@@ -954,6 +991,12 @@ PetscErrorCode Swarm_add_remove_2d()
 		ierr = DMSwarmRestoreField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
 		ierr = DMSwarmRestoreField(dms,"strain_fac",&bs,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 		ierr = DMSwarmRestoreField(dms,"strain_rate_fac",&bs,NULL,(void**)&strain_rate_fac);CHKERRQ(ierr);
+
+		if (magmatism_flag==PETSC_TRUE){
+			ierr = DMSwarmRestoreField(dms,"X",&bs,NULL,(void**)&X_array);CHKERRQ(ierr);
+			ierr = DMSwarmRestoreField(dms,"Phi",&bs,NULL,(void**)&Phi_array);CHKERRQ(ierr);
+			ierr = DMSwarmRestoreField(dms,"dPhi",&bs,NULL,(void**)&dPhi_array);CHKERRQ(ierr);
+		}
 
 	}
 
@@ -991,6 +1034,10 @@ PetscErrorCode Swarm_add_remove_3d()
 	PetscReal *strain_fac;
 	PetscReal *strain_rate_fac;
 
+	PetscReal *X_array;
+	PetscReal *Phi_array;
+	PetscReal *dPhi_array;
+
 	ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
 
 	ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
@@ -1002,6 +1049,12 @@ PetscErrorCode Swarm_add_remove_3d()
 	//ierr = DMSwarmGetField(dms,"H_fac",&bs,NULL,(void**)&rarray_H);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_fac",&bs,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_rate_fac",&bs,NULL,(void**)&strain_rate_fac);CHKERRQ(ierr);
+
+	if (magmatism_flag==PETSC_TRUE){
+		ierr = DMSwarmGetField(dms,"X",&bs,NULL,(void**)&X_array);CHKERRQ(ierr);
+		ierr = DMSwarmGetField(dms,"Phi",&bs,NULL,(void**)&Phi_array);CHKERRQ(ierr);
+		ierr = DMSwarmGetField(dms,"dPhi",&bs,NULL,(void**)&dPhi_array);CHKERRQ(ierr);
+	}
 
 	PetscInt Mx=0,mx=10000,My=0,my=10000,Mz=0,mz=10000;
 	PetscInt       sx,sy,sz,mmx,mmy,mmz;
@@ -1201,6 +1254,12 @@ PetscErrorCode Swarm_add_remove_3d()
 					p_add_r_strain[cont_p_add] = strain_fac[p_prox_total];
 					p_add_r_strain_rate[cont_p_add] = strain_rate_fac[p_prox_total];
 
+					if (magmatism_flag==PETSC_TRUE){
+						p_add_X[cont_p_add] = X_array[p_prox_total];
+						p_add_Phi[cont_p_add] = Phi_array[p_prox_total];
+						p_add_dPhi[cont_p_add] = dPhi_array[p_prox_total];
+					}
+
 					//printf("ADDED %d %d %d: !\n",k,j,i);
 					//printf("ADDED %lf %lf %lf: !\n",cx_v[chosen],cy_v[chosen],cz_v[chosen]);
 
@@ -1236,6 +1295,12 @@ PetscErrorCode Swarm_add_remove_3d()
 	ierr = DMSwarmRestoreField(dms,"strain_fac",&bs,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"strain_rate_fac",&bs,NULL,(void**)&strain_rate_fac);CHKERRQ(ierr);
 
+	if (magmatism_flag==PETSC_TRUE){
+		ierr = DMSwarmRestoreField(dms,"X",&bs,NULL,(void**)&X_array);CHKERRQ(ierr);
+		ierr = DMSwarmRestoreField(dms,"Phi",&bs,NULL,(void**)&Phi_array);CHKERRQ(ierr);
+		ierr = DMSwarmRestoreField(dms,"dPhi",&bs,NULL,(void**)&dPhi_array);CHKERRQ(ierr);
+	}
+
 	ierr = DMDAVecRestoreArray(da_Thermal,local_geoq_cont,&qq_cont);CHKERRQ(ierr);
 
 	ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
@@ -1267,6 +1332,12 @@ PetscErrorCode Swarm_add_remove_3d()
 		ierr = DMSwarmGetField(dms,"strain_fac",&bs,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 		ierr = DMSwarmGetField(dms,"strain_rate_fac",&bs,NULL,(void**)&strain_rate_fac);CHKERRQ(ierr);
 
+		if (magmatism_flag==PETSC_TRUE){
+			ierr = DMSwarmGetField(dms,"X",&bs,NULL,(void**)&X_array);CHKERRQ(ierr);
+			ierr = DMSwarmGetField(dms,"Phi",&bs,NULL,(void**)&Phi_array);CHKERRQ(ierr);
+			ierr = DMSwarmGetField(dms,"dPhi",&bs,NULL,(void**)&dPhi_array);CHKERRQ(ierr);
+		}
+
 		for (pp=0; pp<cont_p_add; pp++){
 			array[(nlocal+pp)*3] = p_add_coor[pp*3];
 			array[(nlocal+pp)*3+1] = p_add_coor[pp*3+1];
@@ -1283,6 +1354,12 @@ PetscErrorCode Swarm_add_remove_3d()
 
 			iarray[nlocal+pp] = p_add_i[pp];
 			layer_array[nlocal+pp] = p_add_layer[pp];
+
+			if (magmatism_flag==PETSC_TRUE){
+				X_array[nlocal+pp] = p_add_X[pp];
+				Phi_array[nlocal+pp] = p_add_Phi[pp];
+				dPhi_array[nlocal+pp] = p_add_dPhi[pp];
+			}
 		}
 
 		ierr = DMSwarmRestoreField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
@@ -1293,6 +1370,12 @@ PetscErrorCode Swarm_add_remove_3d()
 		ierr = DMSwarmRestoreField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
 		ierr = DMSwarmRestoreField(dms,"strain_fac",&bs,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 		ierr = DMSwarmRestoreField(dms,"strain_rate_fac",&bs,NULL,(void**)&strain_rate_fac);CHKERRQ(ierr);
+
+		if (magmatism_flag==PETSC_TRUE){
+			ierr = DMSwarmRestoreField(dms,"X",&bs,NULL,(void**)&X_array);CHKERRQ(ierr);
+			ierr = DMSwarmRestoreField(dms,"Phi",&bs,NULL,(void**)&Phi_array);CHKERRQ(ierr);
+			ierr = DMSwarmRestoreField(dms,"dPhi",&bs,NULL,(void**)&dPhi_array);CHKERRQ(ierr);
+		}
 
 	}
 

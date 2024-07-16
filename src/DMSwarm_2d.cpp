@@ -55,6 +55,10 @@ extern PetscInt *p_add_layer;
 extern PetscReal *p_add_r_strain;
 extern PetscReal *p_add_r_strain_rate;
 
+extern PetscReal *p_add_X;
+extern PetscReal *p_add_dPhi;
+extern PetscReal *p_add_Phi;
+
 extern unsigned int seed;
 
 extern PetscInt print_step_files;
@@ -316,9 +320,9 @@ PetscErrorCode createSwarm_2d()
 	ierr = DMSwarmRegisterPetscDatatypeField(dms,"cont",1,PETSC_INT);CHKERRQ(ierr);
 
 	if (magmatism_flag==PETSC_TRUE){
-		ierr = DMSwarmRegisterPetscDatatypeField(dms,"X",1,PETSC_INT);CHKERRQ(ierr);
-		ierr = DMSwarmRegisterPetscDatatypeField(dms,"Phi",1,PETSC_INT);CHKERRQ(ierr);
-		ierr = DMSwarmRegisterPetscDatatypeField(dms,"dPhi",1,PETSC_INT);CHKERRQ(ierr);
+		ierr = DMSwarmRegisterPetscDatatypeField(dms,"X",1,PETSC_REAL);CHKERRQ(ierr);
+		ierr = DMSwarmRegisterPetscDatatypeField(dms,"Phi",1,PETSC_REAL);CHKERRQ(ierr);
+		ierr = DMSwarmRegisterPetscDatatypeField(dms,"dPhi",1,PETSC_REAL);CHKERRQ(ierr);
 	}
 
 	ierr = DMSwarmFinalizeFieldRegister(dms);CHKERRQ(ierr);
@@ -496,7 +500,7 @@ PetscErrorCode createSwarm_2d()
 
 			ierr = DMSwarmGetField(dms,"dPhi",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
 			for (p=0; p<nlocal; p++){
-				rarray[p] = 1.0;
+				rarray[p] = 0.0;
 			}
 			ierr = DMSwarmRestoreField(dms,"dPhi",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
 
@@ -525,7 +529,11 @@ PetscErrorCode createSwarm_2d()
 	ierr = PetscCalloc1(particles_add_remove ,&p_add_r_strain);
 	ierr = PetscCalloc1(particles_add_remove ,&p_add_r_strain_rate);
 
-
+	if (magmatism_flag==PETSC_TRUE){
+		ierr = PetscCalloc1(particles_add_remove ,&p_add_X);
+		ierr = PetscCalloc1(particles_add_remove ,&p_add_Phi);
+		ierr = PetscCalloc1(particles_add_remove ,&p_add_dPhi);
+	}
 
 	PetscFunctionReturn(0);
 

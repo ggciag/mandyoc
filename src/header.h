@@ -342,6 +342,10 @@ PetscInt *p_add_layer;
 PetscReal *p_add_r_strain;
 PetscReal *p_add_r_strain_rate;
 
+PetscReal *p_add_X;
+PetscReal *p_add_dPhi;
+PetscReal *p_add_Phi;
+
 PetscInt cont_particles=0;
 
 PetscReal epsilon_x = 1.0E-7;

@@ -318,7 +318,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "plot_sediment") == 0) {plot_sediment = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "a2l") == 0) {a2l = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "export_thermal_diffusivity") == 0) {export_kappa = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
-			else if (strcmp(tkn_w, "magmatism") == 0) {magmatism_flag = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "magmatism") == 0) {magmatism_flag = check_a_b_bool(tkn_w, tkn_v, "on", "off");}
 
 			else if (strcmp(tkn_w, "high_kappa_in_asthenosphere") == 0) {high_kappa_in_asthenosphere = check_a_b(tkn_w, tkn_v, "True", "False");}
 
