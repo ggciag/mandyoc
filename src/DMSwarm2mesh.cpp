@@ -443,6 +443,12 @@ PetscErrorCode Swarm2Mesh_2d(){
 	VecPointwiseDivide(geoq_strain,geoq_strain,geoq_cont);
 	VecPointwiseDivide(geoq_strain_rate,geoq_strain_rate,geoq_cont);
 
+	if (magmatism_flag==PETSC_TRUE){
+		VecPointwiseDivide(X_depletion,X_depletion,geoq_cont);
+		VecPointwiseDivide(dPhi,dPhi,geoq_cont);
+		VecPointwiseDivide(Phi,Phi,geoq_cont);
+	}
+
 	if (visc_const_per_element==1){
 		ierr = VecSet(geoq,0.0);CHKERRQ(ierr);
 		ierr = VecSet(geoq_cont,0.0);CHKERRQ(ierr);
