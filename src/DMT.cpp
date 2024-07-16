@@ -62,6 +62,11 @@ extern Vec geoq_kappa, local_geoq_kappa;
 
 extern Vec geoq_cont,local_geoq_cont;
 
+extern Vec divV;
+extern Vec X_depletion;
+extern Vec dPhi;
+extern Vec Phi;
+
 extern Vec dRho;
 
 extern Vec Pressure;
@@ -89,6 +94,11 @@ extern Vec local_FT;
 extern Vec local_Temper;
 extern Vec local_TC;
 
+extern Vec local_divV;
+extern Vec local_X_depletion;
+extern Vec local_Phi;
+extern Vec local_dPhi;
+
 extern Vec local_P_aux;
 
 extern Vec local_dRho;
@@ -103,6 +113,8 @@ extern double RHOM;
 extern double c_heat_capacity;
 
 extern  PetscBool export_kappa;
+
+extern PetscBool magmatism_flag;
 
 PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt mz, PetscInt Px, PetscInt Py, PetscInt Pz)
 {
@@ -195,6 +207,20 @@ PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt
 	ierr = DMCreateGlobalVector(da_Thermal,&Tf);CHKERRQ(ierr);
 
 	ierr = DMCreateGlobalVector(da_Thermal,&Pressure_aux);CHKERRQ(ierr);
+
+	if (magmatism_flag==PETSC_TRUE){
+		ierr = DMCreateGlobalVector(da_Thermal,&divV);CHKERRQ(ierr);
+		ierr = DMCreateLocalVector(da_Thermal,&local_divV);
+
+		ierr = DMCreateGlobalVector(da_Thermal,&X_depletion);CHKERRQ(ierr);
+		ierr = DMCreateLocalVector(da_Thermal,&local_X_depletion);
+
+		ierr = DMCreateGlobalVector(da_Thermal,&dPhi);CHKERRQ(ierr);
+		ierr = DMCreateLocalVector(da_Thermal,&local_dPhi);
+
+		ierr = DMCreateGlobalVector(da_Thermal,&Phi);CHKERRQ(ierr);
+		ierr = DMCreateLocalVector(da_Thermal,&local_Phi);
+	}
 
 
 
@@ -538,6 +564,17 @@ PetscErrorCode write_geoq_(int cont, PetscInt binary_out)
 	if (export_kappa==PETSC_TRUE){
 		sprintf(variable_name,"thermal_diffusivity");
 		write_all_(cont,geoq_kappa,variable_name,binary_out);
+	}
+
+	if (magmatism_flag==PETSC_TRUE){
+		sprintf(variable_name,"X_depletion");
+		write_all_(cont,X_depletion,variable_name,binary_out);
+
+		sprintf(variable_name,"Phi");
+		write_all_(cont,Phi,variable_name,binary_out);
+
+		sprintf(variable_name,"dPhi");
+		write_all_(cont,dPhi,variable_name,binary_out);
 	}
 
 	PetscFunctionReturn(0);

@@ -106,6 +106,7 @@ extern PetscInt high_kappa_in_asthenosphere;
 extern PetscBool plot_sediment;
 extern PetscBool a2l;
 extern PetscBool export_kappa;
+extern PetscBool magmatism_flag;
 
 // Removed from parameter file
 extern double H_lito;
@@ -317,6 +318,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "plot_sediment") == 0) {plot_sediment = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "a2l") == 0) {a2l = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "export_thermal_diffusivity") == 0) {export_kappa = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "magmatism") == 0) {magmatism_flag = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 
 			else if (strcmp(tkn_w, "high_kappa_in_asthenosphere") == 0) {high_kappa_in_asthenosphere = check_a_b(tkn_w, tkn_v, "True", "False");}
 
@@ -489,6 +491,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&weakening_min,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&weakening_max,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&export_kappa,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&magmatism_flag,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 
 	MPI_Bcast(&non_dim,1,MPI_INT,0,PETSC_COMM_WORLD);
 

@@ -84,6 +84,7 @@ extern PetscReal random_initial_strain;
 
 extern PetscInt binary_output;
 
+extern PetscBool magmatism_flag;
 
 
 PetscErrorCode _DMLocatePoints_DMDARegular_IS_2d(DM dm,Vec pos,IS *iscell)
@@ -313,6 +314,13 @@ PetscErrorCode createSwarm_2d()
 	ierr = DMSwarmRegisterPetscDatatypeField(dms,"strain_fac",1,PETSC_REAL);CHKERRQ(ierr);
 	ierr = DMSwarmRegisterPetscDatatypeField(dms,"strain_rate_fac",1,PETSC_REAL);CHKERRQ(ierr);
 	ierr = DMSwarmRegisterPetscDatatypeField(dms,"cont",1,PETSC_INT);CHKERRQ(ierr);
+
+	if (magmatism_flag==PETSC_TRUE){
+		ierr = DMSwarmRegisterPetscDatatypeField(dms,"X",1,PETSC_INT);CHKERRQ(ierr);
+		ierr = DMSwarmRegisterPetscDatatypeField(dms,"Phi",1,PETSC_INT);CHKERRQ(ierr);
+		ierr = DMSwarmRegisterPetscDatatypeField(dms,"dPhi",1,PETSC_INT);CHKERRQ(ierr);
+	}
+
 	ierr = DMSwarmFinalizeFieldRegister(dms);CHKERRQ(ierr);
 
 	{
@@ -467,6 +475,32 @@ PetscErrorCode createSwarm_2d()
 		ierr = DMSwarmRestoreField(dms,"strain_fac",&bs,NULL,(void**)&strain_array);CHKERRQ(ierr);
 
 		ierr = DMSwarmRestoreField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
+
+
+		if (magmatism_flag==PETSC_TRUE){
+
+
+			ierr = DMSwarmGetField(dms,"X",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
+			for (p=0; p<nlocal; p++){
+				rarray[p] = 1.0;
+			}
+			ierr = DMSwarmRestoreField(dms,"X",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
+
+
+			ierr = DMSwarmGetField(dms,"Phi",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
+			for (p=0; p<nlocal; p++){
+				rarray[p] = 0.0;
+			}
+			ierr = DMSwarmRestoreField(dms,"Phi",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
+
+
+			ierr = DMSwarmGetField(dms,"dPhi",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
+			for (p=0; p<nlocal; p++){
+				rarray[p] = 1.0;
+			}
+			ierr = DMSwarmRestoreField(dms,"dPhi",&bs,NULL,(void**)&rarray);CHKERRQ(ierr);
+
+		}
 
 	}
 

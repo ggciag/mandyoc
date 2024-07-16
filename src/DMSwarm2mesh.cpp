@@ -48,13 +48,26 @@ extern PetscReal rho0_scaled;
 
 extern PetscReal epsilon_x;
 
+extern PetscBool magmatism_flag;
+
+extern Vec X_depletion;
+extern Vec local_X_depletion;
+
+extern Vec dPhi;
+extern Vec local_dPhi;
+
+extern Vec Phi;
+extern Vec local_Phi;
+
 //Shear heating only in 2D!!! Must be implemented for 3D!!!
+//Magmatism in 3D
 
 PetscErrorCode Swarm2Mesh_2d(){
 
 	PetscErrorCode ierr;
 	PetscScalar             **qq,**qq_cont,**qq_rho,**TT,**qq_H,**qq_strain,**qq_kappa;
 	PetscScalar				**qq_strain_rate;
+	PetscScalar				**qq_X, **qq_Phi, **qq_dPhi;
 
 	ierr = VecSet(geoq,0.0);CHKERRQ(ierr);
 	ierr = VecSet(geoq_rho,0.0);CHKERRQ(ierr);
@@ -62,6 +75,10 @@ PetscErrorCode Swarm2Mesh_2d(){
 	ierr = VecSet(geoq_H,0.0);CHKERRQ(ierr);
 	ierr = VecSet(geoq_strain,0.0);CHKERRQ(ierr);
 	ierr = VecSet(geoq_strain_rate,0.0);CHKERRQ(ierr);
+
+	ierr = VecSet(X_depletion,0.0);CHKERRQ(ierr);
+	ierr = VecSet(dPhi,0.0);CHKERRQ(ierr);
+	ierr = VecSet(Phi,0.0);CHKERRQ(ierr);
 	
 
 	ierr = VecZeroEntries(local_geoq);CHKERRQ(ierr);
@@ -69,6 +86,10 @@ PetscErrorCode Swarm2Mesh_2d(){
 	ierr = VecZeroEntries(local_geoq_H);CHKERRQ(ierr);
 	ierr = VecZeroEntries(local_geoq_strain);CHKERRQ(ierr);
 	ierr = VecZeroEntries(local_geoq_strain_rate);CHKERRQ(ierr);
+
+	ierr = VecZeroEntries(local_X_depletion);CHKERRQ(ierr);
+	ierr = VecZeroEntries(local_dPhi);CHKERRQ(ierr);
+	ierr = VecZeroEntries(local_Phi);CHKERRQ(ierr);
 	
 
 	ierr = DMGlobalToLocalBegin(da_Thermal,geoq,INSERT_VALUES,local_geoq);
@@ -91,6 +112,12 @@ PetscErrorCode Swarm2Mesh_2d(){
 	ierr = DMDAVecGetArray(da_Thermal,local_geoq_H,&qq_H);CHKERRQ(ierr);
 	ierr = DMDAVecGetArray(da_Thermal,local_geoq_strain,&qq_strain);CHKERRQ(ierr);
 	ierr = DMDAVecGetArray(da_Thermal,local_geoq_strain_rate,&qq_strain_rate);CHKERRQ(ierr);
+
+	if (magmatism_flag==PETSC_TRUE){
+		ierr = DMDAVecGetArray(da_Thermal,local_X_depletion,&qq_X);CHKERRQ(ierr);
+		ierr = DMDAVecGetArray(da_Thermal,local_Phi,&qq_Phi);CHKERRQ(ierr);
+		ierr = DMDAVecGetArray(da_Thermal,local_dPhi,&qq_dPhi);CHKERRQ(ierr);
+	}
 
 
 	ierr = DMGlobalToLocalBegin(da_Thermal,geoq_cont,INSERT_VALUES,local_geoq_cont);
@@ -117,6 +144,16 @@ PetscErrorCode Swarm2Mesh_2d(){
 	ierr = DMSwarmGetField(dms,"layer",&bs,NULL,(void**)&layer_array);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	ierr = DMSwarmGetField(dms,"strain_rate_fac",NULL,NULL,(void**)&strain_rate_fac);CHKERRQ(ierr);
+
+	PetscReal *X_array;
+	PetscReal *Phi_array;
+	PetscReal *dPhi_array;
+	
+	if (magmatism_flag==PETSC_TRUE){
+		ierr = DMSwarmRestoreField(dms,"X",&bs,NULL,(void**)&X_array);CHKERRQ(ierr);
+		ierr = DMSwarmRestoreField(dms,"Phi",&bs,NULL,(void**)&Phi_array);CHKERRQ(ierr);
+		ierr = DMSwarmRestoreField(dms,"dPhi",&bs,NULL,(void**)&dPhi_array);CHKERRQ(ierr);
+	}
 
 	for (p=0; p<nlocal; p++) {
 		PetscReal cx,cz;
@@ -194,6 +231,28 @@ PetscErrorCode Swarm2Mesh_2d(){
 		qq_strain[k+1][i+1] += rfac*strain_fac[p];
 		qq_strain_rate[k+1][i+1] += rfac*strain_rate_fac[p];
 		qq_cont	[k+1][i+1] += rfac;
+
+		if (magmatism_flag==PETSC_TRUE){
+			rfac = (1.0-rx)*(1.0-rz);
+			qq_X[k][i] += rfac*X_array[p];
+			qq_Phi[k][i] += rfac*Phi_array[p];
+			qq_dPhi[k][i] += rfac*dPhi_array[p];
+			
+			rfac = (rx)*(1.0-rz);
+			qq_X[k][i+1] += rfac*X_array[p];
+			qq_Phi[k][i+1] += rfac*Phi_array[p];
+			qq_dPhi[k][i+1] += rfac*dPhi_array[p];
+
+			rfac = (1.0-rx)*(rz);
+			qq_X[k+1][i] += rfac*X_array[p];
+			qq_Phi[k+1][i] += rfac*Phi_array[p];
+			qq_dPhi[k+1][i] += rfac*dPhi_array[p];
+			
+			rfac = (rx)*(rz);
+			qq_X[k+1][i+1] += rfac*X_array[p];
+			qq_Phi[k+1][i+1] += rfac*Phi_array[p];
+			qq_dPhi[k+1][i+1] += rfac*dPhi_array[p];
+		}
 	}
 
 	if (visc_const_per_element==0){
@@ -337,6 +396,20 @@ PetscErrorCode Swarm2Mesh_2d(){
 	ierr = DMLocalToGlobalBegin(da_Thermal,local_geoq_cont,ADD_VALUES,geoq_cont);CHKERRQ(ierr);
 	ierr = DMLocalToGlobalEnd(da_Thermal,local_geoq_cont,ADD_VALUES,geoq_cont);CHKERRQ(ierr);
 
+	if (magmatism_flag==PETSC_TRUE){
+		ierr = DMDAVecRestoreArray(da_Thermal,local_X_depletion,&qq_X);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalBegin(da_Thermal,local_X_depletion,ADD_VALUES,X_depletion);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalEnd(da_Thermal,local_X_depletion,ADD_VALUES,X_depletion);CHKERRQ(ierr);
+
+		ierr = DMDAVecRestoreArray(da_Thermal,local_Phi,&qq_Phi);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalBegin(da_Thermal,local_Phi,ADD_VALUES,Phi);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalEnd(da_Thermal,local_Phi,ADD_VALUES,Phi);CHKERRQ(ierr);
+
+		ierr = DMDAVecRestoreArray(da_Thermal,local_dPhi,&qq_Phi);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalBegin(da_Thermal,local_dPhi,ADD_VALUES,dPhi);CHKERRQ(ierr);
+		ierr = DMLocalToGlobalEnd(da_Thermal,local_dPhi,ADD_VALUES,dPhi);CHKERRQ(ierr);
+	}
+
 
 	if (periodic_boundary==1){
 		ierr = mean_value_periodic_boundary_2d(da_Thermal,geoq_rho,local_geoq_rho,qq_rho,1);
@@ -433,6 +506,11 @@ PetscErrorCode Swarm2Mesh_2d(){
 	ierr = DMSwarmRestoreField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"strain_rate_fac",NULL,NULL,(void**)&strain_rate_fac);CHKERRQ(ierr);
 
+	if (magmatism_flag==PETSC_TRUE){
+		ierr = DMSwarmRestoreField(dms,"X",&bs,NULL,(void**)&X_array);CHKERRQ(ierr);
+		ierr = DMSwarmRestoreField(dms,"Phi",&bs,NULL,(void**)&Phi_array);CHKERRQ(ierr);
+		ierr = DMSwarmRestoreField(dms,"dPhi",&bs,NULL,(void**)&dPhi_array);CHKERRQ(ierr);
+	}
 
 	ierr = DMGlobalToLocalBegin(da_Thermal,Temper,INSERT_VALUES,local_Temper);
 	ierr = DMGlobalToLocalEnd(  da_Thermal,Temper,INSERT_VALUES,local_Temper);
