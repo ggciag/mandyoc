@@ -115,6 +115,8 @@ extern PetscReal continental_slope;
 extern PetscReal strain_sed;
 extern PetscReal aggradation_rate;
 
+extern PetscBool magmatism_flag;
+
 // Removed from parameter file
 extern double H_lito;
 extern double beta_max;
@@ -272,10 +274,10 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "surface_particles_per_element") == 0) {dms_s_ppe = atoi(tkn_v);}
 			else if (strcmp(tkn_w, "weakening_min") == 0) {weakening_min = atof(tkn_v);}
 			else if (strcmp(tkn_w, "weakening_max") == 0) {weakening_max = atof(tkn_v);}
-			else if (strcmp(tkn_w, "continental_slope") ==0) {continental_slope = atof(tkn_v);} 
+			else if (strcmp(tkn_w, "continental_slope") ==0) {continental_slope = atof(tkn_v);}
 			else if (strcmp(tkn_w, "strain_sed") ==0) {strain_sed = atof(tkn_v);}
 			else if (strcmp(tkn_w, "aggradation_rate") ==0) {aggradation_rate = atof(tkn_v);}
-			
+
 			// String parameters
 			else if (strcmp(tkn_w, "sp_mode") == 0) {sp_mode = sp_mode_from_string(tkn_v);}
 
@@ -328,6 +330,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "plot_sediment") == 0) {plot_sediment = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "a2l") == 0) {a2l = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "export_thermal_diffusivity") == 0) {export_kappa = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
+			else if (strcmp(tkn_w, "magmatism") == 0) {magmatism_flag = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 
 			else if (strcmp(tkn_w, "export_lithology") == 0) {export_lithology = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 
@@ -506,13 +509,14 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&weakening_min,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&weakening_max,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&export_kappa,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&magmatism_flag,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 
 	MPI_Bcast(&export_lithology,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 
 	MPI_Bcast(&non_dim,1,MPI_INT,0,PETSC_COMM_WORLD);
-	
+
 	MPI_Bcast(&variable_baselevel,1,MPI_INT,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&continental_slope,1,MPIU_REAL,0,PETSC_COMM_WORLD); 
+	MPI_Bcast(&continental_slope,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&strain_sed,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&aggradation_rate,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 
