@@ -520,7 +520,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 		rho0_scaled = RHOM;
 		RHOM /= rho0_scaled;
 
-		kappa0_scaled = kappa;
+		kappa0_scaled = kappa; //!!! check in the case of variable kappa
 		kappa /= kappa0_scaled;
 
 	}

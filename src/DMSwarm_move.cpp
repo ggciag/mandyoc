@@ -618,10 +618,10 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 			// PetscPrintf(PETSC_COMM_WORLD, "p: %d, strain: %E\n", p, strain_fac[p]);
 
 			if (magmatism_flag==PETSC_TRUE){
-				float Ts0 = 1080.0; //oC
-				float dTsdP = 3.4E-3/(3300.0*10); //K/Pa
-				float dTsdX = 440.0; //K
-				float dS = 400.0; //J/kg/K
+				float Ts0 = 1080.0; //oC   //!!! Include in the parameters file
+				float dTsdP = 3.4E-3/(3300.0*10); //K/Pa //!!! Include in the parameters file
+				float dTsdX = 440.0; //K //!!! Include in the parameters file
+				float dS = 400.0; //J/kg/K //!!! Include in the parameters file
 
 				float Ts = Ts0 + dTsdP * Pp + dTsdX * (X_array[p]-1);
 
