@@ -325,7 +325,7 @@ PetscErrorCode AssembleF_Thermal_2d(Vec F,DM thermal_da,PetscReal *TKe,PetscReal
 								 DM veloc_da, Vec Veloc_total)
 {
 
-	PetscScalar              **ff,**tt,**HH;
+	PetscScalar              **ff,**tt,**HH,**ddphi;
 	PetscInt               M,P;
 	PetscErrorCode         ierr;
 
@@ -398,6 +398,14 @@ PetscErrorCode AssembleF_Thermal_2d(Vec F,DM thermal_da,PetscReal *TKe,PetscReal
 	ierr = DMGlobalToLocalEnd(thermal_da,geoq_H,INSERT_VALUES,local_geoq_H);
 
 	ierr = DMDAVecGetArray(thermal_da,local_geoq_H,&HH);CHKERRQ(ierr);
+
+
+	ierr = VecZeroEntries(local_dPhi);CHKERRQ(ierr);
+
+	ierr = DMGlobalToLocalBegin(thermal_da,dPhi,INSERT_VALUES,local_dPhi);
+	ierr = DMGlobalToLocalEnd(thermal_da,dPhi,INSERT_VALUES,local_dPhi);
+
+	ierr = DMDAVecGetArray(thermal_da,local_dPhi,&ddphi);CHKERRQ(ierr);
 
 
 	PetscInt i,j,k,c;
@@ -473,7 +481,27 @@ PetscErrorCode AssembleF_Thermal_2d(Vec F,DM thermal_da,PetscReal *TKe,PetscReal
 
 				H_efetivo += -T_mean*alpha_exp_thermo*gravity*Vz_mean*adiabatic_scaled;
 			}
+			
+			if (magmatism_flag==PETSC_TRUE){ //!!! non-dimentional scale not included yet
+				double T_mean=0.0;
+				for (j=0;j<T_NE;j++) T_mean+=tt[ind[j].j][ind[j].i];
+				T_mean/=T_NE;
+				T_mean+=273.0; //Converting to Kelvin
 
+
+				double dPhi_mean=0.0;
+				for (j=0;j<T_NE;j++) dPhi_mean+=ddphi[ind[j].j][ind[j].i];
+				dPhi_mean/=T_NE;
+
+				float dS = 400.0; //J/kg/K //!!! Include in the parameters file
+
+
+				H_efetivo += -T_mean*dS*dPhi_mean/dt_calor_sec;
+
+
+				
+			}
+			
 
 
 
@@ -527,6 +555,7 @@ PetscErrorCode AssembleF_Thermal_2d(Vec F,DM thermal_da,PetscReal *TKe,PetscReal
 	ierr = DMDAVecRestoreArray(thermal_da,local_TC,&TTC);CHKERRQ(ierr);
 	ierr = DMDAVecRestoreArray(thermal_da,local_Temper,&tt);CHKERRQ(ierr);
 	ierr = DMDAVecRestoreArray(thermal_da,local_geoq_H,&HH);CHKERRQ(ierr);
+	ierr = DMDAVecRestoreArray(thermal_da,local_dPhi,&ddphi);CHKERRQ(ierr);
 	ierr = DMDAVecRestoreArray(thermal_da,local_geoq_kappa,&qq_kappa);CHKERRQ(ierr);
 
 	if (periodic_boundary==1){
