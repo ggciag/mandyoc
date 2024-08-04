@@ -403,7 +403,7 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 										inter_A[layer_array[p]], inter_n[layer_array[p]], inter_Q[layer_array[p]], inter_V[layer_array[p]], layer_array[p]);
 			// PetscPrintf(PETSC_COMM_WORLD, "p: %d, strain: %E\n", p, strain_fac[p]);
 
-			if (magmatism_flag==PETSC_TRUE){
+			if (magmatism_flag==PETSC_TRUE){ // !!! Should be included for the 3D version
 				float Ts0 = 1080.0; //oC
 				float dTsdP = 3.4E-3/(3300.0*10); //K/Pa
 				float dTsdX = 440.0; //K
@@ -423,6 +423,17 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 				X_array[p] = 1.0/(1.0-Phi_array[p]);
 
 				//calc_magmatism(tP,Pp);
+
+				//change viscosity due to depletion and presence of partial melting (Appendix A in Lu & Huismans, 2021)
+				float Omega = 5.0;
+				float Phi_lim = 0.02;
+				float X_OH = 1.0 + (Omega-1)*Phi_array[p]/Phi_lim;
+
+				float a_magma = 45.0;
+				float X_m = exp(-a_magma*Phi_array[p]);
+
+				rarray[p] *= X_OH*X_m;
+
 			}
 
 
