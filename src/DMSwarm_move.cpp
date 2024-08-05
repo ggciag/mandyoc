@@ -429,12 +429,14 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 				float Phi_lim = 0.02;
 				float X_OH = 1.0 + (Omega-1)*Phi_array[p]/Phi_lim;
 				if (X_OH>Omega) X_OH=Omega;
-				rarray[p] *= X_OH;
 
-				//float a_magma = 45.0;
-				//float X_m = exp(-a_magma*Phi_array[p]);
+				float a_magma = 45.0;
+				float Phi_ret = 0.01;
+				float Phi_aux = (Phi_array[p]<Phi_ret) ? Phi_array[p] : Phi_ret;
 
-				//rarray[p] *= X_OH*X_m;
+				float X_m = exp(-a_magma*Phi_aux);
+
+				rarray[p] *= X_OH*X_m;
 
 			}
 
