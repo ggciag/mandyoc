@@ -76,8 +76,6 @@ extern PetscInt binary_output;
 extern PetscInt sticky_blanket_air;
 extern PetscInt multi_velocity;
 extern PetscInt sp_mode;
-extern PetscInt precipitation_profile;
-extern PetscInt climate_change;
 extern PetscInt free_surface_stab;
 extern PetscInt print_step_files;
 extern PetscInt RK4;
@@ -98,9 +96,7 @@ extern PetscScalar sea_level;
 extern PetscScalar basal_heat;
 extern PetscBool sp_surface_tracking;
 extern PetscBool sp_surface_processes;
-extern PetscReal sp_dt;
 extern PetscReal sp_d_c;
-extern PetscBool set_sp_dt;
 extern PetscBool set_sp_d_c;
 extern PetscInt high_kappa_in_asthenosphere;
 extern PetscBool plot_sediment;
@@ -148,17 +144,8 @@ extern PetscInt variable_climate;
 
 extern PetscScalar *var_climate_time;
 extern PetscScalar *var_climate_scale;
-extern PetscInt n_var_climate;
-
-extern PetscInt climate_change;
 
 char str[100];
-
-extern long sp_n_profiles;
-extern PetscScalar *topo_var_time;
-extern PetscScalar *topo_var_rate;
-extern PetscScalar *global_surface_array_helper;
-extern PetscScalar *global_surface_array_helper_aux;
 
 extern PetscInt non_dim;
 
@@ -181,8 +168,6 @@ extern PetscReal pressure0_scaled;
 extern PetscReal strain_rate0_scaled;
 
 extern PetscReal air_threshold_density;
-
-PetscErrorCode load_topo_var(int rank);
 
 // Reads input ASCII files
 PetscErrorCode reader(int rank, const char fName[]){
@@ -261,7 +246,6 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "m_fluvial") == 0) {m_fluvial = atof(tkn_v);}
 			else if (strcmp(tkn_w, "sea_level") == 0) {sea_level = atof(tkn_v);}
 			else if (strcmp(tkn_w, "basal_heat") == 0) {basal_heat = atof(tkn_v);}
-			else if (strcmp(tkn_w, "sp_dt") == 0) {sp_dt = atof(tkn_v);}
 			else if (strcmp(tkn_w, "sp_d_c") == 0) {sp_d_c = atof(tkn_v);}
 			else if (strcmp(tkn_w, "weakening_min") == 0) {weakening_min = atof(tkn_v);}
 			else if (strcmp(tkn_w, "weakening_max") == 0) {weakening_max = atof(tkn_v);}
@@ -304,8 +288,6 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "binary_output") == 0) {binary_output = check_a_b(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "sticky_blanket_air") == 0) {sticky_blanket_air = check_a_b(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "multi_velocity") == 0) {multi_velocity = check_a_b(tkn_w, tkn_v, "True", "False");}
-			else if (strcmp(tkn_w, "precipitation_profile_from_ascii") == 0) {precipitation_profile = check_a_b(tkn_w, tkn_v, "True", "False");}
-			else if (strcmp(tkn_w, "climate_change_from_ascii") == 0) {climate_change = check_a_b(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "free_surface_stab") == 0) {free_surface_stab = check_a_b(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "print_step_files") == 0) {print_step_files = check_a_b(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "RK4") == 0) {RK4 = check_a_b(tkn_w, tkn_v, "Runge-Kutta", "Euler");}
@@ -358,8 +340,13 @@ PetscErrorCode reader(int rank, const char fName[]){
 		if (ny_ppe < 0) ny_ppe = 0;
 		if (nz_ppe < 0) nz_ppe = 0;
 		if (initial_print_step < 0) initial_print_step = 0;
-		if (sp_dt > 0) set_sp_dt = PETSC_TRUE;
 		if (sp_d_c > 0) set_sp_d_c = PETSC_TRUE;
+
+		if (sp_surface_processes == PETSC_TRUE && sp_surface_tracking == PETSC_FALSE) {
+			sp_surface_tracking = PETSC_TRUE;
+
+			PetscPrintf(PETSC_COMM_WORLD, "\nActivating 'sp_surface_tracking' since 'sp_surface_processes' is active.\n");
+		};
 
 		/*
 		fscanf(f_parameters,"%s",str);
@@ -456,8 +443,6 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&sticky_blanket_air,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&multi_velocity,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&sp_mode,1,MPI_INT,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&precipitation_profile,1,MPI_INT,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&climate_change,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&free_surface_stab,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&print_step_files,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&RK4,1,MPI_INT,0,PETSC_COMM_WORLD);
@@ -480,9 +465,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&basal_heat,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&sp_surface_tracking,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&sp_surface_processes,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&sp_dt,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&sp_d_c,1,MPIU_REAL,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&set_sp_dt,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&set_sp_d_c,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&plot_sediment,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&a2l,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
@@ -662,7 +645,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 				}
 				else if (strcmp (str,"rho") == 0)
 				{
-					bool_inter_rho = PETSC_TRUE; 
+					bool_inter_rho = PETSC_TRUE;
 					for (PetscInt i = 0; i < n_interfaces + 1; i++)
 					{
 						check_fscanf = fscanf(f_interfaces, "%lf", &inter_rho[i]);
@@ -671,7 +654,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 				}
 				else if (strcmp(str, "H") == 0)
 				{
-					bool_inter_H = PETSC_TRUE; 
+					bool_inter_H = PETSC_TRUE;
 					for (PetscInt i = 0; i < n_interfaces + 1; i++)
 					{
 						fscanf(f_interfaces, "%lf", &inter_H[i]);
@@ -679,7 +662,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 				}
 				else if (strcmp(str, "A") == 0)
 				{
-					bool_inter_A = PETSC_TRUE; 
+					bool_inter_A = PETSC_TRUE;
 					for (PetscInt i = 0; i < n_interfaces + 1; i++)
 					{
 						fscanf(f_interfaces, "%lf", &inter_A[i]);
@@ -687,7 +670,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 				}
 				else if (strcmp(str, "n") == 0)
 				{
-					bool_inter_n = PETSC_TRUE; 
+					bool_inter_n = PETSC_TRUE;
 					for (PetscInt i = 0; i < n_interfaces + 1; i++)
 					{
 						fscanf(f_interfaces, "%lf", &inter_n[i]);
@@ -695,7 +678,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 				}
 				else if (strcmp(str, "Q") == 0)
 				{
-					bool_inter_Q = PETSC_TRUE; 
+					bool_inter_Q = PETSC_TRUE;
 					for (PetscInt i = 0; i < n_interfaces + 1; i++)
 					{
 						fscanf(f_interfaces, "%lf", &inter_Q[i]);
@@ -703,7 +686,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 				}
 				else if (strcmp(str, "V") == 0)
 				{
-					bool_inter_V = PETSC_TRUE; 
+					bool_inter_V = PETSC_TRUE;
 					for (PetscInt i = 0; i < n_interfaces + 1; i++)
 					{
 						fscanf(f_interfaces, "%lf", &inter_V[i]);
@@ -711,7 +694,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 				}
 				else if (strcmp(str, "k") == 0)
 				{
-					bool_conductivity = PETSC_TRUE; 
+					bool_conductivity = PETSC_TRUE;
 					for (PetscInt i = 0; i < n_interfaces + 1; i++)
 					{
 						fscanf(f_interfaces, "%lf", &conductivity[i]);
@@ -719,7 +702,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 				}
 				else if (strcmp(str, "weakening_seed") == 0)
 				{
-					bool_weakening_seed = PETSC_TRUE; 
+					bool_weakening_seed = PETSC_TRUE;
 					for (PetscInt i = 0; i < n_interfaces + 1; i++)
 					{
 						fscanf(f_interfaces, "%lf", &weakening_seed[i]);
@@ -727,7 +710,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 				}
 				else if (strcmp(str, "cohesion_min") == 0)
 				{
-					bool_cohesion_min = PETSC_TRUE; 
+					bool_cohesion_min = PETSC_TRUE;
 					for (PetscInt i = 0; i < n_interfaces + 1; i++)
 					{
 						fscanf(f_interfaces, "%lf", &cohesion_min[i]);
@@ -735,7 +718,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 				}
 				else if (strcmp(str, "cohesion_max") == 0)
 				{
-					bool_cohesion_max = PETSC_TRUE; 
+					bool_cohesion_max = PETSC_TRUE;
 					for (PetscInt i = 0; i < n_interfaces + 1; i++)
 					{
 						fscanf(f_interfaces, "%lf", &cohesion_max[i]);
@@ -743,7 +726,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 				}
 				else if (strcmp(str, "friction_angle_min") == 0)
 				{
-					bool_friction_angle_min = PETSC_TRUE; 
+					bool_friction_angle_min = PETSC_TRUE;
 					for (PetscInt i = 0; i < n_interfaces + 1; i++)
 					{
 						fscanf(f_interfaces, "%lf", &friction_angle_min[i]);
@@ -752,7 +735,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 				}
 				else if (strcmp(str, "friction_angle_max") == 0)
 				{
-					bool_friction_angle_max = PETSC_TRUE; 
+					bool_friction_angle_max = PETSC_TRUE;
 					for (PetscInt i = 0; i < n_interfaces + 1; i++)
 					{
 						fscanf(f_interfaces, "%lf", &friction_angle_max[i]);
@@ -768,7 +751,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 			{
 				break;
 			}
-			
+
 		}
 
 		// Checking general mandatory parameters
@@ -787,8 +770,8 @@ PetscErrorCode reader(int rank, const char fName[]){
 		if (bool_weakening_seed == PETSC_TRUE)
 		{
 			if (bool_cohesion_min == PETSC_FALSE ||
-				bool_cohesion_max == PETSC_FALSE || 
-				bool_friction_angle_min == PETSC_FALSE || 
+				bool_cohesion_max == PETSC_FALSE ||
+				bool_friction_angle_min == PETSC_FALSE ||
 				bool_friction_angle_max == PETSC_FALSE)
 			{
 				PetscPrintf(PETSC_COMM_WORLD, "One or more weaking parameters are missing in the <interfaces.txt> file.\n");
@@ -989,94 +972,8 @@ PetscErrorCode reader(int rank, const char fName[]){
 		MPI_Bcast(mv_time,n_mv,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	}
 
-	PetscPrintf(PETSC_COMM_WORLD,"climate_change %d\n\n",climate_change);
-	if (climate_change==1){
-		FILE *f_climate;
-		f_climate = fopen("climate.txt","r");
-		if (f_climate==NULL) {
-			PetscPrintf(PETSC_COMM_WORLD,"\n\n\n\nclimate.txt not found\n\n\n\n");
-			exit(1);
-		}
-		if (rank==0){
-			fscanf(f_climate,"%d",&n_var_climate);
-		}
-		MPI_Bcast(&n_var_climate,1,MPI_INT,0,PETSC_COMM_WORLD);
-		PetscCalloc1(n_var_climate,&var_climate_scale);
-		PetscCalloc1(n_var_climate,&var_climate_time);
-		if (rank==0){
-			printf("Variable climate\n");
-			for (int i=0;i<n_var_climate;i++){
-				fscanf(f_climate,"%lf%lf",&var_climate_time[i],&var_climate_scale[i]);
-				printf("%lf %lf\n",var_climate_time[i],var_climate_scale[i]);
-			}
-			printf("\n");
-			fclose(f_climate);
-		}
-		MPI_Bcast(var_climate_time,n_var_climate,MPIU_SCALAR,0,PETSC_COMM_WORLD);
-		MPI_Bcast(var_climate_scale,n_var_climate,MPIU_SCALAR,0,PETSC_COMM_WORLD);
-	}
-
 	PetscFunctionReturn(0);
 
-}
-
-/* Filename: topo_var.txt */
-/* File format: */
-/*   #number_of_profiles*/
-/*   t0 h h h ... h (#Nx h values) */
-/*   t1 h h h ... h (#Nx h values) */
-PetscErrorCode load_topo_var(int rank)
-{
-    PetscInt i;
-    PetscInt j;
-    FILE *f_topo_var;
-
-
-    f_topo_var = fopen("topo_var.txt", "r");
-    if (f_topo_var == NULL) {
-        PetscPrintf(PETSC_COMM_WORLD, "\n\n\n\ntopo_var.txt not found\n\n\n\n");
-        exit(-1);
-    }
-
-    sp_n_profiles = 0;
-
-    if (rank == 0) {
-        fscanf(f_topo_var, "%ld", &sp_n_profiles);
-    }
-
-    MPI_Barrier(PETSC_COMM_WORLD);
-    MPI_Bcast(&sp_n_profiles, 1, MPI_LONG, 0, PETSC_COMM_WORLD);
-
-    if (sp_n_profiles == 0) {
-        PetscPrintf(PETSC_COMM_WORLD, "\n\n\n\nerror topo_var.txt\n\n\n\n");
-        exit(-1);
-    }
-
-    PetscSynchronizedPrintf(PETSC_COMM_WORLD, "rank=%d Nx=%d sp_n_profiles=%d\n", rank, Nx, sp_n_profiles);
-    PetscSynchronizedFlush(PETSC_COMM_WORLD, PETSC_STDOUT);
-    MPI_Barrier(PETSC_COMM_WORLD);
-
-    MPI_Barrier(PETSC_COMM_WORLD);
-    PetscCalloc1(sp_n_profiles, &topo_var_time);
-    PetscCalloc1(Nx*sp_n_profiles, &topo_var_rate);
-
-    if (rank == 0) {
-        for(i = 0; i < sp_n_profiles; i++) {
-            fscanf(f_topo_var, "%lf", &topo_var_time[i]);
-
-            for(j = 0; j < Nx; j++) {
-                fscanf(f_topo_var, "%lf", &topo_var_rate[j + i*Nx]);
-            }
-        }
-    }
-
-    fclose(f_topo_var);
-
-    MPI_Barrier(PETSC_COMM_WORLD);
-    MPI_Bcast(topo_var_time, sp_n_profiles, MPIU_SCALAR, 0, PETSC_COMM_WORLD);
-    MPI_Bcast(topo_var_rate, Nx*sp_n_profiles, MPIU_SCALAR, 0, PETSC_COMM_WORLD);
-
-    PetscFunctionReturn(0);
 }
 
 void ErrorInterfaces(){

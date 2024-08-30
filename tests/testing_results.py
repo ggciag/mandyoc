@@ -27,7 +27,7 @@ fields = [
     "pressure",
     "strain",
     "strain_rate",
-    "sp_surface_global",
+    "surface",
     "temperature",
     "velocity",
     "viscosity",
@@ -55,8 +55,8 @@ def read(filename):
 def test_result(scenario, field, step):
     """Run tests"""
 
-    if scenario != 'Crameri2012_case2' and field == 'sp_surface_global':
-        pytest.skip('No sp_surface_global for this scenario')
+    if scenario != 'Crameri2012_case2' and field == 'surface':
+        pytest.skip('No surface for this scenario')
 
     if scenario == 'Crameri2012_case2' and step == 1:
         pytest.skip('Tested with only one processor')
