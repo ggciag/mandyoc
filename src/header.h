@@ -9,7 +9,7 @@ PetscInt particles_per_ele = 81;
 PetscReal theta_FSSA = 0.5;
 PetscReal sub_division_time_step = 1.0;
 PetscReal particles_perturb_factor = 0.5;
-PetscInt sp_mode = 1;
+PetscInt sp_mode = 0;
 PetscReal Xi_min = 1.0E-14;
 PetscReal random_initial_strain = 0;
 PetscReal pressure_const = -1.0;
@@ -22,7 +22,6 @@ PetscScalar K_fluvial = 2.0E-7;
 PetscScalar m_fluvial = 1.0;
 PetscScalar sea_level = 0.0;
 PetscScalar basal_heat = -1.0;
-PetscReal sp_dt = 0.0;
 PetscScalar sp_d_c = 0.0;
 // Parameter file boolean variables
 PetscInt WITH_NON_LINEAR = 0; // 1=True, 0=False
@@ -43,8 +42,6 @@ PetscInt bcv_extern = 0; // 1=True, 0=False
 PetscInt binary_output = 0; // 1=True, 0=False
 PetscInt sticky_blanket_air = 0; // 1=True, 0=False
 PetscInt multi_velocity = 0; // 1=True, 0=False
-PetscInt precipitation_profile = 0; // 1=True, 0=False
-PetscInt climate_change = 0; // 1=True, 0=False
 PetscInt free_surface_stab = 1; // 1=True, 0=False
 PetscInt print_step_files = 1; // 1=True, 0=False
 PetscInt RK4 = 0; // 0=Euler, 1=Runge-Kutta (not working yet!)
@@ -55,7 +52,6 @@ PetscInt high_kappa_in_asthenosphere = 0; // 1=True, 0=False
 // Will be added to param.txt
 PetscBool sp_surface_tracking = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
 PetscBool sp_surface_processes = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
-PetscBool set_sp_dt = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
 PetscBool set_sp_d_c = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
 PetscBool plot_sediment = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
 PetscBool a2l = PETSC_TRUE; // PETSC_TRUE/PETSC_FALSE
@@ -359,34 +355,6 @@ PetscInt cont_mv=0;
 
 PetscInt print_step_aux;
 
-Vec sp_surface_global;
-Vec sp_surface_global_n;
-Vec sp_surface_coords_global;
-Vec sp_top_surface_global;
-Vec sp_bot_surface_global;
-Vec sp_mean_surface_global;
-Vec sp_top_surface_global_n;
-Vec sp_bot_surface_global_n;
-PetscReal sp_eval_time;
-PetscReal sp_last_eval_time;
-
-long sp_n_profiles;
-PetscScalar *topo_var_time;
-PetscScalar *topo_var_rate;
-
-Vec sp_surface_global_aux;
-
-PetscScalar *global_surface_array_helper;
-PetscScalar *global_surface_array_helper_aux;
-
-PetscScalar prec_factor=1.0;
-
-PetscScalar *var_climate_time;
-PetscScalar *var_climate_scale;
-PetscInt n_var_climate;
-PetscInt cont_var_climate=0;
-
-
 //Rescaled variables for non-dimensional scenarios
 //(necessary to calculate the effective viscosity using
 //dimensional pressure, temperature, strain rate and cummulative strain)
@@ -412,3 +380,12 @@ PetscReal pressure0_scaled;
 PetscReal air_threshold_density;
 
 PetscBool export_kappa = PETSC_FALSE;
+
+// surface processes
+DM dmcell_s;
+DM dms_s;
+PetscInt dms_s_ppe = 2; // dm swarm surface number of particles per element
+PetscInt buffer_s;
+
+// sp_mode
+// 1 - diffusion

@@ -23,7 +23,6 @@ basal_heat = 0.0 # default is -1.0
 # Surface processes
 sp_surface_tracking = False # default is False [True/False]
 sp_surface_processes = False # default is False [True/False]
-sp_dt = 1.0e5 # default is 0.0
 sp_d_c = 1.0 # default is 0.0
 plot_sediment = False # default is False [True/False]
 a2l = True # default is True [True/False]
@@ -52,8 +51,6 @@ temperature_from_ascii = True # default is False [True/False]
 velocity_from_ascii = True # default is False [True/False]
 binary_output = False # default is False [True/False]
 sticky_blanket_air = True # default is False [True/False]
-precipitation_profile_from_ascii = False # default is False [True/False]
-climate_change_from_ascii = False # default is False [True/False]
 print_step_files = True # default is True [True/False]
 checkered = False # Print one element in the print_step_files (default is False [True/False])
 sp_mode = 5 # default is 1 [0/1/2]

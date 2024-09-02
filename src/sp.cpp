@@ -1,6 +1,9 @@
 #include <petscdmda.h>
+#include <petscdmshell.h>
 #include <petscdmswarm.h>
+#include <petsc/private/dmimpl.h>
 #include <petscmath.h>
+#include <petscviewer.h>
 
 extern long Nx;
 extern double Lx;
@@ -8,1025 +11,694 @@ extern int n_interfaces;
 extern double dx_const;
 extern double dz_const;
 extern double depth;
-extern double tempo;
 extern DM dms;
 extern DM da_Veloc;
 
 extern PetscScalar *interfaces;
 extern PetscScalar *inter_rho;
 extern PetscScalar *inter_geoq;
-extern PetscScalar *inter_H;
-extern PetscScalar *inter_A;
-extern PetscScalar *inter_n;
-extern PetscScalar *inter_Q;
-extern PetscScalar *inter_V;
-
-extern Vec sp_surface_global;
-extern Vec sp_surface_global_n;
-extern Vec sp_surface_coords_global;
-extern Vec sp_top_surface_global;
-extern Vec sp_bot_surface_global;
-extern Vec sp_mean_surface_global;
-extern Vec sp_top_surface_global_n;
-extern Vec sp_bot_surface_global_n;
-extern PetscReal sp_dt;
-extern PetscReal sp_eval_time;
-extern PetscReal sp_last_eval_time;
-extern PetscReal sp_c;
-extern PetscScalar *topo_var_time;
-extern PetscScalar *topo_var_rate;
-extern long sp_n_profiles;
-
-extern Vec sp_surface_global_aux;
-
-extern PetscScalar *global_surface_array_helper;
-extern PetscScalar *global_surface_array_helper_aux;
 
 extern PetscInt sp_mode;
 extern PetscScalar sp_d_c;
 extern PetscBool a2l;
 
-extern PetscScalar K_fluvial;
-extern PetscScalar m_fluvial;
-extern PetscScalar sea_level;
+extern DM dmcell_s;
+extern DM dms_s;
+extern PetscInt buffer_s;
+extern PetscInt dms_s_ppe;
+extern PetscReal epsilon_x;
+extern Vec local_V;
+extern Vec Veloc_weight;
 
-extern PetscInt precipitation_profile;
-extern PetscInt climate_change;
-extern PetscScalar prec_factor;
+typedef struct {
+	PetscScalar u;
+	PetscScalar w;
+} Stokes2d;
 
-PetscErrorCode sp_create_surface_vec();
-PetscErrorCode sp_interpolate_surface_particles_to_vec();
-PetscErrorCode evaluate_surface_processes();
-PetscErrorCode update_particles_properties();
-PetscErrorCode sp_write_surface_vec(PetscInt i);
+PetscErrorCode sp_create_surface_swarm_2d();
+PetscErrorCode sp_move_surface_swarm(PetscInt dimensions, PetscReal dt);
+PetscErrorCode sp_move_surface_swarm_advection_2d(PetscReal dt);
+PetscErrorCode sp_surface_swarm_interpolation();
+PetscErrorCode sp_evaluate_surface_processes(PetscInt dimensions, PetscReal dt);
+PetscErrorCode sp_evaluate_surface_processes_2d(PetscReal dt);
+PetscErrorCode sp_evaluate_surface_processes_2d_diffusion(PetscReal dt);
+PetscErrorCode sp_update_surface_swarm_particles_properties();
+PetscErrorCode DMLocatePoints_DMDARegular_2d(DM dm,Vec pos,DMPointLocationType ltype, PetscSF cellSF);
+PetscErrorCode DMGetNeighbors_DMDARegular_2d(DM dm,PetscInt *nneighbors,const PetscMPIInt **neighbors);
+PetscErrorCode sp_view_2d(DM dm, const char prefix[]);
 PetscErrorCode sp_destroy();
-PetscErrorCode sp_topo_var(PetscReal dt, PetscInt size);
-PetscErrorCode sp_diffusion(PetscReal dt, PetscInt size);
-PetscErrorCode sp_fluvial(PetscReal dt, PetscInt size);
-PetscErrorCode sp_fluvial2(PetscReal dt, PetscInt size);
-PetscErrorCode sp_forced(PetscReal dt, PetscInt size);
 PetscErrorCode DMDAGetElementCorners_2d(DM da,PetscInt *sx,PetscInt *sz,PetscInt *mx,PetscInt *mz);
+PetscReal linear_interpolation(PetscReal rx, PetscReal rz,PetscScalar V0, PetscScalar V1, PetscScalar V2, PetscScalar V3);
+PetscInt get_i(PetscReal cx);
+PetscInt get_k(PetscReal cz);
+PetscReal get_rx(PetscReal cx, PetscInt i);
+PetscReal get_rz(PetscReal cz, PetscInt k);
 
 
-PetscErrorCode sp_create_surface_vec()
+PetscErrorCode sp_create_surface_swarm_2d()
 {
     PetscErrorCode ierr;
     PetscMPIInt rank;
-    PetscMPIInt size;
-    PetscInt i;
-    PetscInt si;
-    PetscInt sk;
-    PetscInt milocal;
-    PetscInt mklocal;
-    PetscInt local_size;
-    PetscInt global_size;
-    PetscInt low;
-    PetscInt high;
-    PetscReal x;
-    PetscReal dx;
-    PetscReal sp_depth;
 
+    PetscFunctionBeginUser;
 
-    MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
-    MPI_Comm_size(PETSC_COMM_WORLD, &size);
+    ierr = MPI_Comm_rank(PETSC_COMM_WORLD, &rank); CHKERRQ(ierr);
 
-    ierr = DMDAGetCorners(da_Veloc, &si, &sk, NULL, &milocal, &mklocal, NULL); CHKERRQ(ierr);
+    ierr = DMShellCreate(PETSC_COMM_WORLD, &dmcell_s); CHKERRQ(ierr);
+    ierr = DMSetApplicationContext(dmcell_s, (void*)da_Veloc); CHKERRQ(ierr);
+    dmcell_s->ops->locatepoints = DMLocatePoints_DMDARegular_2d;
+    dmcell_s->ops->getneighbors = DMGetNeighbors_DMDARegular_2d;
 
-    local_size = 0;
+    ierr = DMCreate(PETSC_COMM_WORLD, &dms_s); CHKERRQ(ierr);
+    ierr = DMSetType(dms_s, DMSWARM); CHKERRQ(ierr);
+    ierr = DMSetDimension(dms_s, 2); CHKERRQ(ierr);
+    ierr = PetscObjectSetName((PetscObject)dms_s, "surface"); CHKERRQ(ierr);
 
-    for (i = si; i < si+milocal; i++) {
-        sp_depth = interfaces[i + Nx*(n_interfaces-1)];
+    ierr = DMSwarmSetType(dms_s, DMSWARM_PIC); CHKERRQ(ierr);
+    ierr = DMSwarmSetCellDM(dms_s, dmcell_s); CHKERRQ(ierr);
 
-        if (sp_depth > sk*dz_const-depth && sp_depth < (sk+mklocal)*dz_const-depth) {
-            local_size = milocal;
-            break;
-        }
-    }
+    /* fields */
+    ierr = DMSwarmRegisterPetscDatatypeField(dms_s, "itag", 1, PETSC_INT); CHKERRQ(ierr);
+    ierr = DMSwarmFinalizeFieldRegister(dms_s); CHKERRQ(ierr);
 
-    ierr = VecCreate(PETSC_COMM_WORLD, &sp_surface_global); CHKERRQ(ierr);
-    ierr = VecSetSizes(sp_surface_global, local_size, PETSC_DECIDE); CHKERRQ(ierr);
-    ierr = VecSetType(sp_surface_global, VECMPI); CHKERRQ(ierr);
+    {
+        PetscInt p;
+        PetscInt nlocal;
+        PetscInt si;
+        PetscInt sj;
+        PetscInt milocal;
+        PetscInt mjlocal;
+        PetscInt bs;
+        PetscInt cnt;
+        PetscInt *iarray;
+        PetscReal *array;
+        PetscReal px;
+        PetscReal pz;
+        PetscReal rx;
 
-    ierr = VecDuplicate(sp_surface_global, &sp_top_surface_global_n); CHKERRQ(ierr);
-    ierr = VecDuplicate(sp_surface_global, &sp_bot_surface_global_n); CHKERRQ(ierr);
-    ierr = VecDuplicate(sp_surface_global, &sp_surface_coords_global); CHKERRQ(ierr);
-    ierr = VecDuplicate(sp_surface_global, &sp_top_surface_global); CHKERRQ(ierr);
-    ierr = VecDuplicate(sp_surface_global, &sp_bot_surface_global); CHKERRQ(ierr);
-    ierr = VecDuplicate(sp_surface_global, &sp_mean_surface_global); CHKERRQ(ierr);
+        PetscReal z_top;
+        PetscReal z_bottom;
 
-    ierr = VecDuplicate(sp_surface_global, &sp_surface_global_aux); CHKERRQ(ierr);
+        ierr = DMDAGetCorners(da_Veloc, &si, &sj, NULL, &milocal, &mjlocal, NULL); CHKERRQ(ierr);
 
+        buffer_s = milocal * dms_s_ppe / 2;
+        ierr = DMSwarmSetLocalSizes(dms_s, milocal * dms_s_ppe, buffer_s); CHKERRQ(ierr);
+        ierr = DMSwarmGetLocalSize(dms_s, &nlocal); CHKERRQ(ierr);
 
-    ierr = VecGetSize(sp_surface_global, &global_size); CHKERRQ(ierr);
+        ierr = DMSwarmGetField(dms_s, DMSwarmPICField_coor, &bs, NULL, (void **)&array); CHKERRQ(ierr);
 
-    dx = Lx/(global_size-1);
-    ierr = VecGetOwnershipRange(sp_surface_coords_global, &low, &high); CHKERRQ(ierr);
+        z_top = -depth + (sj + mjlocal - 1) * dz_const;
+        z_bottom = -depth + sj * dz_const;
 
-    for (i = low; i < high; i++) {
-        x = i*dx;
-        ierr = VecSetValue(sp_surface_coords_global, i, x, INSERT_VALUES); CHKERRQ(ierr);
-    }
+        cnt = 0;
 
-    ierr = VecAssemblyBegin(sp_surface_coords_global); CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(sp_surface_coords_global); CHKERRQ(ierr);
+        for (p = si; p < si+milocal; p++) {
+            for (PetscInt i = 0; i < dms_s_ppe; i++) {
+                rx = (i * dx_const)/(dms_s_ppe);
+                px = p * dx_const + rx;
 
-    ierr = VecZeroEntries(sp_surface_global); CHKERRQ(ierr);
-    ierr = VecZeroEntries(sp_top_surface_global); CHKERRQ(ierr);
-    ierr = VecZeroEntries(sp_bot_surface_global); CHKERRQ(ierr);
-    ierr = VecZeroEntries(sp_mean_surface_global); CHKERRQ(ierr);
+                if (p < milocal - 1) {
+                    pz = (1.0 - (rx / dx_const)) * (interfaces[(n_interfaces-1) * Nx + p]) + (rx / dx_const) * (interfaces[(n_interfaces-1) * Nx + p + 1]);
+                } else {
+                    pz = interfaces[(n_interfaces-1) * Nx + p];
+                }
 
-    // Allocate helper arrays
-    PetscCalloc1(Nx, &global_surface_array_helper);
-    PetscCalloc1(Nx, &global_surface_array_helper_aux);
+                if ((px >= 0) && (px <= Lx) && (pz >= z_bottom) && (pz <= z_top)) {
+                    array[bs * cnt + 0] = px;
+                    array[bs * cnt + 1] = pz;
 
-    ierr = PetscSynchronizedPrintf(PETSC_COMM_WORLD, "rank=%d local_size=%-3d global_size=%-3d\n", rank, local_size, global_size); CHKERRQ(ierr);
-    ierr = PetscSynchronizedFlush(PETSC_COMM_WORLD, PETSC_STDOUT); CHKERRQ(ierr);
+                    if (px == 0) {
+                        array[bs * cnt + 0] += epsilon_x;
+                    }
 
-	PetscFunctionReturn(0);
-}
+                    if (px == Lx) {
+                        array[bs * cnt + 0] -= epsilon_x;
+                    }
 
-PetscErrorCode sp_interpolate_surface_particles_to_vec()
-{
-    PetscErrorCode ierr;
-    PetscMPIInt rank;
-    PetscScalar bot_threshold = -1.0e99;
-    PetscReal *sp_top_surface_global_n_values;
-    PetscReal *sp_bot_surface_global_n_values;
-    PetscReal *sp_top_surface_global_values;
-    PetscReal *sp_bot_surface_global_values;
-    PetscReal *sp_mean_surface_global_values;
-    PetscInt nlocal;
-    PetscInt bs;
-    PetscReal *pcoords;
-    PetscInt *layer;
-    PetscInt sex;
-    PetscInt sey;
-    PetscInt mx;
-    PetscInt my;
-    PetscInt p;
-    PetscReal px;
-    PetscReal py;
-    PetscInt i;
-    PetscInt sp_surface_local_size;
-
-    MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
-
-    ierr = VecZeroEntries(sp_top_surface_global_n); CHKERRQ(ierr);
-    ierr = VecZeroEntries(sp_bot_surface_global_n); CHKERRQ(ierr);
-    ierr = VecZeroEntries(sp_top_surface_global); CHKERRQ(ierr);
-    ierr = VecSet(sp_bot_surface_global, bot_threshold); CHKERRQ(ierr);
-    ierr = VecZeroEntries(sp_mean_surface_global); CHKERRQ(ierr);
-
-    ierr = VecGetLocalSize(sp_top_surface_global, &sp_surface_local_size);
-    ierr = VecGetArray(sp_top_surface_global_n, &sp_top_surface_global_n_values); CHKERRQ(ierr);
-    ierr = VecGetArray(sp_bot_surface_global_n, &sp_bot_surface_global_n_values); CHKERRQ(ierr);
-    ierr = VecGetArray(sp_top_surface_global, &sp_top_surface_global_values); CHKERRQ(ierr);
-    ierr = VecGetArray(sp_bot_surface_global, &sp_bot_surface_global_values); CHKERRQ(ierr);
-    ierr = VecGetArray(sp_mean_surface_global, &sp_mean_surface_global_values); CHKERRQ(ierr);
-
-	ierr = DMSwarmGetLocalSize(dms, &nlocal);CHKERRQ(ierr);
-    ierr = DMSwarmGetField(dms, DMSwarmPICField_coor, &bs,NULL, (void**)&pcoords); CHKERRQ(ierr);
-    ierr = DMSwarmGetField(dms, "layer", &bs, NULL, (void**)&layer); CHKERRQ(ierr);
-
-    ierr = DMDAGetElementCorners_2d(da_Veloc, &sex, &sey, &mx, &my); CHKERRQ(ierr);
-
-    for (p = 0; sp_surface_local_size && p < nlocal; p++) {
-        px = pcoords[2*p];
-		py = pcoords[2*p+1];
-
-        i = (PetscInt)(px/dx_const);
-        if (i < 0 || i > sex+mx) {ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_interpolate_surface_particles_to_vec] rank=%d weird i=%d (px=%.6e, p=%d)\n", rank, i, px, p); CHKERRQ(ierr); exit(1);}
-
-        if (layer[p] == n_interfaces) {
-            if (py < sp_top_surface_global_values[i-sex]) {
-                sp_top_surface_global_values[i-sex] = py;
-                sp_top_surface_global_n_values[i-sex] = 1;
-            }
-        } else {
-            if (py > sp_bot_surface_global_values[i-sex]) {
-                sp_bot_surface_global_values[i-sex] = py;
-                sp_bot_surface_global_n_values[i-sex] = 1;
+                    cnt++;
+                }
             }
         }
+
+        ierr = DMSwarmRestoreField(dms_s, DMSwarmPICField_coor, &bs, NULL, (void **)&array); CHKERRQ(ierr);
+        ierr = DMSwarmSetLocalSizes(dms_s, cnt, buffer_s); CHKERRQ(ierr);
+
+        ierr = DMSwarmGetLocalSize(dms_s, &nlocal); CHKERRQ(ierr);
+
+        ierr = DMSwarmGetField(dms_s, "itag", &bs, NULL, (void **)&iarray); CHKERRQ(ierr);
+        ierr = DMSwarmGetField(dms_s, DMSwarmPICField_coor, &bs, NULL, (void **)&array); CHKERRQ(ierr); //
+        for (p = 0; p < nlocal; p++) {
+            iarray[p] = si * dms_s_ppe + p;
+        }
+        ierr = DMSwarmRestoreField(dms_s, "itag", &bs, NULL, (void **)&iarray); CHKERRQ(ierr);
+        ierr = DMSwarmRestoreField(dms_s, DMSwarmPICField_coor, &bs, NULL, (void **)&array); CHKERRQ(ierr); //
+
+        ierr = DMView(dms_s, PETSC_VIEWER_STDOUT_WORLD); CHKERRQ(ierr);
+        ierr = sp_view_2d(dms_s, "surface_0"); CHKERRQ(ierr);
     }
-
-    MPI_Barrier(PETSC_COMM_WORLD);
-
-    for (i = 0; i < sp_surface_local_size; i++) {
-        if (i > 0 && (int)sp_top_surface_global_values[i] == 0) {
-            sp_top_surface_global_values[i] = sp_top_surface_global_values[i-1];
-            sp_top_surface_global_n_values[i] = 1;
-        }
-
-        if (i > 0 && sp_bot_surface_global_values[i] < -1.0e90) {
-            sp_bot_surface_global_values[i] = sp_bot_surface_global_values[i-1];
-            sp_bot_surface_global_n_values[i] = 1;
-        }
-
-        if ((int)sp_top_surface_global_n_values[i] == 0) {
-            ierr = PetscPrintf(PETSC_COMM_SELF, "ERROR [sp_interpolate_surface_particles_to_vec] rank=%d sp_top_surface_global_n_values i=%d\n", rank, i); CHKERRQ(ierr);
-            ierr = PetscPrintf(PETSC_COMM_SELF, "ERROR [sp_interpolate_surface_particles_to_vec] rank=%d sp_top_surface_global_values=%e\n", rank, sp_top_surface_global_values[i]); CHKERRQ(ierr);
-            exit(1);
-        }
-
-        if ((int)sp_bot_surface_global_n_values[i] == 0) {
-            ierr = PetscPrintf(PETSC_COMM_SELF, "ERROR [sp_interpolate_surface_particles_to_vec] rank=%d sp_bot_surface_global_n_values i=%d\n", rank, i); CHKERRQ(ierr);
-            ierr = PetscPrintf(PETSC_COMM_SELF, "ERROR [sp_interpolate_surface_particles_to_vec] rank=%d sp_bot_surface_global_values=%e\n", rank, sp_bot_surface_global_values[i]); CHKERRQ(ierr);
-            exit(1);
-        }
-
-        sp_mean_surface_global_values[i] = (sp_top_surface_global_values[i] + sp_bot_surface_global_values[i]) / 2.0;
-    }
-
-    MPI_Barrier(PETSC_COMM_WORLD);
-
-    ierr = VecRestoreArray(sp_top_surface_global_n, &sp_top_surface_global_n_values); CHKERRQ(ierr);
-    ierr = VecRestoreArray(sp_bot_surface_global_n, &sp_bot_surface_global_n_values); CHKERRQ(ierr);
-    ierr = VecRestoreArray(sp_top_surface_global, &sp_top_surface_global_values); CHKERRQ(ierr);
-    ierr = VecRestoreArray(sp_bot_surface_global, &sp_bot_surface_global_values); CHKERRQ(ierr);
-    ierr = VecRestoreArray(sp_mean_surface_global, &sp_mean_surface_global_values); CHKERRQ(ierr);
-
-    ierr = DMSwarmRestoreField(dms, "layer", &bs, NULL, (void**)&layer); CHKERRQ(ierr);
-    ierr = DMSwarmRestoreField(dms, DMSwarmPICField_coor, &bs, NULL, (void**)&pcoords); CHKERRQ(ierr);
-
-    ierr = VecCopy(sp_mean_surface_global, sp_surface_global); CHKERRQ(ierr);
 
     PetscFunctionReturn(0);
 }
 
-PetscErrorCode evaluate_surface_processes()
+PetscErrorCode sp_move_surface_swarm(PetscInt dimensions, PetscReal dt)
 {
-    PetscErrorCode ierr=0;
-    PetscMPIInt rank;
-    PetscInt j;
-    PetscInt low;
-    PetscInt high;
-    PetscInt size;
-    PetscReal dt;
-    PetscReal *y;
-    PetscReal *y_aux;
-    //PetscReal dt_sp;
-    //PetscReal dt_aux;
+    PetscErrorCode ierr;
 
-    VecScatter ctx;
-    Vec seq_surface;
-    PetscReal *seq_y;
+    PetscFunctionBeginUser;
 
-
-    MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
-
-    ierr = VecScatterCreateToZero(sp_surface_global, &ctx, &seq_surface); CHKERRQ(ierr);
-    ierr = VecScatterBegin(ctx, sp_surface_global, seq_surface, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
-    ierr = VecScatterEnd(ctx, sp_surface_global, seq_surface, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
-    ierr = VecScatterDestroy(&ctx); CHKERRQ(ierr);
-
-    ierr = VecCopy(sp_surface_global, sp_surface_global_aux); CHKERRQ(ierr);
-
-    ierr = VecGetArray(sp_surface_global, &y);
-    ierr = VecGetOwnershipRange(sp_surface_global, &low, &high); CHKERRQ(ierr);
-    ierr = VecGetSize(sp_surface_global, &size); CHKERRQ(ierr);
-
-    ierr = VecGetArray(sp_surface_global_aux, &y_aux);
-
-    if (!rank) {
-        ierr = PetscPrintf(PETSC_COMM_SELF, "[rank %d] Evaluating surface processes\n", rank); CHKERRQ(ierr);
-
-        ierr = VecGetArray(seq_surface, &seq_y);
-        for (j = 0; j < size; j++) {
-            global_surface_array_helper[j] = seq_y[j];
-            global_surface_array_helper_aux[j] = seq_y[j];
-        }
-        ierr = VecRestoreArray(seq_surface, &seq_y); CHKERRQ(ierr);
-
-        dt = tempo-sp_last_eval_time;
-
-        if (1 == sp_mode) {
-            sp_topo_var(dt, size);
-        } else if (2 == sp_mode) {
-            sp_diffusion(dt, size);
-        } else if (3 == sp_mode) {
-            sp_fluvial(dt, size);
-        } else if (4 == sp_mode) {
-            sp_fluvial2(dt, size);
-        } else if (5 == sp_mode){
-            sp_forced(dt,size);
-        } else {
-            ierr = PetscPrintf(PETSC_COMM_WORLD,"ERROR evaluate_surface_processes sp_mode undetermined\n"); CHKERRQ(ierr);
-            exit(1);
-        }
-
-    } else {
-        ierr = PetscPrintf(PETSC_COMM_SELF, "[rank %d] Wating for surface processes evaluation\n", rank); CHKERRQ(ierr);
+    if (dimensions == 2) {
+        ierr = sp_move_surface_swarm_advection_2d(dt); CHKERRQ(ierr);
     }
 
+    PetscFunctionReturn(0);
+}
+
+PetscErrorCode sp_move_surface_swarm_advection_2d(PetscReal dt)
+{
+    PetscErrorCode ierr;
+    PetscMPIInt rank;
+
+    PetscFunctionBeginUser;
+
+	ierr = MPI_Comm_rank(PETSC_COMM_WORLD, &rank); CHKERRQ(ierr);
+
+    // 2D
+	// Velocity
+	Stokes2d **VV;
+
+    ierr = VecZeroEntries(local_V); CHKERRQ(ierr);
+    ierr = DMGlobalToLocalBegin(da_Veloc, Veloc_weight, INSERT_VALUES, local_V); CHKERRQ(ierr);
+    ierr = DMGlobalToLocalEnd(da_Veloc, Veloc_weight, INSERT_VALUES, local_V); CHKERRQ(ierr);
+    ierr = DMDAVecGetArray(da_Veloc, local_V, &VV); CHKERRQ(ierr);
+
+    PetscInt p;
+    PetscInt i;
+    PetscInt k;
+    PetscReal cx;
+    PetscReal cz;
+    PetscReal vx;
+    PetscReal vz;
+    PetscReal rx;
+    PetscReal rz;
+    PetscInt nlocal;
+    PetscInt bs;
+    PetscReal *array;
+
+    ierr = DMSwarmGetLocalSize(dms_s, &nlocal); CHKERRQ(ierr);
+    ierr = DMSwarmGetField(dms_s, DMSwarmPICField_coor, &bs, NULL, (void**)&array); CHKERRQ(ierr);
+
+    for (p = 0; p < nlocal; p++) {
+
+        cx = array[2 * p];
+        cz = array[2 * p + 1];
+
+        if (cx >= Lx) {
+            printf("[SP] surface horizontal advetion - outside: cx=%.4e>=%.4e\n\n", cx, Lx);
+            cx = Lx - epsilon_x;
+        }
+
+        if (cx <= 0.0) {
+            printf("[SP] surface horizontal advetion - outside: cx=%.4e<=0.0\n\n", cx);
+            cx = epsilon_x;
+        }
+
+        if (cz >= 0.0){
+            printf("[SP] surface horizontal advetion - outside: cz=%.4e>=0.0\n\n", cz);
+            cz = -epsilon_x;
+        }
+
+        if (cz <= -depth){
+            printf("[SP] surface horizontal advetion - outside: cz=%.4e<=-%.4e\n\n", cz, depth);
+            cz = -depth + epsilon_x;
+        }
+
+        i = get_i(cx);
+        k = get_k(cz);
+        rx = get_rx(cx, i);
+        rz = get_rz(cz, k);
+        vx = linear_interpolation(rx, rz, VV[k][i].u, VV[k][i+1].u, VV[k+1][i].u, VV[k+1][i+1].u);
+        vz = linear_interpolation(rx, rz, VV[k][i].w, VV[k][i+1].w, VV[k+1][i].w, VV[k+1][i+1].w);
+        array[2 * p] += dt * vx;
+        array[2 * p + 1] += dt * vz;
+    }
+
+    ierr = DMSwarmRestoreField(dms_s, DMSwarmPICField_coor, &bs, NULL, (void**)&array); CHKERRQ(ierr);
+
+    ierr = DMSwarmMigrate(dms_s, PETSC_TRUE); CHKERRQ(ierr);
+
+    ierr = DMDAVecRestoreArray(da_Veloc, local_V, &VV); CHKERRQ(ierr);
+
+    PetscFunctionReturn(0);
+}
+
+PetscErrorCode sp_surface_swarm_interpolation()
+{
+    PetscMPIInt rank;
+	PetscErrorCode ierr;
+
+    PetscFunctionBeginUser;
+
+    ierr = MPI_Comm_rank(PETSC_COMM_WORLD, &rank); CHKERRQ(ierr);
+
+    PetscInt si;
+    PetscInt sj;
+    PetscInt milocal;
+    PetscInt mjlocal;
+    PetscReal rx;
+    PetscReal px;
+
+    PetscInt nlocal;
+    PetscInt bs;
+    PetscInt *iarray;
+    PetscReal *array;
+
+    PetscReal *seq_array;
+
+    PetscReal cx_aux;
+    PetscReal cz_aux;
+    PetscReal cz;
+    PetscReal cx_l;
+    PetscReal cz_l;
+    PetscReal cx_r;
+    PetscReal cz_r;
+
+    PetscReal delta_x_l;
+    PetscReal delta_x_r;
+    PetscBool p_aux_l;
+    PetscBool p_aux_r;
+
+    PetscInt i;
+    PetscInt j;
+    PetscInt p;
+
+    Vec global_surface;
+    Vec seq_surface;
+    VecScatter ctx;
+    PetscInt seq_surface_size;
+
+
+    ierr = DMDAGetCorners(da_Veloc, &si, &sj, NULL, &milocal, &mjlocal, NULL); CHKERRQ(ierr);
+
+    ierr = DMSwarmGetLocalSize(dms_s, &nlocal); CHKERRQ(ierr);
+
+    ierr = DMSwarmCreateGlobalVectorFromField(dms_s, DMSwarmPICField_coor, &global_surface); CHKERRQ(ierr);
+    ierr = VecScatterCreateToAll(global_surface, &ctx, &seq_surface); CHKERRQ(ierr);
+    ierr = VecScatterBegin(ctx, global_surface, seq_surface, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
+    ierr = VecScatterEnd(ctx, global_surface, seq_surface, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
+    ierr = VecScatterDestroy(&ctx); CHKERRQ(ierr);
+    ierr = DMSwarmDestroyGlobalVectorFromField(dms_s, DMSwarmPICField_coor, &global_surface); CHKERRQ(ierr);
+
+    ierr = VecGetSize(seq_surface, &seq_surface_size); CHKERRQ(ierr);
+    ierr = VecGetArray(seq_surface, &seq_array); CHKERRQ(ierr);
+
+    PetscInt dms_s_size;
+    ierr = DMSwarmGetSize(dms_s, &dms_s_size); CHKERRQ(ierr);
+
+    PetscReal *interpolated_surface;
+    PetscInt interpolated_size = 2 * dms_s_ppe * (Nx - 1) + 1;
+
+    if (nlocal) {
+        ierr = PetscCalloc1(interpolated_size, &interpolated_surface); CHKERRQ(ierr);
+    }
+
+    PetscInt cnt = 0;
+
+    for (i = si; nlocal && i < si+milocal; i++) {
+        for (j = 0; j < dms_s_ppe; j++) {
+            rx = (j * dx_const)/(dms_s_ppe);
+            px = i * dx_const + rx;
+
+            if (px > Lx) {
+                break;
+            }
+
+            delta_x_l = Lx + epsilon_x;
+            delta_x_r = Lx + epsilon_x;
+            cx_l = seq_array[0];
+            cz_l = seq_array[1];
+            cx_r = seq_array[2*(dms_s_size-1)];
+            cz_r = seq_array[2*(dms_s_size-1)+1];
+
+            p_aux_l = PETSC_FALSE;
+            p_aux_r = PETSC_FALSE;
+
+            for (p = 0; p < dms_s_size; p++) {
+                cx_aux = seq_array[2*p];
+                cz_aux = seq_array[2*p+1];
+
+                if (cx_aux < px && (px - cx_aux) < delta_x_l) {
+                    cx_l = cx_aux;
+                    cz_l = cz_aux;
+                    delta_x_l = px - cx_aux;
+                    p_aux_l = PETSC_TRUE;
+                }
+
+                if (cx_aux > px && (cx_aux - px) < delta_x_r) {
+                    cx_r = cx_aux;
+                    cz_r = cz_aux;
+                    delta_x_r = cx_aux - px;
+                    p_aux_r = PETSC_TRUE;
+                }
+            }
+
+            if (p_aux_l == PETSC_TRUE && p_aux_r == PETSC_FALSE) {
+                cx_r = px;
+                cz_r = cz_l;
+            } else if (p_aux_l == PETSC_FALSE && p_aux_r == PETSC_TRUE) {
+                cx_l = px;
+                cz_l = cz_r;
+            }
+
+            cz = (1.0 - (px - cx_l)/(cx_r - cx_l)) * cz_l + (px - cx_l)/(cx_r - cx_l) * cz_r;
+
+            interpolated_surface[2*cnt] = px;
+            interpolated_surface[2*cnt+1] = cz;
+
+            cnt++;
+        }
+    }
+
+    ierr = VecRestoreArray(seq_surface, &seq_array); CHKERRQ(ierr);
     ierr = VecDestroy(&seq_surface); CHKERRQ(ierr);
 
-    MPI_Barrier(PETSC_COMM_WORLD);
-
-    MPI_Bcast(global_surface_array_helper, size, MPIU_SCALAR, 0, PETSC_COMM_WORLD);
-    MPI_Bcast(global_surface_array_helper_aux, size, MPIU_SCALAR, 0, PETSC_COMM_WORLD);
-
-    MPI_Barrier(PETSC_COMM_WORLD);
-
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[rank %d] Adjusting local part of global vectors from global seq arrays\n", rank); CHKERRQ(ierr);
-    for (j = low; j < high; j++) {
-        y[j-low] = global_surface_array_helper[j];
-        y_aux[j-low] = global_surface_array_helper_aux[j];
+    for (i = 0; i < nlocal; i++) {
+        ierr = DMSwarmRemovePoint(dms_s); CHKERRQ(ierr);
     }
+    ierr = DMSwarmAddNPoints(dms_s, cnt);
 
-    // PetscSynchronizedFlush(PETSC_COMM_WORLD, PETSC_STDOUT);
-    // MPI_Barrier(PETSC_COMM_WORLD);
+    ierr = DMSwarmGetField(dms_s, DMSwarmPICField_coor, &bs, NULL, (void**)&array); CHKERRQ(ierr);
+    ierr = DMSwarmGetField(dms_s, "itag", &bs, NULL, (void **)&iarray); CHKERRQ(ierr);
+    for (p = 0; p < cnt; p++) {
+        iarray[p] = si * dms_s_ppe + p;
+        array[2*p] = interpolated_surface[2*p];
+        array[2*p+1] = interpolated_surface[2*p+1];
+    }
+    ierr = DMSwarmRestoreField(dms_s, DMSwarmPICField_coor, &bs, NULL, (void **)&array); CHKERRQ(ierr);
+    ierr = DMSwarmRestoreField(dms_s, "itag", &bs, NULL, (void **)&iarray); CHKERRQ(ierr);
 
-    ierr = VecRestoreArray(sp_surface_global, &y); CHKERRQ(ierr);
-    ierr = VecRestoreArray(sp_surface_global_aux, &y_aux); CHKERRQ(ierr);
-
-    MPI_Barrier(PETSC_COMM_WORLD);
-
-    update_particles_properties();
+    if (nlocal) {
+        ierr = PetscFree(interpolated_surface); CHKERRQ(ierr);
+    }
 
     PetscFunctionReturn(0);
 }
 
-PetscErrorCode update_particles_properties()
+PetscErrorCode sp_evaluate_surface_processes(PetscInt dimensions, PetscReal dt)
 {
-    PetscErrorCode ierr=0;
+    PetscErrorCode ierr;
+
+    PetscFunctionBeginUser;
+
+    if (dimensions == 2) {
+        ierr = sp_evaluate_surface_processes_2d(dt); CHKERRQ(ierr);
+    }
+
+    PetscFunctionReturn(0);
+}
+
+PetscErrorCode sp_evaluate_surface_processes_2d(PetscReal dt)
+{
+    PetscErrorCode ierr;
+
+    PetscFunctionBeginUser;
+
+    if (sp_mode == 1) {
+        ierr = sp_evaluate_surface_processes_2d_diffusion(dt); CHKERRQ(ierr);
+    }
+
+    PetscFunctionReturn(0);
+}
+
+PetscErrorCode sp_evaluate_surface_processes_2d_diffusion(PetscReal dt)
+{
+    PetscErrorCode ierr;
     PetscMPIInt rank;
-    PetscInt i;
+
+    Vec global_surface;
+    Vec seq_surface;
+    VecScatter ctx;
+    PetscInt seq_surface_size;
     PetscInt p;
     PetscInt bs;
-    PetscInt mx;
-    PetscInt my;
-    PetscInt sex;
-    PetscInt sey;
-    PetscInt nlocal;
-    PetscInt sp_size;
-    PetscInt sp_size_local;
-	PetscInt *iarray;
-	PetscInt *carray;
-    PetscInt *layer;
-    PetscReal px;
-    PetscReal py;
-    PetscReal ys;
-    PetscReal rx;
-    PetscReal sp_dx;
-    PetscReal *y;
-    PetscReal *pcoords;
-	PetscReal *geoq_fac;
-	PetscReal *strain_fac;
-
-    PetscReal ys_aux;
-    PetscReal *y_aux;
-    PetscReal dh;
-    PetscReal epsilon;
-
-
-    MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
-
-    ierr = PetscPrintf(PETSC_COMM_WORLD, "[update_particles_properties] (started) [rank %d]\n", rank); CHKERRQ(ierr);
-
-	ierr = DMSwarmGetLocalSize(dms, &nlocal);CHKERRQ(ierr);
-	ierr = DMSwarmGetField(dms, DMSwarmPICField_coor, &bs, NULL, (void**)&pcoords);CHKERRQ(ierr);
-	ierr = DMSwarmGetField(dms, "cont", &bs, NULL, (void**)&carray);CHKERRQ(ierr);
-	ierr = DMSwarmGetField(dms, "itag", &bs, NULL, (void**)&iarray);CHKERRQ(ierr);
-	ierr = DMSwarmGetField(dms, "layer", &bs, NULL, (void**)&layer);CHKERRQ(ierr);
-	ierr = DMSwarmGetField(dms, "geoq_fac", &bs, NULL, (void**)&geoq_fac);CHKERRQ(ierr);
-	ierr = DMSwarmGetField(dms, "strain_fac", &bs, NULL, (void**)&strain_fac);CHKERRQ(ierr);
-
-    ierr = VecGetArray(sp_surface_global, &y); CHKERRQ(ierr);
-    ierr = VecGetSize(sp_surface_global, &sp_size); CHKERRQ(ierr);
-    ierr = VecGetLocalSize(sp_surface_global, &sp_size_local); CHKERRQ(ierr);
-    sp_dx = Lx/(sp_size-1);
-
-    ierr = DMDAGetElementCorners_2d(da_Veloc, &sex, &sey, &mx, &my); CHKERRQ(ierr);
-
-    ierr = VecGetArray(sp_surface_global_aux, &y_aux); CHKERRQ(ierr);
-
-
-    // ierr = PetscSynchronizedPrintf(PETSC_COMM_WORLD, "(debug) [update_particles_properties][rank %d] nlocal %d | sp_size %d | sp_size_local | %d | sex %d | mx %d\n", rank, nlocal, sp_size, sp_size_local, sex, mx); CHKERRQ(ierr);
-    // ierr = PetscSynchronizedFlush(PETSC_COMM_WORLD, PETSC_STDOUT); CHKERRQ(ierr);
-
-    for (p = 0; sp_size_local && p < nlocal; p++) {
-        px = pcoords[2*p];
-		py = pcoords[2*p+1];
-
-        i = (PetscInt)(px/dx_const);
-        if (i < 0 || i > sex+mx) {ierr = PetscPrintf(PETSC_COMM_SELF, "(error) [sp_interpolate_surface_particles_to_vec] rank=%d weird i=%d (px=%.6e, p=%d)\n", rank, i, px, p); CHKERRQ(ierr); exit(1);}
-
-        // rx = (px-i*sp_dx)/sp_dx;
-        rx = 0.5;
-
-        if (rx < 0 || rx > 1) {
-            ierr = PetscPrintf(PETSC_COMM_SELF, "(error) [update_particles_properties] rx=%f px=%e i=%d sp_dx=%e dx_const=%e sp_size=%d\n", rx, px, i, sp_dx, dx_const, sp_size); CHKERRQ(ierr);
-            exit(1);
-        }
-
-        if (i == sex+mx-1) {
-            i--;
-        }
-
-        ys = y[i-sex] * (1.0 - rx) + y[i-sex+1] * rx;
-
-        ys_aux = y_aux[i-sex] * (1.0 - rx) + y_aux[i-sex+1] * rx;
-
-        dh = ys - ys_aux;
-
-        epsilon = 1.00e-10;
-
-        // (A2L) air particle bellow the surface => assign land properties
-        if (a2l == PETSC_TRUE && layer[p] == n_interfaces) {
-
-            if (py < ys_aux) {
-                // set local surface to a level below the air particle
-                ys_aux = py - epsilon;
-            }
-
-            if (py < (ys_aux + dh)) {
-                ierr = PetscPrintf(PETSC_COMM_SELF, "(debug) [update_particles_properties] [rank %d] AIR  => LAND : p %d | layer %d=>%d | py %.8e < ys %.8e | x(%.8e < %.8e < %.8e)\n", rank, p, layer[p], n_interfaces-1, py, ys, i*sp_dx, px, (i+1)*sp_dx); CHKERRQ(ierr);
-                // ierr = PetscPrintf(PETSC_COMM_SELF, "(debug) [update_particles_properties] [rank %d] A2L i %3d | ie %3d | rx %.2f | %e %e %e %e %d\n", rank, i, i-sex, rx, y[i-sex], y[i-sex] * (1.0 - rx) + y[i-sex+1] * rx, y[i-sex+1], py, layer[p]); CHKERRQ(ierr);
-
-                layer[p] = n_interfaces - 1;
-                geoq_fac[p] = inter_geoq[n_interfaces - 1];
-                strain_fac[p] = 0.0;
-                // carray[p] = 0;
-                // iarray[p] = 0;
-            }
-        }
-
-        // (L2A) land particle above the surface => assign air properties
-        if (layer[p] != n_interfaces) {
-
-            if (py > ys_aux) {
-                // set local surface to a level above the land particle
-                ys_aux = py + epsilon;
-            }
-
-            if (py > (ys_aux + dh)) {
-                ierr = PetscPrintf(PETSC_COMM_SELF, "(debug) [update_particles_properties] [rank %d] LAND => AIR  : p %d | layer %d=>%d | py %.8e > ys %.8e | x(%.8e < %.8e < %.8e)\n", rank, p, layer[p], n_interfaces, py, ys, i*sp_dx, px, (i+1)*sp_dx); CHKERRQ(ierr);
-                // ierr = PetscPrintf(PETSC_COMM_SELF, "(debug) [update_particles_properties] [rank %d] L2A i %3d | ie %3d | rx %.2f | %e %e %e %e %d\n", rank, i, i-sex, rx, y[i-sex], y[i-sex] * (1.0 - rx) + y[i-sex+1] * rx, y[i-sex+1], py, layer[p]); CHKERRQ(ierr);
-
-                layer[p] = n_interfaces;
-                geoq_fac[p] = inter_geoq[n_interfaces];
-                strain_fac[p] = 0.0;
-                // carray[p] = 0;
-                // iarray[p] = 0;
-            }
-        }
-    }
-
-	ierr = DMSwarmRestoreField(dms, "cont", &bs, NULL, (void**)&carray);CHKERRQ(ierr);
-	ierr = DMSwarmRestoreField(dms, "itag", &bs, NULL, (void**)&iarray);CHKERRQ(ierr);
-	ierr = DMSwarmRestoreField(dms, "layer", &bs, NULL, (void**)&layer);CHKERRQ(ierr);
-	ierr = DMSwarmRestoreField(dms, "geoq_fac", &bs, NULL, (void**)&geoq_fac);CHKERRQ(ierr);
-	ierr = DMSwarmRestoreField(dms, "strain_fac", &bs, NULL, (void**)&strain_fac);CHKERRQ(ierr);
-    ierr = DMSwarmRestoreField(dms, DMSwarmPICField_coor, &bs, NULL, (void**)&pcoords); CHKERRQ(ierr);
-    ierr = DMSwarmMigrate(dms, PETSC_TRUE); CHKERRQ(ierr);
-    ierr = VecRestoreArray(sp_surface_global, &y); CHKERRQ(ierr);
-    pcoords = NULL;
-
-    ierr = PetscPrintf(PETSC_COMM_WORLD, "[update_particles_properties] (completed) [rank %d]\n", rank); CHKERRQ(ierr);
-
-    PetscFunctionReturn(0);
-}
-
-PetscErrorCode sp_write_surface_vec(PetscInt i)
-{
-    PetscErrorCode ierr=0;
-    PetscMPIInt rank;
-    PetscViewer viewer;
-    char filename[100];
-
-	MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
-
-    sprintf(filename, "sp_surface_global_%d.txt", i); CHKERRQ(ierr);
-    ierr = PetscViewerASCIIOpen(PETSC_COMM_WORLD, filename, &viewer); CHKERRQ(ierr);
-    ierr = VecView(sp_surface_global, viewer); CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer); CHKERRQ(ierr);
-
-    MPI_Barrier(PETSC_COMM_WORLD);
-
-    PetscFunctionReturn(0);
-}
-
-PetscErrorCode sp_destroy()
-{
-    PetscErrorCode ierr=0;
-
-    ierr = VecDestroy(&sp_surface_global); CHKERRQ(ierr);
-    ierr = VecDestroy(&sp_surface_global_n); CHKERRQ(ierr);
-    ierr = VecDestroy(&sp_surface_coords_global); CHKERRQ(ierr);
-    ierr = VecDestroy(&sp_top_surface_global); CHKERRQ(ierr);
-    ierr = VecDestroy(&sp_bot_surface_global); CHKERRQ(ierr);
-    ierr = VecDestroy(&sp_mean_surface_global); CHKERRQ(ierr);
-    ierr = VecDestroy(&sp_top_surface_global_n); CHKERRQ(ierr);
-    ierr = VecDestroy(&sp_bot_surface_global_n); CHKERRQ(ierr);
-    ierr = VecDestroy(&sp_surface_global_aux); CHKERRQ(ierr);
-
-    PetscFunctionReturn(0);
-}
-
-PetscErrorCode sp_topo_var(PetscReal dt, PetscInt size)
-{
-    PetscInt t;
-    PetscInt j;
-
-
-    for (t = 0; t < sp_n_profiles-1; t++) {
-        if ((sp_last_eval_time > topo_var_time[t] || fabs(sp_last_eval_time-topo_var_time[t]) < 1.0e-13) && (sp_last_eval_time < topo_var_time[t+1] || fabs(sp_last_eval_time - topo_var_time[t+1]) < 1.0e-13)) {
-            break;
-        }
-    }
-
-    for (j = 0; j < size; j++) {
-        global_surface_array_helper[j] = global_surface_array_helper[j] - topo_var_rate[j + t*Nx]*dt;
-    }
-
-    PetscFunctionReturn(0);
-}
-
-PetscErrorCode sp_diffusion(PetscReal dt, PetscInt size)
-{
-    PetscErrorCode ierr=0;
+    PetscReal *seq_array;
+    PetscReal sp_dt;
     PetscInt t;
     PetscInt j;
     PetscInt max_steps;
     PetscReal r;
     PetscReal sp_dx;
-    PetscReal sp_dt;
-    PetscScalar *sp_y_aux;
+    PetscScalar *z;
+    PetscInt si;
+    PetscInt nlocal;
+    PetscReal *array;
+    PetscInt n
 
+    PetscFunctionBeginUser;
 
-    ierr = PetscCalloc1(size, &sp_y_aux); CHKERRQ(ierr);
-    ierr = PetscArraycpy(sp_y_aux, global_surface_array_helper, size); CHKERRQ(ierr);
+    ierr = MPI_Comm_rank(PETSC_COMM_WORLD, &rank); CHKERRQ(ierr);
 
-    sp_dx = Lx/(size-1);
+    ierr = DMSwarmCreateGlobalVectorFromField(dms_s, DMSwarmPICField_coor, &global_surface); CHKERRQ(ierr);
+    ierr = VecScatterCreateToZero(global_surface, &ctx, &seq_surface); CHKERRQ(ierr);
+    ierr = VecScatterBegin(ctx, global_surface, seq_surface, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
+    ierr = VecScatterEnd(ctx, global_surface, seq_surface, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
+    ierr = VecScatterDestroy(&ctx); CHKERRQ(ierr);
+    ierr = DMSwarmDestroyGlobalVectorFromField(dms_s, DMSwarmPICField_coor, &global_surface); CHKERRQ(ierr);
 
-    sp_dt = sp_dx*sp_dx/sp_d_c/4.0;
-    max_steps = (int)(PetscFloorReal(dt/sp_dt)) + 1;
-    if (max_steps < 10) {
-        max_steps = 10;
-    }
-    sp_dt = dt/max_steps;
+    ierr = VecGetSize(seq_surface, &seq_surface_size); CHKERRQ(ierr);
+    ierr = VecGetArray(seq_surface, &seq_array); CHKERRQ(ierr);
 
-    r = sp_d_c*sp_dt/(sp_dx*sp_dx);
+    n = seq_surface_size/2;
 
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] dt=%e\n", dt); CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] size=%d\n", size); CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] sp_dx=%e\n", sp_dx); CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] sp_dt=%e\n", sp_dt); CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] max_steps=%d\n", max_steps); CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] sp_d_c=%e\n", sp_d_c); CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] r=%e\n", r); CHKERRQ(ierr);
-    // for (j = 0; j < size; j++) {
-    //     ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] sp_y_aux=%e\n", sp_y_aux[j]); CHKERRQ(ierr);
-    // }
+    if (!rank) {
+        ierr = PetscCalloc1(n, &z); CHKERRQ(ierr);
 
+        sp_dx = Lx/(n-1);
 
-    global_surface_array_helper[0] = global_surface_array_helper[1];
-    global_surface_array_helper[size-1] = global_surface_array_helper[size-2];
-
-    for (t = 0; t < max_steps; t++) {
-        for (j = 1; j < size-1; j++) {
-            global_surface_array_helper[j] = sp_y_aux[j] + r*(sp_y_aux[j+1] - 2.0*sp_y_aux[j] + sp_y_aux[j-1]);
+        sp_dt = sp_dx*sp_dx/sp_d_c/4.0;
+        max_steps = (int)(PetscFloorReal(dt/sp_dt)) + 1;
+        if (max_steps < 10) {
+            max_steps = 10;
         }
+        sp_dt = dt/max_steps;
 
-        for (j = 0; j < size; j++) {
-            sp_y_aux[j] = global_surface_array_helper[j];
-        }
+        r = sp_d_c*sp_dt/(sp_dx*sp_dx);
+
+        ierr = PetscPrintf(PETSC_COMM_WORLD, "[sp_diffusion] dt=%e\n", dt); CHKERRQ(ierr);
+        ierr = PetscPrintf(PETSC_COMM_WORLD, "[sp_diffusion] size=%d\n", n); CHKERRQ(ierr);
+        ierr = PetscPrintf(PETSC_COMM_WORLD, "[sp_diffusion] sp_dx=%e\n", sp_dx); CHKERRQ(ierr);
+        ierr = PetscPrintf(PETSC_COMM_WORLD, "[sp_diffusion] sp_dt=%e\n", sp_dt); CHKERRQ(ierr);
+        ierr = PetscPrintf(PETSC_COMM_WORLD, "[sp_diffusion] max_steps=%d\n", max_steps); CHKERRQ(ierr);
+        ierr = PetscPrintf(PETSC_COMM_WORLD, "[sp_diffusion] sp_d_c=%e\n", sp_d_c); CHKERRQ(ierr);
+        ierr = PetscPrintf(PETSC_COMM_WORLD, "[sp_diffusion] r=%e\n", r); CHKERRQ(ierr);
+
+        seq_array[1] = seq_array[3];
+        seq_array[2*n-1] = seq_array[2*n-3];
+
+        t = 0;
+        do {
+            for (j = 0; j < n; j++) {
+                z[j] = seq_array[2*j+1];
+            }
+
+            // TODO: exclude left/right borders?
+            for (j = 1; j < n-1; j++) {
+                seq_array[2*j+1] = z[j] + r*(z[j+1] - 2.0*z[j] + z[j-1]);
+            }
+
+            t++;
+        } while (t < max_steps);
     }
+
+    // TODO: tentar alterar para scatter to all, assim nao precisa alocar seq_array
+
+    ierr = MPI_Barrier(PETSC_COMM_WORLD); CHKERRQ(ierr);
+
+    ierr = MPI_Bcast(&seq_surface_size, 1, MPI_INT, 0, PETSC_COMM_WORLD); CHKERRQ(ierr);
+
+    if (rank) {
+        ierr = PetscCalloc1(seq_surface_size, &seq_array); CHKERRQ(ierr);
+    }
+    ierr = MPI_Bcast(seq_array, seq_surface_size, MPIU_SCALAR, 0, PETSC_COMM_WORLD);
+
+    ierr = DMDAGetCorners(da_Veloc, &si, NULL, NULL, NULL, NULL, NULL); CHKERRQ(ierr);
+    ierr = DMSwarmGetLocalSize(dms_s, &nlocal); CHKERRQ(ierr);
+    ierr = DMSwarmGetField(dms_s, DMSwarmPICField_coor, &bs, NULL, (void**)&array); CHKERRQ(ierr);
+
+    for (p = 0; p < nlocal; p++) {
+        array[2*p] = seq_array[si*dms_s_ppe*2+2*p];
+        array[2*p+1] = seq_array[si*dms_s_ppe*2+2*p+1];
+    }
+
+    ierr = DMSwarmRestoreField(dms_s, DMSwarmPICField_coor, &bs, NULL, (void **)&array); CHKERRQ(ierr);
+    ierr = VecRestoreArray(seq_surface, &seq_array); CHKERRQ(ierr);
 
     PetscFunctionReturn(0);
 }
 
-
-
-PetscErrorCode sp_fluvial(PetscReal dt, PetscInt size)
+PetscErrorCode sp_update_surface_swarm_particles_properties()
 {
-    PetscErrorCode ierr;
-    PetscInt t,tt;
-    PetscInt j,cont;
-    PetscInt max_steps;
+    PetscMPIInt rank;
+	PetscErrorCode ierr;
 
+    PetscInt i;
+    PetscInt p;
+    PetscInt bs;
+    PetscInt mx;
+    PetscInt sex;
+    PetscInt nlocal;
+    PetscInt *layer;
+    PetscReal px;
+    PetscReal py;
+    PetscReal rx;
     PetscReal sp_dx;
-    PetscReal sp_dt;
-    PetscScalar *h,*h_aux,*h_aux2,*q,*fc,*vR;
-    PetscInt *hi;
-    PetscInt sum;
+    PetscReal *pcoords;
+	PetscReal *geoq_fac;
+	PetscReal *strain_fac;
 
-    PetscReal K = K_fluvial;//2.0E-7;
+    Vec global_surface;
+    Vec seq_surface;
+    VecScatter ctx;
+    PetscInt global_surface_size;
+    PetscInt seq_surface_size;
+    PetscReal *seq_array;
 
+    PetscReal surface;
+    PetscReal _sl;
+    PetscReal _sr;
 
-    ierr = PetscCalloc1(size, &h); CHKERRQ(ierr);
-    ierr = PetscArraycpy(h, global_surface_array_helper, size); CHKERRQ(ierr);
+    PetscFunctionBeginUser;
 
-    sp_dx = Lx/(size-1);
+    ierr = MPI_Comm_rank(PETSC_COMM_WORLD, &rank); CHKERRQ(ierr);
 
-    //sp_dt = sp_dx*sp_dx/sp_d_c/4.0;
-    //max_steps = (int)(PetscFloorReal(dt/sp_dt)) + 1;
-    //if (max_steps < 10) {
-    //    max_steps = 10;
-    //}
-    sp_dt = 5000.0;
-    max_steps=(int)(dt/sp_dt);
-    sp_dt = dt/max_steps;
+	ierr = DMSwarmGetLocalSize(dms, &nlocal); CHKERRQ(ierr);
+	ierr = DMSwarmGetField(dms, DMSwarmPICField_coor, &bs, NULL, (void**)&pcoords); CHKERRQ(ierr);
+	ierr = DMSwarmGetField(dms, "layer", &bs, NULL, (void**)&layer); CHKERRQ(ierr);
+	ierr = DMSwarmGetField(dms, "geoq_fac", &bs, NULL, (void**)&geoq_fac); CHKERRQ(ierr);
+	ierr = DMSwarmGetField(dms, "strain_fac", &bs, NULL, (void**)&strain_fac); CHKERRQ(ierr);
 
-    //r = sp_d_c*sp_dt/(sp_dx*sp_dx);
+    ierr = DMSwarmCreateGlobalVectorFromField(dms_s, DMSwarmPICField_coor, &global_surface); CHKERRQ(ierr);
+    ierr = VecScatterCreateToAll(global_surface, &ctx, &seq_surface); CHKERRQ(ierr);
+    ierr = VecScatterBegin(ctx, global_surface, seq_surface, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
+    ierr = VecScatterEnd(ctx, global_surface, seq_surface, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
+    ierr = VecScatterDestroy(&ctx); CHKERRQ(ierr);
+    ierr = DMSwarmDestroyGlobalVectorFromField(dms_s, DMSwarmPICField_coor, &global_surface); CHKERRQ(ierr);
 
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] dt=%e\n", dt); CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] size=%d\n", size); CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] sp_dx=%e\n", sp_dx); CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] sp_dt=%e\n", sp_dt); CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] max_steps=%d\n", max_steps); CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] sp_d_c=%e\n", sp_d_c); CHKERRQ(ierr);
-    //ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] r=%e\n", r); CHKERRQ(ierr);
-    // for (j = 0; j < size; j++) {
-    //     ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] sp_y_aux=%e\n", sp_y_aux[j]); CHKERRQ(ierr);
-    // }
+    ierr = DMSwarmGetSize(dms_s, &global_surface_size); CHKERRQ(ierr);
+    ierr = DMSwarmGetLocalSize(dms_s, &seq_surface_size); CHKERRQ(ierr);
+    ierr = VecGetArray(seq_surface, &seq_array); CHKERRQ(ierr);
 
-    PetscReal mean_h=0.0;
-    for (j = 0,cont=0; j < size/4; j++) {
-        mean_h+=h[j];
-        cont++;
-    }
-    mean_h/=cont;
+    ierr = DMDAGetElementCorners_2d(da_Veloc, &sex, NULL, &mx, NULL); CHKERRQ(ierr);
 
-    PetscReal hsl = mean_h+sea_level;
+    PetscInt si;
+    PetscInt milocal;
+    ierr = DMDAGetCorners(da_Veloc, &si, NULL, NULL, &milocal, NULL, NULL); CHKERRQ(ierr);
 
-    PetscReal dif1,dif2;
+    sp_dx = Lx/((global_surface_size-1));
 
+    for (p = 0; seq_surface_size && p < nlocal; p++) {
+        px = pcoords[2*p];
+		py = pcoords[2*p+1];
 
-    ierr = PetscCalloc1(size, &h_aux); CHKERRQ(ierr);
-    ierr = PetscCalloc1(size, &h_aux2); CHKERRQ(ierr);
-    ierr = PetscCalloc1(size, &q); CHKERRQ(ierr);
-    ierr = PetscCalloc1(size, &fc); CHKERRQ(ierr);
-    ierr = PetscCalloc1(size, &hi); CHKERRQ(ierr);
-    ierr = PetscCalloc1(size, &vR); CHKERRQ(ierr);
+        i = (PetscInt)(px/sp_dx);
 
-    for (j=0;j<size;j++) vR[j] = 1.0;//PetscExpReal(-PetscPowReal(sp_dx*j-Lx/2,4)/PetscPowReal(Lx/8,4));
+        rx = 0.5;
 
+        _sl = seq_array[2*i+1];
+        _sr = seq_array[2*i+3];
 
-	if (precipitation_profile==1){
-		FILE *f_prec;
-		f_prec = fopen("precipitation.txt","r");
-		if (f_prec==NULL) {
-			PetscPrintf(PETSC_COMM_WORLD,"\n\n\n\nprecipitation.txt not found\n\n\n\n");
-			exit(1);
-		}
-		for (j=0;j<size;j++){
-			fscanf(f_prec,"%lf",&vR[j]);
-		}
-        fclose(f_prec);
-	}
+        surface = _sl * (1.0 - rx) + _sr * rx;
 
-    for (j=0;j<size;j++) vR[j] *= prec_factor;
-
-    for (j=0;j<size;j++) h_aux[j]=h[j];
-
-    for (t=0; t < max_steps; t++) {
-        for (j=0;j<size;j++) q[j] = sp_dx*vR[j];
-        for (j=0;j<size;j++) {
-            fc[j]=1;
-            if (h[j]<hsl) fc[j]=0;
+        // (A2L) air particle bellow the surface => assign land properties
+        if (a2l == PETSC_TRUE && layer[p] == n_interfaces) {
+            if (py < surface) {
+                layer[p] = n_interfaces - 1;
+                geoq_fac[p] = inter_geoq[n_interfaces - 1];
+                strain_fac[p] = 0.0;
+            }
         }
-        fc[0]=0;
-        fc[size-1]=0;
-        for (j=0;j<size;j++) {if (h[j]<hsl) h[j]=hsl;}
-        for (j=0;j<size;j++) hi[j]=j;
 
-        for (sum=0,j=0;j<size;j++) sum+=fc[j];
-        while (sum>0){
-
-            for (j=0;j<size;j++) h_aux2[j] = h[j];
-
-            for (tt=0;tt<10;tt++){
-                dif1=h[j-1];
-                for (j=1;j<size-1;j++){
-                    dif2=h[j];
-                    h[j]+=0.2*(dif1-2*h[j]+h[j+1]);
-                    dif1=dif2;
-                }
+        // (L2A) land particle above the surface => assign air properties
+        if (layer[p] != n_interfaces) {
+            if (py > surface) {
+                layer[p] = n_interfaces;
+                geoq_fac[p] = inter_geoq[n_interfaces];
+                strain_fac[p] = 0.0;
             }
-
-
-            for (j=0;j<size;j++) {if (fc[j]==1) fc[j]=2;}
-            for (j=1;j<size-1;j++){
-                if (fc[j]>0){
-                    if (h[j]>h[j-1]){
-                        if (h[j+1]<h[j-1]){
-                            hi[j]=j+1;
-                            if (fc[j+1]>1) fc[j+1]=1;
-                        }
-                        else{
-                            hi[j]=j-1;
-                            if (fc[j-1]>1) fc[j-1]=1;
-                        }
-                    }
-                    else if (h[j]>h[j+1]){
-                        hi[j]=j+1;
-                        if (fc[j+1]>1) fc[j+1]=1;
-                    }
-                }
-            }
-
-            for (j=0;j<size;j++) h[j] = h_aux2[j];
-
-            for (j=1;j<size-1;j++){
-                if (fc[j]==2){
-                    //h_aux[j]=h[j]-q[j]*K*sp_dt*(h[j]-h[hi[j]])/sp_dx;
-                    h_aux[j]=h[j]-PetscPowReal(q[j],m_fluvial)*K*sp_dt*(h[j]-h[hi[j]])/sp_dx;
-                    q[hi[j]]+=q[j];
-                    fc[j]=0;
-                    if (h_aux[j]<hsl) h_aux[j]=hsl;
-                }
-            }
-            for (sum=0.0,j=0;j<size;j++) sum+=fc[j];
-            printf("sum = %d\n",sum);
         }
-        for (j=0;j<size;j++) h[j]=h_aux[j];
-
     }
 
-    for (j = 0; j < size; j++) {
-        global_surface_array_helper[j] = h[j];
-    }
+	ierr = DMSwarmRestoreField(dms, "layer", &bs, NULL, (void**)&layer);CHKERRQ(ierr);
+	ierr = DMSwarmRestoreField(dms, "geoq_fac", &bs, NULL, (void**)&geoq_fac);CHKERRQ(ierr);
+	ierr = DMSwarmRestoreField(dms, "strain_fac", &bs, NULL, (void**)&strain_fac);CHKERRQ(ierr);
+    ierr = DMSwarmRestoreField(dms, DMSwarmPICField_coor, &bs, NULL, (void**)&pcoords); CHKERRQ(ierr);
+    ierr = VecRestoreArray(seq_surface, &seq_array); CHKERRQ(ierr);
+    pcoords = NULL;
 
-    PetscFree(h);
-    PetscFree(h_aux);
-    PetscFree(h_aux2);
-    PetscFree(fc);
-    PetscFree(q);
-    PetscFree(hi);
-
-
-
+    ierr = DMSwarmMigrate(dms, PETSC_TRUE); CHKERRQ(ierr);
 
     PetscFunctionReturn(0);
 }
 
-
-
-
-PetscErrorCode sp_fluvial2(PetscReal dt, PetscInt size)
+PetscErrorCode sp_view_2d(DM dm, const char prefix[])
 {
-    PetscErrorCode ierr;
-    PetscInt t;
-    PetscInt j,jj,cont,imax;
-    PetscInt max_steps;
+    PetscMPIInt rank;
+	PetscErrorCode ierr;
+    PetscInt p;
+	FILE *fp;
+	char name[PETSC_MAX_PATH_LEN];
 
-    PetscReal sp_dx;
-    PetscReal sp_dt;
-    PetscScalar *h,*h_aux,*q;
-    PetscInt *hi,*fc;
-    PetscInt ci,cf,out;
-    PetscInt sum;
-    PetscReal hmax;
+    Vec global_surface;
+    Vec seq_surface;
+    VecScatter ctx;
+    PetscInt seq_surface_size;
+    PetscReal *seq_array;
+    PetscInt n;
 
-    PetscReal K = K_fluvial;//2.0E-7;
+    PetscFunctionBeginUser;
 
+	ierr = MPI_Comm_rank(PETSC_COMM_WORLD, &rank); CHKERRQ(ierr);
 
-    ierr = PetscCalloc1(size, &h); CHKERRQ(ierr);
-    ierr = PetscArraycpy(h, global_surface_array_helper, size); CHKERRQ(ierr);
+    ierr = DMSwarmCreateGlobalVectorFromField(dms_s, DMSwarmPICField_coor, &global_surface); CHKERRQ(ierr);
+    ierr = VecScatterCreateToZero(global_surface, &ctx, &seq_surface); CHKERRQ(ierr);
+    ierr = VecScatterBegin(ctx, global_surface, seq_surface, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
+    ierr = VecScatterEnd(ctx, global_surface, seq_surface, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
+    ierr = VecScatterDestroy(&ctx); CHKERRQ(ierr);
+    ierr = DMSwarmDestroyGlobalVectorFromField(dms_s, DMSwarmPICField_coor, &global_surface); CHKERRQ(ierr);
 
-    sp_dx = Lx/(size-1);
+    ierr = VecGetSize(seq_surface, &seq_surface_size); CHKERRQ(ierr);
+    ierr = VecGetArray(seq_surface, &seq_array); CHKERRQ(ierr);
 
-    //sp_dt = sp_dx*sp_dx/sp_d_c/4.0;
-    //max_steps = (int)(PetscFloorReal(dt/sp_dt)) + 1;
-    //if (max_steps < 10) {
-    //    max_steps = 10;
-    //}
-    sp_dt = 5000.0;
-    max_steps=(int)(dt/sp_dt);
-    sp_dt = dt/max_steps;
+    n = seq_surface_size/2;
 
-    //r = sp_d_c*sp_dt/(sp_dx*sp_dx);
+    if (!rank) {
+        PetscSNPrintf(name, PETSC_MAX_PATH_LEN-1, "%s.txt", prefix);
+        fp = fopen(name, "w");
 
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] dt=%e\n", dt); CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] size=%d\n", size); CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] sp_dx=%e\n", sp_dx); CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] sp_dt=%e\n", sp_dt); CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] max_steps=%d\n", max_steps); CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] sp_d_c=%e\n", sp_d_c); CHKERRQ(ierr);
-    //ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] r=%e\n", r); CHKERRQ(ierr);
-    // for (j = 0; j < size; j++) {
-    //     ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] sp_y_aux=%e\n", sp_y_aux[j]); CHKERRQ(ierr);
-    // }
-
-    PetscReal mean_h=0.0;
-    for (j = 0,cont=0; j < size/4; j++) {
-        mean_h+=h[j];
-        cont++;
-    }
-    mean_h/=cont;
-
-    PetscReal hsl = mean_h+sea_level;
-
-
-    ierr = PetscCalloc1(size, &h_aux); CHKERRQ(ierr);
-    ierr = PetscCalloc1(size, &q); CHKERRQ(ierr);
-    ierr = PetscCalloc1(size, &fc); CHKERRQ(ierr);
-    ierr = PetscCalloc1(size, &hi); CHKERRQ(ierr);
-
-    for (j=0;j<size;j++) h_aux[j]=h[j];
-
-    for (t=0; t < max_steps; t++) {
-        for (j=0;j<size;j++) q[j] = sp_dx;
-        for (j=0;j<size;j++) {
-            fc[j]=1;
-            if (h[j]<hsl) fc[j]=0;
-        }
-        for (j=0;j<size;j++){
-            if (j*sp_dx<40.0E3 || j*sp_dx>Lx-40.0E3) fc[j]=0;
-        }
-        fc[0]=0;
-        fc[size-1]=0;
-        for (j=0;j<size;j++) {if (h[j]<hsl) h[j]=hsl;}
-        for (j=0;j<size;j++) hi[j]=j;
-
-
-        ci=1;
-        cf=1;
-        out = 0;
-        for (j=1;j<size;j++){
-            if (out==0 && fc[j]==1){
-                ci=j;
-                cf=j;
-                out=1;
-            }
-            if (out==1 && fc[j]==1){
-                cf=j;
-            }
-            if (out==1 && fc[j]==0){
-                imax=ci;
-                hmax=h[imax];
-                for (jj=ci;jj<cf+1;jj++){//ii in range(ci,cf+1):
-                    if (hmax<h[jj]){
-                        imax=jj;
-                        hmax=h[imax];
-                    }
-                }
-                for (jj=ci;jj<imax;jj++){//ii in range(ci,imax):
-                    hi[jj]=jj-1;
-                }
-                for (jj=imax;jj<cf+1;jj++){//ii in range(imax,cf+1):
-                    hi[jj]=jj+1;
-                }
-                out=0;
-            }
+        if (fp == NULL) {
+            SETERRQ1(PETSC_COMM_SELF, PETSC_ERR_FILE_OPEN, "Cannot open file %s", name);
         }
 
-
-        for (sum=0,j=0;j<size;j++) sum+=fc[j];
-        printf("sum = %d\n",sum);
-        while (sum>0){
-            for (j=0;j<size;j++) {if (fc[j]==1) fc[j]=2;}
-            for (j=1;j<size-1;j++){
-                if (fc[j]>0){
-                    if (fc[hi[j]]>0){
-                        fc[hi[j]]=1;
-                    }
-                }
-            }
-            for (j=1;j<size-1;j++){
-                if (fc[j]==2){
-                    if (h[j]>h[hi[j]]) h_aux[j]=h[j]-q[j]*K*sp_dt*(h[j]-h[hi[j]])/sp_dx;
-                    q[hi[j]]+=q[j];
-                    fc[j]=0;
-                    if (h_aux[j]<hsl) h_aux[j]=hsl;
-                }
-            }
-            for (sum=0,j=0;j<size;j++) sum+=fc[j];
-            printf("sum = %d\n",sum);
+        for (p = 0; p < n; p++) {
+            fprintf(fp, "%+1.5e %+1.5e\n", seq_array[2*p], seq_array[2*p+1]);
         }
-        for (j=0;j<size;j++) h[j]=h_aux[j];
 
+        fclose(fp);
     }
 
-    for (j = 0; j < size; j++) {
-        global_surface_array_helper[j] = h[j];
-    }
+    ierr = VecRestoreArray(seq_surface, &seq_array); CHKERRQ(ierr);
 
-    PetscFree(h);
-    PetscFree(h_aux);
-    PetscFree(fc);
-    PetscFree(q);
-    PetscFree(hi);
-
-
-
-
-    /*
-    global_surface_array_helper[0] = global_surface_array_helper[1];
-    global_surface_array_helper[size-1] = global_surface_array_helper[size-2];
-
-    for (t = 0; t < max_steps; t++) {
-        for (j = 1; j < size-1; j++) {
-            global_surface_array_helper[j] = sp_y_aux[j] + r*(sp_y_aux[j+1] - 2.0*sp_y_aux[j] + sp_y_aux[j-1]);
-        }
-
-        for (j = 0; j < size; j++) {
-            sp_y_aux[j] = global_surface_array_helper[j];
-        }
-    }
-    */
-
-
-
-    PetscFunctionReturn(0);
+	PetscFunctionReturn(0);
 }
 
-PetscErrorCode sp_forced(PetscReal dt, PetscInt size)
+
+PetscErrorCode sp_destroy()
 {
-    PetscErrorCode ierr;
-    PetscInt j,cont;
-    PetscInt max_steps;
+	PetscErrorCode ierr;
 
-    PetscReal sp_dx;
-    PetscReal sp_dt;
-    PetscScalar *h,*h_aux,*h_aux2,*q,*fc,*vR;
-    PetscInt *hi;
+    PetscFunctionBeginUser;
 
+	ierr = DMDestroy(&dmcell_s);CHKERRQ(ierr);
+	ierr = DMDestroy(&dms_s);CHKERRQ(ierr);
 
-    ierr = PetscCalloc1(size, &h); CHKERRQ(ierr);
-    ierr = PetscArraycpy(h, global_surface_array_helper, size); CHKERRQ(ierr);
-
-    sp_dx = Lx/(size-1);
-
-    //sp_dt = sp_dx*sp_dx/sp_d_c/4.0;
-    //max_steps = (int)(PetscFloorReal(dt/sp_dt)) + 1;
-    //if (max_steps < 10) {
-    //    max_steps = 10;
-    //}
-    sp_dt = 5000.0;
-    max_steps=(int)(dt/sp_dt);
-    sp_dt = dt/max_steps;
-
-    //r = sp_d_c*sp_dt/(sp_dx*sp_dx);
-
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] dt=%e\n", dt); CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] size=%d\n", size); CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] sp_dx=%e\n", sp_dx); CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] sp_dt=%e\n", sp_dt); CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] max_steps=%d\n", max_steps); CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] sp_d_c=%e\n", sp_d_c); CHKERRQ(ierr);
-    //ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] r=%e\n", r); CHKERRQ(ierr);
-    // for (j = 0; j < size; j++) {
-    //     ierr = PetscPrintf(PETSC_COMM_SELF, "[sp_diffusion] sp_y_aux=%e\n", sp_y_aux[j]); CHKERRQ(ierr);
-    // }
-
-    PetscReal mean_h=0.0;
-    for (j = 0,cont=0; j < size/4; j++) {
-        mean_h+=h[j];
-        cont++;
-    }
-    mean_h/=cont;
-
-    PetscReal hsl = mean_h+sea_level;
-
-
-    ierr = PetscCalloc1(size, &h_aux); CHKERRQ(ierr);
-    ierr = PetscCalloc1(size, &h_aux2); CHKERRQ(ierr);
-    ierr = PetscCalloc1(size, &q); CHKERRQ(ierr);
-    ierr = PetscCalloc1(size, &fc); CHKERRQ(ierr);
-    ierr = PetscCalloc1(size, &hi); CHKERRQ(ierr);
-    ierr = PetscCalloc1(size, &vR); CHKERRQ(ierr);
-
-    for (j=0;j<size;j++) vR[j] = 1.0;//PetscExpReal(-PetscPowReal(sp_dx*j-Lx/2,4)/PetscPowReal(Lx/8,4));
-
-
-	if (precipitation_profile==1){
-		FILE *f_prec;
-		f_prec = fopen("precipitation.txt","r");
-		if (f_prec==NULL) {
-			PetscPrintf(PETSC_COMM_WORLD,"\n\n\n\nprecipitation.txt not found\n\n\n\n");
-			exit(1);
-		}
-		for (j=0;j<size;j++){
-			fscanf(f_prec,"%lf",&vR[j]);
-		}
-        fclose(f_prec);
-	}
-
-    for (j=0;j<size;j++) vR[j] *= prec_factor;
-
-    for (j=0;j<size;j++) {
-        if (h[j]>hsl){
-            h[j] -= vR[j]*dt;
-            if (h[j]<hsl) h[j]=hsl;
-        }
-    }
-
-    for (j = 0; j < size; j++) {
-        global_surface_array_helper[j] = h[j];
-    }
-
-    PetscFree(h);
-    PetscFree(h_aux);
-    PetscFree(h_aux2);
-    PetscFree(fc);
-    PetscFree(q);
-    PetscFree(hi);
-
-
-
-
-    PetscFunctionReturn(0);
+	PetscFunctionReturn(0);
 }

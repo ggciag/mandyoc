@@ -50,15 +50,15 @@ PetscErrorCode calc_drho();
 PetscErrorCode veloc_total(int dimensions);
 PetscErrorCode rescaleVeloc(Vec Veloc_fut, double tempo);
 PetscErrorCode multi_veloc_change(Vec Veloc_fut,double tempo);
-PetscErrorCode sp_create_surface_vec();
-PetscErrorCode sp_interpolate_surface_particles_to_vec();
-PetscErrorCode evaluate_surface_processes();
-PetscErrorCode sp_write_surface_vec(PetscInt i);
-PetscErrorCode sp_destroy();
-PetscErrorCode rescalePrecipitation(double tempo);
 PetscErrorCode parse_options(int rank);
-PetscErrorCode load_topo_var(int rank);
 
+PetscErrorCode sp_create_surface_swarm_2d();
+PetscErrorCode sp_move_surface_swarm(PetscInt dimensions, PetscReal dt);
+PetscErrorCode sp_surface_swarm_interpolation();
+PetscErrorCode sp_evaluate_surface_processes(PetscInt dimensions, PetscReal dt);
+PetscErrorCode sp_update_surface_swarm_particles_properties();
+PetscErrorCode sp_destroy();
+PetscErrorCode sp_view_2d(DM dm, const char prefix[]);
 
 int main(int argc,char **args)
 {
@@ -96,14 +96,20 @@ int main(int argc,char **args)
 	seed = rank;
 
 	// Parse command line options
-	parse_options(rank);
+	ierr = parse_options(rank); CHKERRQ(ierr);
 
 	// Read ASCII files
-	reader(rank, "param.txt");
+	ierr = reader(rank, "param.txt"); CHKERRQ(ierr);
 
 	// Check if the number of interfaces in "param.txt" is higher than then number read from command line
 	if (seed_layer_set && seed_layer_size > (n_interfaces + 1)) {
 		PetscPrintf(PETSC_COMM_WORLD, "Error: The number of layers specified in command line \"-seed\" command is higher than the number in \"param.txt\".\n");
+	}
+
+	// Check surface processes configuration
+	if (sp_surface_processes == PETSC_TRUE && (sp_mode != 1)) {
+		PetscPrintf(PETSC_COMM_WORLD, "Error: Invalid \"sp_mode\" in \"param.txt\".\n");
+		exit(1);
 	}
 
 	PetscPrintf(PETSC_COMM_WORLD, "Number of seed layers: %d\n", seed_layer_size);
@@ -112,18 +118,13 @@ int main(int argc,char **args)
 	}
 	PetscPrintf(PETSC_COMM_WORLD, "\n");
 
-	if (sp_surface_processes && sp_surface_tracking && sp_mode == 1) {
-		load_topo_var(rank);
-	}
-
-	if (sp_mode == 2 && PETSC_FALSE == set_sp_d_c) {
-		ierr = PetscPrintf(PETSC_COMM_WORLD, "-sp_mode 2 (diffusion) using default value: sp_d_c %e\n", sp_d_c); CHKERRQ(ierr);
-	} else if (sp_mode == 2) {
-		ierr = PetscPrintf(PETSC_COMM_WORLD, "-sp_mode 2 (diffusion) using custom value: sp_d_c %e\n", sp_d_c); CHKERRQ(ierr);
-	} else if (sp_mode == 3) {
-		ierr = PetscPrintf(PETSC_COMM_WORLD, "-sp_mode 3 (fluvial erosion) using K_fluvial: %e and sea_level %e\n", K_fluvial, sea_level); CHKERRQ(ierr);
-	} else if (sp_mode == 4) {
-		ierr = PetscPrintf(PETSC_COMM_WORLD, "-sp_mode 4 (fluvial erosion mode 2) using K_fluvial: %e and sea_level %e\n", K_fluvial, sea_level); CHKERRQ(ierr);
+	// surface processes
+	if (sp_surface_processes == PETSC_TRUE && sp_mode == 1) {
+		if (set_sp_d_c == PETSC_FALSE) {
+			ierr = PetscPrintf(PETSC_COMM_WORLD, "'sp_mode=1' (diffusion) using default value: sp_d_c %e\n", sp_d_c); CHKERRQ(ierr);
+		} else {
+			ierr = PetscPrintf(PETSC_COMM_WORLD, "'sp_mode=1' (diffusion) using custom value: sp_d_c %e\n", sp_d_c); CHKERRQ(ierr);
+		}
 	}
 
 	// Update elements aux constants
@@ -164,16 +165,16 @@ int main(int argc,char **args)
 		PetscPrintf(PETSC_COMM_WORLD,"Swarm: done\n");
 	}
 
+	if (dimensions == 2 && (sp_surface_tracking)) {
+		PetscPrintf(PETSC_COMM_WORLD,"\nSurface Processes Swarm (creating)\n");
+
+		sp_create_surface_swarm_2d();
+
+		PetscPrintf(PETSC_COMM_WORLD,"Surface Processes Swarm: done\n");
+	}
+
 //	PetscPrintf(PETSC_COMM_SELF,"********** <rank:%d> <particles_per_ele:%d>\n", rank, particles_per_ele); -> conversar com Victor sobre
 //	PetscPrintf(PETSC_COMM_SELF,"********** <rank:%d> <layers:%d>\n", rank, layers); -> conversar com Victor sobre
-
-	// Surface Processes Swarm
-	if (dimensions == 2 && geoq_on && sp_surface_tracking && n_interfaces>0 && interfaces_from_ascii==1) {
-		PetscPrintf(PETSC_COMM_WORLD, "\nSP Swarm (creating)\n");
-		ierr = sp_create_surface_vec(); CHKERRQ(ierr);
-		PetscPrintf(PETSC_COMM_WORLD, "SP Swarm: done\n");
-		ierr = sp_interpolate_surface_particles_to_vec(); CHKERRQ(ierr);
-	}
 
 	if (dimensions == 3) {
 			calc_drho(); // CHECK: does need this call here?
@@ -228,8 +229,9 @@ int main(int argc,char **args)
 	ierr = write_geoq_(tcont,binary_output);
 	ierr = write_tempo(tcont);
 
-	if (dimensions == 2 && sp_surface_tracking && geoq_on && n_interfaces>0 && interfaces_from_ascii==1) {
-		sp_write_surface_vec(tcont);
+	if (dimensions == 2 && sp_surface_tracking) {
+		ierr = PetscSNPrintf(prefix, PETSC_MAX_PATH_LEN-1,"surface_%d", tcont); CHKERRQ(ierr);
+		ierr = sp_view_2d(dms_s, prefix); CHKERRQ(ierr);
 	}
 
 	VecCopy(Veloc_fut,Veloc);
@@ -241,14 +243,6 @@ int main(int argc,char **args)
 
 		PetscPrintf(PETSC_COMM_WORLD, "\n\n*** Using custom initial print_step = %d until %.3g Myr\n\n", print_step, initial_print_max_time);
 	}
-
-	if (dimensions == 2 && sp_surface_processes && PETSC_FALSE == set_sp_dt) {
-		sp_dt = 10.0 * dt_calor;
-		PetscPrintf(PETSC_COMM_WORLD, "\n\n*** Using default sp_dt\n\n");
-	}
-
-	sp_eval_time = sp_dt;
-	sp_last_eval_time = 0.0;
 
 	for (tempo = dt_calor,tcont=1;tempo<=timeMAX && tcont<=stepMAX;tempo+=dt_calor, tcont++){
 		if ((tempo > initial_print_max_time || fabs(tempo-initial_print_max_time) < 0.0001) && initial_print_step > 0) {
@@ -277,17 +271,6 @@ int main(int argc,char **args)
 
 		ierr = veloc_total(dimensions); CHKERRQ(ierr);
 
-		if (dimensions == 2 && sp_surface_processes && geoq_on && n_interfaces>0 && interfaces_from_ascii==1 && (tempo > sp_eval_time || fabs(tempo-sp_eval_time) < 0.0001)) {
-			PetscPrintf(PETSC_COMM_WORLD,"\nEvaluating sp...\n");
-
-			ierr = rescalePrecipitation(tempo);
-
-			evaluate_surface_processes();
-
-			sp_eval_time += sp_dt;
-			sp_last_eval_time = tempo;
-		}
-
 		if (geoq_on){
 			if (RK4==1){
 				VecCopy(Veloc_fut,Veloc_weight);
@@ -302,6 +285,10 @@ int main(int argc,char **args)
 					//			y			a		b		x
 					VecAXPBY(Veloc_weight, fac, (1.0-fac),Veloc_fut); //y = a*x + b*y
 					ierr = moveSwarm(dimensions, dt_calor_sec/max_cont);
+
+					if (dimensions == 2 && sp_surface_tracking) {
+						ierr = sp_move_surface_swarm(dimensions, dt_calor_sec/max_cont); CHKERRQ(ierr);
+					}
 				}
 			}
 
@@ -312,8 +299,13 @@ int main(int argc,char **args)
 			}
 		}
 
-		if (dimensions == 2 && sp_surface_tracking && geoq_on && n_interfaces>0 && interfaces_from_ascii==1) {
-			ierr = sp_interpolate_surface_particles_to_vec(); CHKERRQ(ierr);
+		if (dimensions == 2 && sp_surface_tracking) {
+			ierr = sp_surface_swarm_interpolation(); CHKERRQ(ierr);
+
+			if (sp_surface_processes) {
+				ierr = sp_evaluate_surface_processes(dimensions, dt_calor_sec); CHKERRQ(ierr);
+				ierr = sp_update_surface_swarm_particles_properties(); CHKERRQ(ierr);
+			}
 		}
 
 		if (tcont%print_step==0){
@@ -334,8 +326,9 @@ int main(int argc,char **args)
 					}
 				}
 
-				if (dimensions == 2 && sp_surface_tracking && n_interfaces>0 && interfaces_from_ascii==1) {
-					ierr = sp_write_surface_vec(tcont); CHKERRQ(ierr);
+				if (dimensions == 2 && sp_surface_tracking) {
+					ierr = PetscSNPrintf(prefix, PETSC_MAX_PATH_LEN-1,"surface_%d", tcont); CHKERRQ(ierr);
+					ierr = sp_view_2d(dms_s, prefix); CHKERRQ(ierr);
 				}
 			}
 		}
@@ -351,8 +344,7 @@ int main(int argc,char **args)
 
 	destroy_veloc();
 
-
-	if (sp_surface_processes && geoq_on && n_interfaces>0 && interfaces_from_ascii==1) {
+	if (dimensions == 2 && sp_surface_tracking) {
 		sp_destroy();
 	}
 
@@ -514,19 +506,5 @@ PetscErrorCode multi_veloc_change(Vec Veloc_fut,double tempo){
 			}
 		}
 	}
-	PetscFunctionReturn(0);
-}
-
-
-PetscErrorCode rescalePrecipitation(double tempo)
-{
-	//PetscErrorCode ierr;
-	if (cont_var_climate<n_var_climate){
-		if (tempo>1.0E6*var_climate_time[cont_var_climate]){
-			prec_factor=var_climate_scale[cont_var_climate];
-			cont_var_climate++;
-		}
-	}
-
 	PetscFunctionReturn(0);
 }
