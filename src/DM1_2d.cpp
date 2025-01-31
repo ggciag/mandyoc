@@ -399,13 +399,14 @@ PetscErrorCode AssembleF_Thermal_2d(Vec F,DM thermal_da,PetscReal *TKe,PetscReal
 
 	ierr = DMDAVecGetArray(thermal_da,local_geoq_H,&HH);CHKERRQ(ierr);
 
+	if (magmatism_flag==PETSC_TRUE){ 
+		ierr = VecZeroEntries(local_dPhi);CHKERRQ(ierr);
 
-	ierr = VecZeroEntries(local_dPhi);CHKERRQ(ierr);
+		ierr = DMGlobalToLocalBegin(thermal_da,dPhi,INSERT_VALUES,local_dPhi);
+		ierr = DMGlobalToLocalEnd(thermal_da,dPhi,INSERT_VALUES,local_dPhi);
 
-	ierr = DMGlobalToLocalBegin(thermal_da,dPhi,INSERT_VALUES,local_dPhi);
-	ierr = DMGlobalToLocalEnd(thermal_da,dPhi,INSERT_VALUES,local_dPhi);
-
-	ierr = DMDAVecGetArray(thermal_da,local_dPhi,&ddphi);CHKERRQ(ierr);
+		ierr = DMDAVecGetArray(thermal_da,local_dPhi,&ddphi);CHKERRQ(ierr);
+	}
 
 
 	PetscInt i,j,k,c;
@@ -555,7 +556,9 @@ PetscErrorCode AssembleF_Thermal_2d(Vec F,DM thermal_da,PetscReal *TKe,PetscReal
 	ierr = DMDAVecRestoreArray(thermal_da,local_TC,&TTC);CHKERRQ(ierr);
 	ierr = DMDAVecRestoreArray(thermal_da,local_Temper,&tt);CHKERRQ(ierr);
 	ierr = DMDAVecRestoreArray(thermal_da,local_geoq_H,&HH);CHKERRQ(ierr);
-	ierr = DMDAVecRestoreArray(thermal_da,local_dPhi,&ddphi);CHKERRQ(ierr);
+	if (magmatism_flag==PETSC_TRUE){ 
+		ierr = DMDAVecRestoreArray(thermal_da,local_dPhi,&ddphi);CHKERRQ(ierr);
+	}
 	ierr = DMDAVecRestoreArray(thermal_da,local_geoq_kappa,&qq_kappa);CHKERRQ(ierr);
 
 	if (periodic_boundary==1){
