@@ -794,7 +794,7 @@ PetscErrorCode Swarm_add_remove_2d()
 					+ (unsigned long long)i;
 				unsigned int cell_seed = (unsigned int)tmp;
 				for (pp=0;pp<10;pp++){
-					rz = 2.0*(float)rand_r(&cell_seed)/(float)RAND_MAX-1.0;
+					rx = 2.0*(float)rand_r(&cell_seed)/(float)RAND_MAX-1.0;
 					rz = 2.0*(float)rand_r(&cell_seed)/(float)RAND_MAX-1.0;
 
 					cx_v[pp] = i*dx_const + (0.5*rx+0.5)*dx_const;
