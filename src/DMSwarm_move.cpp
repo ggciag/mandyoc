@@ -787,6 +787,9 @@ PetscErrorCode Swarm_add_remove_2d()
 						cont_p++;
 					}
 				}
+
+				// Evaluate seed value per rank, step and cell
+				// This fix a problem with race conditions
 				unsigned long long tmp =
 					(unsigned long long)rank * 16557697ULL
 					+ (unsigned long long)tcont * 1234577ULL
@@ -812,6 +815,8 @@ PetscErrorCode Swarm_add_remove_2d()
 						dx = cx - array[ppp[p]*2];
 						dz = cz - array[ppp[p]*2+1];
 
+						// floating-point equalities are broken by the tiny tie-breaker,
+						// so ties always go the same way
 						PetscReal d2 = dx*dx + dz*dz + 1e-12 * (pp + p*10.0);
 
 						if (d2 < dist_p){
