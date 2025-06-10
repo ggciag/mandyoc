@@ -23,6 +23,8 @@ PetscErrorCode parse_options(int rank)
 {
 	PetscErrorCode ierr;
 
+	PetscFunctionBeginUser;
+
 	ierr = PetscOptionsGetInt(NULL , NULL, "-Px", &Px, NULL); CHKERRQ(ierr);
 	ierr = PetscOptionsGetInt(NULL , NULL, "-Pz", &Pz, NULL); CHKERRQ(ierr);
 

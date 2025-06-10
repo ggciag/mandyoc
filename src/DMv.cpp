@@ -173,6 +173,8 @@ PetscErrorCode create_veloc(int dimensions, PetscInt mx, PetscInt my, PetscInt m
 	DMBoundaryType boundary_type;
 	PetscErrorCode ierr;
 
+	PetscFunctionBeginUser;
+
 	int rank;
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
 
@@ -494,6 +496,8 @@ PetscErrorCode build_veloc(int dimensions)
 	PetscErrorCode ierr;
 	PetscLogDouble Tempo1p, Tempo2p;
 
+	PetscFunctionBeginUser;
+
 	PetscTime(&Tempo1p);
 
 	ierr = MatZeroEntries(VA);CHKERRQ(ierr);
@@ -552,6 +556,8 @@ PetscErrorCode solve_veloc(int dimensions)
 {
 	PetscErrorCode ierr;
 	PetscLogDouble Tempo1,Tempo2;
+
+	PetscFunctionBeginUser;
 
 	PC V_pc;
 
@@ -667,6 +673,8 @@ PetscErrorCode destroy_veloc()
 {
 	int rank;
 
+	PetscFunctionBeginUser;
+
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
 	PetscLogDouble Tempo1,Tempo2;
 	PetscTime(&Tempo1);
@@ -692,6 +700,8 @@ PetscErrorCode write_veloc(int cont, PetscInt binary_out)
 {
 	char variable_name[100];
 
+	PetscFunctionBeginUser;
+
 	sprintf(variable_name,"velocity");
 	write_all_(cont,Veloc_fut,variable_name,binary_out);
 	PetscFunctionReturn(0);
@@ -700,6 +710,8 @@ PetscErrorCode write_veloc(int cont, PetscInt binary_out)
 PetscErrorCode write_veloc_cond(int cont, PetscInt binary_out)
 {
 	char variable_name[100];
+
+	PetscFunctionBeginUser;
 
 	sprintf(variable_name,"bc_velocity");
 	write_all_(cont,Veloc_Cond,variable_name,binary_out);
@@ -718,6 +730,8 @@ PetscErrorCode montaKeVeloc_general_2d(PetscReal *KeG, double dx_const, double d
 	double SN[3][V_GT];
 	long point;
 	double Hx, Hz, prodH;
+
+	PetscFunctionBeginUser;
 
 	for (i=0; i<3; i++){
 		for (j=0; j<V_GT; j++){
@@ -788,6 +802,8 @@ PetscErrorCode montaKeVeloc_general_3d(PetscReal *KeG, double dx_const, double d
 	double SN[6][V_GT];
 	long point;
 	double Hx, Hy, Hz, prodH;
+
+	PetscFunctionBeginUser;
 
 	for (i=0; i<6; i++){
 		for (j=0; j<V_GT; j++){
@@ -978,6 +994,8 @@ PetscErrorCode montaKeVeloc_simplif_3d(PetscReal *Ke,PetscReal *KeG, PetscReal *
 
 	long point=0;
 
+	PetscFunctionBeginUser;
+
 
 	for (i=0;i<V_GT*V_GT;i++) Ke[i]=0.0;
 
@@ -1075,6 +1093,8 @@ PetscErrorCode montafeVeloc2d(PetscReal *fMe)
 
 	double N[V_NE];
 
+	PetscFunctionBeginUser;
+
 	for (i=0;i<V_GT;i++){
 		for (j=0;j<V_NE;j++){
 			fMe[i*V_NE+j]=0.0;
@@ -1130,6 +1150,8 @@ PetscErrorCode montafeVeloc3d(PetscReal *fMe)
 	long cont;
 
 	double N[V_NE];
+
+	PetscFunctionBeginUser;
 
 	for (i=0;i<V_GT;i++){
 		for (j=0;j<V_NE;j++){
@@ -1195,6 +1217,8 @@ PetscErrorCode montaCeVeloc2d(PetscReal *Ce) {
 
 	double N_x[V_NE];
 	double N_z[V_NE];
+
+	PetscFunctionBeginUser;
 
 	for (i=0;i<V_GT;i++){
 		Ce[i]=0.0;
@@ -1263,6 +1287,8 @@ PetscErrorCode montaCeVeloc3d(PetscReal *Ce) {
 	double N_x[V_NE];
 	double N_y[V_NE];
 	double N_z[V_NE];
+
+	PetscFunctionBeginUser;
 
 	for (i=0;i<V_GT;i++){
 		Ce[i]=0.0;

@@ -178,6 +178,8 @@ PetscErrorCode reader(int rank, const char fName[]){
 	char line[size];
 	// char *mandatoryParam = ["nx", "nz"];
 
+	PetscFunctionBeginUser;
+
 	if (rank==0){
 		nline = 0;
 		FILE *f_parameters;

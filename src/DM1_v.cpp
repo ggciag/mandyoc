@@ -140,6 +140,8 @@ PetscErrorCode AssembleA_Veloc_2d(Mat A,Mat AG,DM veloc_da, DM temper_da){
 
 	PetscScalar u[V_GT*V_GT],val_cond[1];
 
+	PetscFunctionBeginUser;
+
 	Stokes2d					**pc;
 
 	ierr = VecZeroEntries(local_Precon);CHKERRQ(ierr);
@@ -644,6 +646,8 @@ PetscErrorCode AssembleA_Veloc_3d(Mat A,Mat AG,DM veloc_da, DM temper_da){
 	PetscScalar u[V_GT*V_GT],val_cond[1];
 
 	Stokes3d					***pc;
+
+	PetscFunctionBeginUser;
 
 	ierr = VecZeroEntries(local_Precon);CHKERRQ(ierr);
 	ierr = DMDAVecGetArray(veloc_da,local_Precon,&pc);CHKERRQ(ierr);
@@ -1187,6 +1191,8 @@ PetscErrorCode Init_Veloc(int dimensions) {
 	PetscInt low,high;
 
 	PetscInt t;
+
+	PetscFunctionBeginUser;
 
 
 	if (veloc_extern == 1) {

@@ -147,6 +147,8 @@ PetscErrorCode AssembleA_Thermal_2d(Mat A,DM thermal_da,PetscReal *TKe,PetscReal
 
 	Stokes					**VV;
 
+	PetscFunctionBeginUser;
+
 	ierr = VecZeroEntries(local_V);CHKERRQ(ierr);
 
 	ierr = DMGlobalToLocalBegin(veloc_da,Veloc_total,INSERT_VALUES,local_V);
@@ -177,7 +179,7 @@ PetscErrorCode AssembleA_Thermal_2d(Mat A,DM thermal_da,PetscReal *TKe,PetscReal
 	ierr = DMGlobalToLocalEnd(thermal_da,Temper,INSERT_VALUES,local_Temper);
 
 	ierr = DMDAVecGetArray(thermal_da,local_Temper,&tt);CHKERRQ(ierr);
-	
+
 	////////
 
 	PetscScalar **qq_kappa;
@@ -197,7 +199,6 @@ PetscErrorCode AssembleA_Thermal_2d(Mat A,DM thermal_da,PetscReal *TKe,PetscReal
 
 	PetscScalar u[4*4],val_cond[1];
 
-	PetscFunctionBeginUser;
 	ierr = DMDAGetInfo(thermal_da,0,&M,&P,NULL,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
 
 
@@ -252,7 +253,7 @@ PetscErrorCode AssembleA_Thermal_2d(Mat A,DM thermal_da,PetscReal *TKe,PetscReal
 			}
 
 			kappa_eff = qq_kappa[ek][ei];
-			
+
 			//kappa_eff = kappa;
 			if (high_kappa_in_asthenosphere==1){
 				tt_ele[0] = tt[ek][ei];
@@ -819,6 +820,8 @@ double Thermal_profile_2d(double t, double zz){
 PetscErrorCode ascii2bin(char *ss1, char *ss2){
 	FILE *entra;
 
+	PetscFunctionBeginUser;
+
 	entra = fopen(ss1,"r");
 	char c,s[100],s1[100];
 	fscanf(entra,"%c",&c);
@@ -897,6 +900,8 @@ PetscErrorCode ascii2bin(char *ss1, char *ss2){
 PetscErrorCode mean_value_periodic_boundary_2d(DM da,Vec F,Vec local_F, PetscScalar **ff,int esc){
 
 	PetscErrorCode ierr;
+
+	PetscFunctionBeginUser;
 
 	ierr = DMGetLocalVector(da,&local_F);CHKERRQ(ierr);
 

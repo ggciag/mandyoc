@@ -65,6 +65,8 @@ int main(int argc,char **args)
 	PetscErrorCode ierr;
 	char prefix[PETSC_MAX_PATH_LEN];
 
+	PetscFunctionBeginUser;
+
 	ierr = PetscInitialize(&argc,&args,(char*)0,help);CHKERRQ(ierr);
 
 	PetscPrintf(PETSC_COMM_WORLD,"           __  __              _   _   _____   __     __   ____     _____ \n");
@@ -352,7 +354,7 @@ int main(int argc,char **args)
 
 	ierr = PetscFinalize();
 
-	return 0;
+	PetscFunctionReturn(0);
 }
 
 
@@ -394,6 +396,9 @@ double Calc_dt_calor(int rank) {
 PetscErrorCode write_tempo(int cont){
 
 	int rank;
+
+	PetscFunctionBeginUser;
+
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
 
 	PetscViewer viewer;
@@ -421,6 +426,9 @@ PetscErrorCode write_tempo(int cont){
 PetscErrorCode rescaleVeloc(Vec Veloc_fut,double tempo)
 {
 	PetscErrorCode ierr;
+
+	PetscFunctionBeginUser;
+
 	if (cont_var_bcv<n_var_bcv){
 		if (tempo>1.0E6*var_bcv_time[cont_var_bcv]){
 			PetscScalar v_norm;
@@ -471,6 +479,9 @@ PetscErrorCode rescaleVeloc(Vec Veloc_fut,double tempo)
 
 PetscErrorCode multi_veloc_change(Vec Veloc_fut,double tempo){
 	PetscErrorCode ierr;
+
+	PetscFunctionBeginUser;
+
 	if (cont_mv<n_mv){
 		if (tempo>1.0E6*mv_time[cont_mv]){
 			cont_mv++;
