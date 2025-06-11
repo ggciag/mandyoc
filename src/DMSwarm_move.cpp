@@ -80,6 +80,8 @@ extern PetscInt periodic_boundary;
 
 extern PetscReal epsilon_x;
 
+extern int tcont;
+
 PetscReal linear_interpolation(PetscReal rx, PetscReal rz,PetscScalar V0, PetscScalar V1, PetscScalar V2, PetscScalar V3){
 	PetscReal rfac,vx;
 	rfac = (1.0-rx)*(1.0-rz);
@@ -617,6 +619,9 @@ PetscErrorCode Swarm_add_remove_2d()
 {
 	PetscErrorCode ierr=0;
 
+	PetscMPIInt rank;
+	ierr = MPI_Comm_rank(PETSC_COMM_WORLD, &rank); CHKERRQ(ierr);
+
 	PetscInt *carray;
 
 
@@ -781,9 +786,18 @@ PetscErrorCode Swarm_add_remove_2d()
 						cont_p++;
 					}
 				}
+
+				// Evaluate seed value per rank, step and cell
+				// This fix a problem with race conditions
+				unsigned long long tmp =
+					(unsigned long long)rank * 16557697ULL
+					+ (unsigned long long)tcont * 1234577ULL
+					+ (unsigned long long)k * (unsigned long long)Nx
+					+ (unsigned long long)i;
+				unsigned int cell_seed = (unsigned int)tmp;
 				for (pp=0;pp<10;pp++){
-					rx = 2.0*(float)rand_r(&seed)/RAND_MAX-1.0;
-					rz = 2.0*(float)rand_r(&seed)/RAND_MAX-1.0;
+					rx = 2.0*(float)rand_r(&cell_seed)/(float)RAND_MAX-1.0;
+					rz = 2.0*(float)rand_r(&cell_seed)/(float)RAND_MAX-1.0;
 
 					cx_v[pp] = i*dx_const + (0.5*rx+0.5)*dx_const;
 					cz_v[pp] = k*dz_const - depth + (0.5*rz+0.5)*dz_const;
@@ -800,9 +814,13 @@ PetscErrorCode Swarm_add_remove_2d()
 						dx = cx - array[ppp[p]*2];
 						dz = cz - array[ppp[p]*2+1];
 
-						if (dx*dx+dz*dz<dist_p){
+						// floating-point equalities are broken by the tiny tie-breaker,
+						// so ties always go the same way
+						PetscReal d2 = dx*dx + dz*dz + 1e-12 * (pp + p*10.0);
+
+						if (d2 < dist_p){
 							p_prox = ppp[p];
-							dist_p = dx*dx+dz*dz;
+							dist_p = d2;
 						}
 					}
 					if (dist<dist_p){
