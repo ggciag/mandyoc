@@ -1,0 +1,319 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>5. Input files &mdash; Mandyoc</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=4336b194" />
+
+  
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="6. Benchmarks" href="benchmarks.html" />
+    <link rel="prev" title="4. Parameter file" href="parameter-file.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Mandyoc
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="theory.html">1. Basic theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="implementation.html">2. Numerical implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">3. How to install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameter-file.html">4. Parameter file</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">5. Input files</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#ascii-temperature-file">5.1. ASCII temperature file</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#d-temperature-grid">5.1.1. 2-D temperature grid</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#ascii-interfaces-file">5.2. ASCII interfaces file</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#d-initial-interfaces">5.2.1. 2-D Initial interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#ascii-velocities-files">5.3. ASCII velocities files</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#d-initial-velocity">5.3.1. 2-D initial velocity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#d-multiple-initial-velocities">5.3.2. 2-D multiple initial velocities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#d-re-scalable-boundary-condition">5.3.3. 2-D re-scalable boundary condition</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="benchmarks.html">6. Benchmarks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">7. References</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Getting help and contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/ggciag/mandyoc/blob/main/CONTRIBUTING.md">How to contribute</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/ggciag/mandyoc/blob/main/CODE_OF_CONDUCT.md">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/ggciag/mandyoc">Source code</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Mandyoc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">5. </span>Input files</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/files/input.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="input-files">
+<span id="inputfiles"></span><h1><span class="section-number">5. </span>Input files<a class="headerlink" href="#input-files" title="Link to this heading">¶</a></h1>
+<p><em>Mandyoc</em> accepts ASCII files to use as initial conditions for the simulation, such as an initial temperature file <code class="docutils literal notranslate"><span class="pre">input_temperature_0.txt</span></code>, a file containing the initial interfaces geometry <code class="docutils literal notranslate"><span class="pre">interfaces.txt</span></code> and a file containing the initial velocity field at the faces of the model <code class="docutils literal notranslate"><span class="pre">input_velocity_0.txt</span></code>. The next subsections will help you creating each one of these files.</p>
+<section id="ascii-temperature-file">
+<h2><span class="section-number">5.1. </span>ASCII temperature file<a class="headerlink" href="#ascii-temperature-file" title="Link to this heading">¶</a></h2>
+<p>For a 2-D grid, the initial temperature configuration can be provided as an ASCII file called <code class="docutils literal notranslate"><span class="pre">input_temperature_0.txt</span></code>. Considering <span class="math notranslate nohighlight">\(x\)</span> to be the longitudinal direction and <span class="math notranslate nohighlight">\(y\)</span> the vertical direction, the next subsections will guide you through the understanding of the initial temperature file structure.</p>
+<section id="d-temperature-grid">
+<h3><span class="section-number">5.1.1. </span>2-D temperature grid<a class="headerlink" href="#d-temperature-grid" title="Link to this heading">¶</a></h3>
+<p>Consider a 2-D grid where the number of nodes in the <span class="math notranslate nohighlight">\(x\)</span> and <span class="math notranslate nohighlight">\(y\)</span> directions are <span class="math notranslate nohighlight">\(nx\geq 2\)</span> and <span class="math notranslate nohighlight">\(ny\geq 2\)</span>, respectively, with <span class="math notranslate nohighlight">\((nx-1)\)</span> elements in the <span class="math notranslate nohighlight">\(x\)</span> direction and <span class="math notranslate nohighlight">\((ny-1)\)</span> elements in the <span class="math notranslate nohighlight">\(y\)</span> direction. Each node in the grid can be identified with a coordinates pair <span class="math notranslate nohighlight">\((x_n, y_m)\)</span>, where <span class="math notranslate nohighlight">\(n\)</span> and <span class="math notranslate nohighlight">\(m\)</span> are natural numbers, and <span class="math notranslate nohighlight">\(x_n\)</span> and <span class="math notranslate nohighlight">\(y_m\)</span> are the <span class="math notranslate nohighlight">\(x\)</span> and <span class="math notranslate nohighlight">\(y\)</span> positions (in meters) of any grid node. <a class="reference internal" href="#coordinates2d"><span class="std std-numref">Fig. 5.1</span></a> shows a scheme for a 2-D grid, where the red dots represent the grid nodes and every node is labeled with a <span class="math notranslate nohighlight">\((x_n, y_m)\)</span> pair. The dotted lines represent any number of intermediate nodes.</p>
+<figure class="align-center" id="id2">
+<span id="coordinates2d"></span><a class="reference internal image-reference" href="../_images/coordinates-2d.png"><img alt="Coordinates" src="../_images/coordinates-2d.png" style="width: 90%;" />
+</a>
+<figcaption>
+<p><span class="caption-number">Fig. 5.1 </span><span class="caption-text">2-D grid scheme. The red dots represent the grid nodes where the values for the temperature must be defined, the dotted lines represent any number of grid nodes, for simplification, and the labels indicate the <span class="math notranslate nohighlight">\(x\)</span> and <span class="math notranslate nohighlight">\(y\)</span> position of each node.</span><a class="headerlink" href="#id2" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Because of the way <em>Mandyoc</em> deals with the coordinates in 2-D, the node at <span class="math notranslate nohighlight">\((x_0,y_0)\)</span> is always at the origin <span class="math notranslate nohighlight">\((0,0)\)</span>.</p>
+</div>
+<p>The example below shows how the <code class="docutils literal notranslate"><span class="pre">input_temperature_0.txt</span></code> file must be written for the 2-D grid in <a class="reference internal" href="#coordinates2d"><span class="std std-numref">Fig. 5.1</span></a>: after writing four lines of comments, the file must include the temperature <span class="math notranslate nohighlight">\(T(x_n, y_m)\)</span> at each node starting at the bottom left of the model and going up in the <span class="math notranslate nohighlight">\(y\)</span> direction. Intuitively, the temperature is given in horizontal layers for every <span class="math notranslate nohighlight">\(x_n\)</span>.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span># Header line 0
+<span class="linenos"> 2</span># Header line 1
+<span class="linenos"> 3</span># Header line 2
+<span class="linenos"> 4</span># Header line 3
+<span class="linenos"> 5</span>T(x_0, y_0)
+<span class="linenos"> 6</span>T(x_1, y_0)
+<span class="linenos"> 7</span>T(x_2, y_0)
+<span class="linenos"> 8</span>T(x_3, y_0)
+<span class="linenos"> 9</span>[...]
+<span class="linenos">10</span>T(x_{nx-1}, y_0)
+<span class="linenos">11</span>T(x_0, y_1)
+<span class="linenos">12</span>T(x_1, y_1)
+<span class="linenos">13</span>T(x_2, y_1)
+<span class="linenos">14</span>T(x_3, y_1)
+<span class="linenos">15</span>[...]
+<span class="linenos">16</span>T(x_{nx-1}, y_1)
+<span class="linenos">17</span>T(x_0, y_2)
+<span class="linenos">18</span>T(x_1, y_2)
+<span class="linenos">19</span>T(x_2, y_2)
+<span class="linenos">20</span>T(x_3, y_2)
+<span class="linenos">21</span>[...]
+<span class="linenos">22</span>T(x_{nx-1}, y_2)
+<span class="linenos">23</span>T(x_0, y_3)
+<span class="linenos">24</span>T(x_1, y_3)
+<span class="linenos">25</span>T(x_2, y_3)
+<span class="linenos">26</span>T(x_3, y_3)
+<span class="linenos">27</span>[...]
+<span class="linenos">28</span>T(x_{nx-1}, y_3)
+<span class="linenos">29</span>[...]
+<span class="linenos">30</span>T(x_0, y_{ny-1})
+<span class="linenos">31</span>T(x_1, y_{ny-1})
+<span class="linenos">32</span>T(x_2, y_{ny-1})
+<span class="linenos">33</span>T(x_3, y_{ny-1})
+<span class="linenos">34</span>[...]
+<span class="linenos">35</span>T(x_{nx-1}, y_{ny-1})
+</pre></div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>It is always helpful to use the four comment lines to write down any useful information for later. Because these lines are simply skipped, there is no rule to write them, the ‘#’ symbol is used only by convention.</p>
+</div>
+</section>
+</section>
+<section id="ascii-interfaces-file">
+<h2><span class="section-number">5.2. </span>ASCII interfaces file<a class="headerlink" href="#ascii-interfaces-file" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">interfaces.txt</span></code> file, for a 2-D grid, starts with seven lines of variables that are used by the rheology models. The variables that are in the interfaces are those that might be used in <a class="reference internal" href="implementation.html#equation-power-law">Eq. 2.32</a> or <a class="reference internal" href="implementation.html#equation-frank-kamenetskii">Eq. 2.31</a>: <span class="math notranslate nohighlight">\(C\)</span>, <span class="math notranslate nohighlight">\(\rho_r\)</span>, <span class="math notranslate nohighlight">\(H\)</span>, <span class="math notranslate nohighlight">\(A\)</span>, <span class="math notranslate nohighlight">\(n\)</span>, <span class="math notranslate nohighlight">\(Q\)</span>, and <span class="math notranslate nohighlight">\(V\)</span>. Each one of these variables possesses a number of values (columns) that are assigned to each lithological unit in the model. Every interface is a boundary between two lithological units, therefore the number of columns is 1 plus the number of interfaces set in the <code class="docutils literal notranslate"><span class="pre">param.txt</span></code> file (see the <a class="reference internal" href="parameter-file.html"><span class="doc">parameter file section</span></a>), such that if there are <span class="math notranslate nohighlight">\(i\)</span> interfaces, <span class="math notranslate nohighlight">\(i+1\)</span> values for each variable <strong>must</strong> be provided in the <code class="docutils literal notranslate"><span class="pre">interfaces.txt</span></code> file. More will be discussed about the order of these values shortly.</p>
+<section id="d-initial-interfaces">
+<h3><span class="section-number">5.2.1. </span>2-D Initial interfaces<a class="headerlink" href="#d-initial-interfaces" title="Link to this heading">¶</a></h3>
+<p>Below, the example corresponds to a 2-D grid with two interfaces and, therefore, three lithological units. The first column contains the vertical positions <strong>in meters</strong> of every grid node <span class="math notranslate nohighlight">\(y_m\)</span> that corresponds to the <strong>deepest</strong> interface boundary, starting at <span class="math notranslate nohighlight">\(x=x_0\)</span> on line 8, and ending at <span class="math notranslate nohighlight">\(x=x_{nx-1}\)</span> on line <span class="math notranslate nohighlight">\(nx+7\)</span>. The second column contains the vertical position of every <span class="math notranslate nohighlight">\(y_m\)</span> that corresponds to the second interface boundary. When defining the interfaces, it is rather common for them to “touch”. Because of that, all the interfaces must be provided in a “tetris” manner, where interfaces that are collinear in parts fit the interface below.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Because the interfaces are defined linearly between the nodes, it is important to define them properly, so every point inside the grid can be attributed to a lithological unit.</p>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span>C    1.0    1.0    1.0
+<span class="linenos"> 2</span>rho  3000.0 3000.0 3000.0
+<span class="linenos"> 3</span>H    0.0    0.0    0.0
+<span class="linenos"> 4</span>A    0.0    0.0    0.0
+<span class="linenos"> 5</span>n    0.0    0.0    0.0
+<span class="linenos"> 6</span>Q    0.0    0.0    0.0
+<span class="linenos"> 7</span>V    0.0    0.0    0.0
+<span class="linenos"> 8</span>y_1(x_0)    y_2(x_0)
+<span class="linenos"> 9</span>y_1(x_1)    y_2(x_1)
+<span class="linenos">10</span>y_1(x_2)    y_2(x_2)
+<span class="linenos">11</span>y_1(x_3)    y_2(x_3)
+<span class="linenos">12</span>y_1(x_4)    y_2(x_4)
+<span class="linenos">13</span>y_1(x_5)    y_2(x_5)
+<span class="linenos">14</span>y_1(x_6)    y_2(x_6)
+</pre></div>
+</div>
+<p>The values of the variables in the first seven lines are the values of the lithological units bound by the interfaces. For the 2-D grid with two interfaces, the first values of each variable refers to the lithological unit below the first interface, the second value of each variable refers to the lithological unit between the first and second interfaces, and the third value of each variable refers to the lithological unit above the second interface. If more interfaces are added, there will be more units bounded by an upper and a lower interface.</p>
+<p>To consider different values of internal cohesion <span class="math notranslate nohighlight">\(c_0\)</span> and internal angle of friction <span class="math notranslate nohighlight">\(\varphi\)</span> for each layer, the interface file can be written as the file below, where <em>weakening_seed</em>, <em>cohesion_min</em>, <em>cohesion_max</em>, <em>friction_angle_min</em>, and <em>friction_angle_max</em> are given.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span>C    				1.0    1.0    1.0
+<span class="linenos"> 2</span>rho  				3000.0 3000.0 3000.0
+<span class="linenos"> 3</span>H    				0.0    0.0    0.0
+<span class="linenos"> 4</span>A    				0.0    0.0    0.0
+<span class="linenos"> 5</span>n    				0.0    0.0    0.0
+<span class="linenos"> 6</span>Q    				0.0    0.0    0.0
+<span class="linenos"> 7</span>V    				0.0    0.0    0.0
+<span class="linenos"> 8</span>weakeing_seed		1.0    -1.0   0.5
+<span class="linenos"> 9</span>cohesion_min		5.0e6  5.0e6  5.0e6
+<span class="linenos">10</span>cohesion_max		30.0e7 5.0e6  1.0e7
+<span class="linenos">11</span>friction_angle_min	0.0    0.2    10.0
+<span class="linenos">12</span>friction_angle_max	0.0    20.0   10.0
+<span class="linenos">13</span>y_1(x_0)    y_2(x_0)
+<span class="linenos">14</span>y_1(x_1)    y_2(x_1)
+<span class="linenos">15</span>y_1(x_2)    y_2(x_2)
+<span class="linenos">16</span>y_1(x_3)    y_2(x_3)
+<span class="linenos">17</span>y_1(x_4)    y_2(x_4)
+<span class="linenos">18</span>y_1(x_5)    y_2(x_5)
+<span class="linenos">19</span>y_1(x_6)    y_2(x_6)
+</pre></div>
+</div>
+<p>The <em>weakening_seed</em> value for each layer represents its initial accumulated strain value (seed), and when it is negative, a random seed will be used instead. When <em>cohesion_min</em> and <em>cohesion_max</em> are different, that corresponding layer will be linearly softened between those values. Notice that a constant cohesion can be set if the values are simply equal. The same logic aplies to <em>friction_angle_min</em> and <em>friction_angle_max</em>.</p>
+<p>The default interval of accumualted strain where strain softening occurs is 0.05 and 1.05, cf. <span id="id1">[<a class="reference internal" href="references.html#id28" title="Claudio A. Salazar-Mora, Ritske S. Huismans, Haakon Fossen, and Marcos Egydio-Silva. The wilson cycle and effects of tectonic structural inheritance on rifted passive margin formation. Tectonics, 37(9):3085-3101, 2018.">19</a>]</span>. To use different values, the user must provide them in the <code class="docutils literal notranslate"><span class="pre">param.txt</span></code> withe the keywords <em>weakeing_min</em> and <em>weakening_max</em>.</p>
+</section>
+</section>
+<section id="ascii-velocities-files">
+<h2><span class="section-number">5.3. </span>ASCII velocities files<a class="headerlink" href="#ascii-velocities-files" title="Link to this heading">¶</a></h2>
+<p>An initial velocity file allows an initial velocity field to be established so the simulated fluid presents an initial momentum. Respecting the conservation of mass equation when designing the initial velocity field is fundamental so the simulation can run properly.</p>
+<p>Additionally, the velocity boundary conditions defined in the <code class="docutils literal notranslate"><span class="pre">param.txt</span></code> (see the <a class="reference internal" href="parameter-file.html"><span class="doc">parameter file section</span></a>) will be used to define the normal and tangential velocities on the faces of the model during the simulation.</p>
+<section id="d-initial-velocity">
+<h3><span class="section-number">5.3.1. </span>2-D initial velocity<a class="headerlink" href="#d-initial-velocity" title="Link to this heading">¶</a></h3>
+<p>When <code class="docutils literal notranslate"><span class="pre">velocity_from_ascii</span> <span class="pre">=</span> <span class="pre">True</span></code> is set in the <code class="docutils literal notranslate"><span class="pre">param.txt</span></code> file, an initial velocity field must be provided in an ASCII file called <code class="docutils literal notranslate"><span class="pre">input_velocity_0.txt</span></code>.</p>
+<p>For a 2-D grid, the <code class="docutils literal notranslate"><span class="pre">input_velocity_0.txt</span></code> file possesses four lines of headers followed by the velocity data for each node of the model. The velocity must be defined for both <span class="math notranslate nohighlight">\(x\)</span> and <span class="math notranslate nohighlight">\(y\)</span> directions. Taking the example in the file below, the <code class="docutils literal notranslate"><span class="pre">input_velocity_0.txt</span></code> file must be written in such a way that the values for the velocity in the <span class="math notranslate nohighlight">\(x\)</span> direction <span class="math notranslate nohighlight">\(v_x\)</span> and the velocity in the <span class="math notranslate nohighlight">\(y\)</span> direction <span class="math notranslate nohighlight">\(v_y\)</span> for the node <span class="math notranslate nohighlight">\((x_0,y_0)\)</span> corresponds to lines 5 and 6, respectively, the velocity values for the <span class="math notranslate nohighlight">\((x_1,y_0)\)</span> corresponds to lines 7 and 8, and so on until <span class="math notranslate nohighlight">\((x_{nx-1},y_0)\)</span>. Once all the nodes in the <span class="math notranslate nohighlight">\(y_0\)</span> are written, the values for all <span class="math notranslate nohighlight">\(x_n\)</span> are inserted for <span class="math notranslate nohighlight">\(y_1\)</span>, and so on until <span class="math notranslate nohighlight">\(y_{ny-1}\)</span>.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span># Header line 0
+<span class="linenos"> 2</span># Header line 1
+<span class="linenos"> 3</span># Header line 2
+<span class="linenos"> 4</span># Header line 3
+<span class="linenos"> 5</span>v_x(x_0,y_0)
+<span class="linenos"> 6</span>v_y(x_0,y_0)
+<span class="linenos"> 7</span>v_x(x_1,y_0)
+<span class="linenos"> 8</span>v_y(x_1,y_0)
+<span class="linenos"> 9</span>v_x(x_2,y_0)
+<span class="linenos">10</span>v_y(x_2,y_0)
+<span class="linenos">11</span>[...]
+<span class="linenos">12</span>v_x(x_{nx-1},y_0)
+<span class="linenos">13</span>v_y(x_{nx-1},y_0)
+<span class="linenos">14</span>v_x(x_0,y_1)
+<span class="linenos">15</span>v_y(x_0,y_1)
+<span class="linenos">16</span>v_x(x_1,y_1)
+<span class="linenos">17</span>v_y(x_1,y_1)
+<span class="linenos">18</span>v_x(x_2,y_1)
+<span class="linenos">19</span>v_y(x_2,y_1)
+<span class="linenos">20</span>[...]
+<span class="linenos">21</span>v_x(x_{nx-1},y_1)
+<span class="linenos">22</span>v_y(x_{nx-1},y_1)
+<span class="linenos">23</span>[...]
+<span class="linenos">24</span>v_x(x_0,y_{ny-1})
+<span class="linenos">25</span>v_y(x_0,y_{ny-1})
+<span class="linenos">26</span>[...]
+<span class="linenos">27</span>v_x(x_{nx-1},y_{ny-1})
+<span class="linenos">28</span>v_y(x_{nx-1},y_{ny-1})
+</pre></div>
+</div>
+</section>
+<section id="d-multiple-initial-velocities">
+<h3><span class="section-number">5.3.2. </span>2-D multiple initial velocities<a class="headerlink" href="#d-multiple-initial-velocities" title="Link to this heading">¶</a></h3>
+<p>The user can provide multiple velocity fields to be set in different instants of the simulation. By setting <code class="docutils literal notranslate"><span class="pre">multi_velocity</span> <span class="pre">=</span> <span class="pre">True</span></code> in the <code class="docutils literal notranslate"><span class="pre">param.txt</span></code> file, an ASCII file called <code class="docutils literal notranslate"><span class="pre">multi_veloc.txt</span></code> must be provided following the structure shown in the example file below. The first line of the file contains the amount of instants where a different velocity field will be used and the other lines contain the time, in millions of years, that each velocity field will be adopted. In the example below, a different velocity field will be used at three instants, the files must follow the structure presented in the last section and should be named in sequence: <code class="docutils literal notranslate"><span class="pre">input_velocity_1.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">input_velocity_2.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">input_velocity_3.txt</span></code>. The names of the files are labeled after the three different instants set in the first line of the <code class="docutils literal notranslate"><span class="pre">multi_veloc.txt</span></code> file.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span>3 
+<span class="linenos">2</span>10.0
+<span class="linenos">3</span>25.0
+<span class="linenos">4</span>50.0
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">input_velocity_0.txt</span></code> is used for the beginning of the simulation. The multiple initial velocities that can be set during the simulation start at <code class="docutils literal notranslate"><span class="pre">input_velocity_1.txt</span></code> and end at <code class="docutils literal notranslate"><span class="pre">input_velocity_X.txt</span></code>, where <span class="math notranslate nohighlight">\(X\)</span> is the number of different instants that the velocity field will be changed.</p>
+</div>
+</section>
+<section id="d-re-scalable-boundary-condition">
+<h3><span class="section-number">5.3.3. </span>2-D re-scalable boundary condition<a class="headerlink" href="#d-re-scalable-boundary-condition" title="Link to this heading">¶</a></h3>
+<p>When <code class="docutils literal notranslate"><span class="pre">variable_bcv</span> <span class="pre">=</span> <span class="pre">True</span></code> is set in the <code class="docutils literal notranslate"><span class="pre">param.txt``file,</span> <span class="pre">an</span> <span class="pre">ASCII</span> <span class="pre">file</span> <span class="pre">called</span> <span class="pre">``scale_bcv.txt</span></code> is used to define a sequence of re-scaling steps for the velocity boundary conditions. The example file below is an example of how such file can be written. In the example file, the first line corresponds to the number of instants during the simulation that the velocity field will be re-scaled. The first column contains the time, in millions of years, that the velocity field will be changed and the second column contains the scale value. For the example below, in the instant <span class="math notranslate nohighlight">\(10.0\)</span> Myr the velocity field will be multiplied by <span class="math notranslate nohighlight">\(0.5\)</span>, effectively halving it; at <span class="math notranslate nohighlight">\(25.0\)</span> Myr the current velocity field will have its direction changed, hence multiplied by <span class="math notranslate nohighlight">\(-1.0\)</span>; and finally at <span class="math notranslate nohighlight">\(50\)</span> My the velocity field will have its direction changed again and doubled by multiplying it by <span class="math notranslate nohighlight">\(-2.0\)</span>.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span>3 
+<span class="linenos">2</span>10.0     0.5 
+<span class="linenos">3</span>25.0    -1.0
+<span class="linenos">4</span>50.0    -2.0
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="parameter-file.html" class="btn btn-neutral float-left" title="4. Parameter file" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="benchmarks.html" class="btn btn-neutral float-right" title="6. Benchmarks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, The Mandyoc Developers.
+      <span class="lastupdated">Last updated on Jun 11, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

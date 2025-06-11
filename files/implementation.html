@@ -1,0 +1,316 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2. Numerical implementation &mdash; Mandyoc</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=4336b194" />
+
+  
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="3. How to install" href="installation.html" />
+    <link rel="prev" title="1. Basic theory" href="theory.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Mandyoc
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="theory.html">1. Basic theory</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">2. Numerical implementation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#mass-and-momentum-equations">2.1. Mass and momentum equations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#energy-equation">2.2. Energy equation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#free-surface">2.3. Free surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rheology">2.4. Rheology</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#plastic-deformation">2.4.1. Plastic deformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#viscous-deformation">2.4.2. Viscous deformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#non-linear-iterations">2.4.3. Non-linear iterations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">3. How to install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameter-file.html">4. Parameter file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input.html">5. Input files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="benchmarks.html">6. Benchmarks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">7. References</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Getting help and contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/ggciag/mandyoc/blob/main/CONTRIBUTING.md">How to contribute</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/ggciag/mandyoc/blob/main/CODE_OF_CONDUCT.md">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/ggciag/mandyoc">Source code</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Mandyoc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">2. </span>Numerical implementation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/files/implementation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="numerical-implementation">
+<span id="numericalimplementation"></span><h1><span class="section-number">2. </span>Numerical implementation<a class="headerlink" href="#numerical-implementation" title="Link to this heading">¶</a></h1>
+<p>The following sections show how the numerical methods were implemented to solve the equations of conservation of mass, momentum and energy that were presented in the <a class="reference internal" href="theory.html#basictheory"><span class="std std-ref">Basic theory</span></a> section.</p>
+<section id="mass-and-momentum-equations">
+<span id="massmomentumimplementation"></span><h2><span class="section-number">2.1. </span>Mass and momentum equations<a class="headerlink" href="#mass-and-momentum-equations" title="Link to this heading">¶</a></h2>
+<p>For a solution domain <span class="math notranslate nohighlight">\(\Omega\)</span>, finding the flow velocity <span class="math notranslate nohighlight">\(u_i=g_i+v_i\)</span> and pressure <span class="math notranslate nohighlight">\(P\)</span> states the Galerkin weak formulation for Stokes’ flow, where <span class="math notranslate nohighlight">\(g_i\)</span> is a specified boundary velocity, <span class="math notranslate nohighlight">\(v_i\)</span> belongs to a set of functions <span class="math notranslate nohighlight">\(\mathcal{V}\)</span> in which every function is equal to zero on the boundary where the <span class="math notranslate nohighlight">\(ith\)</span> components of the velocity is <span class="math notranslate nohighlight">\(g_i\)</span>, and <span class="math notranslate nohighlight">\(P\)</span> belongs to a set of functions <span class="math notranslate nohighlight">\(\mathcal{P}\)</span> such that the equations of conservation of mass and momentum can be written as follows <span id="id1">[<a class="reference internal" href="references.html#id20" title="Shijie Zhong, David A. Yuen, Louis N. Moresi, and G. Schubert. Numerical methods for mantle convection. Treatise on geophysics, 7:227–252, 2007.">1</a>]</span>:</p>
+<div class="math notranslate nohighlight" id="equation-weak-formulation-1">
+<span class="eqno">(2.1)<a class="headerlink" href="#equation-weak-formulation-1" title="Link to this equation">¶</a></span>\[\int_{\Omega}{w_{i,j}\sigma_{ij}d\Omega} -
+\int_{\Omega}{qu_{i,i}d\Omega} =
+\int_{\Omega}{w_i f_id\Omega} +
+\sum_{i=1}^{n_{sd}}{\int_{\Gamma_{h_i}}{w_i h_i d\Gamma}}\]</div>
+<p>where <span class="math notranslate nohighlight">\(w_i \in \mathcal{V}\)</span> and <span class="math notranslate nohighlight">\(q \in \mathcal{P}\)</span> are weighting functions and the boundary conditions are defined:</p>
+<div class="math notranslate nohighlight" id="equation-boundary-conditions">
+<span class="eqno">(2.2)<a class="headerlink" href="#equation-boundary-conditions" title="Link to this equation">¶</a></span>\[u_i = g_i \text{ on } \Gamma_{g_i}, \sigma_{ij}n_j = h_i \text{ on } \Gamma_{h_i}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\Gamma_{h_i}\)</span> is the boundary where the <span class="math notranslate nohighlight">\(ith\)</span> components of the forces are set to be <span class="math notranslate nohighlight">\(h_i\)</span>, <span class="math notranslate nohighlight">\(n_j\)</span> is the normal vector at the boundary <span class="math notranslate nohighlight">\(\Gamma_{h_i}\)</span>, and <span class="math notranslate nohighlight">\(f_i=g\rho_0 \alpha \delta_{i3}\)</span> <span id="id2">[<a class="reference internal" href="references.html#id8" title="Thomas JR Hughes. The finite element method: linear static and dynamic finite element analysis. Courier Corporation, 2000.">6</a>]</span>. The weak formulation can be re-written as below:</p>
+<div class="math notranslate nohighlight" id="equation-weak-formulation-2">
+<span class="eqno">(2.3)<a class="headerlink" href="#equation-weak-formulation-2" title="Link to this equation">¶</a></span>\[\begin{split}\int_{\Omega}{w_{i,j}c_{ijkl}v_{k,l}d\Omega} -
+\int_{\Omega}{qv_{i,i}d\Omega} -
+\int_{\Omega}{w_{i,i}Pd\Omega} = \\
+\int_{\Omega}{w_{i}f_{i}d\Omega} +
+\sum_{i=1}^{n_{sd}}{\int_{\Gamma_{h_i}}{w_{i}h_{i}d\Gamma}} -
+\int_{\Omega}{w_{i,j}c_{ijkl}g_{k,l}d\Omega}\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(c_{ijkl}=\eta(\delta_{ik}\delta_{jl}+\delta_{il}\delta_{jk})\)</span> is obtained from the stress tensor equation (see <a class="reference internal" href="theory.html#equation-stress-tensor">Eq. 1.4</a> in the <a class="reference internal" href="theory.html"><span class="doc">basic theory section</span></a>).</p>
+<p>The velocity field, the pressure field and the weighting functions shape functions that interpolate the grid points at every node are given:</p>
+<div class="math notranslate nohighlight" id="equation-v-shape-function">
+<span class="eqno">(2.4)<a class="headerlink" href="#equation-v-shape-function" title="Link to this equation">¶</a></span>\[\mathbf{v} =
+v_i \mathbf{e}_i =
+\sum_{A\in \Omega^{v}-\Gamma^{v}_{g_i}}{N_A v_{iA}\mathbf{e}_i}\]</div>
+<div class="math notranslate nohighlight" id="equation-w-shape-function">
+<span class="eqno">(2.5)<a class="headerlink" href="#equation-w-shape-function" title="Link to this equation">¶</a></span>\[\mathbf{w} =
+w_i \mathbf{e}_i =
+\sum_{A\in \Omega^{v}-\Gamma^{v}_{g_i}}{N_A w_{iA}\mathbf{e}_i}\]</div>
+<div class="math notranslate nohighlight" id="equation-g-shape-function">
+<span class="eqno">(2.6)<a class="headerlink" href="#equation-g-shape-function" title="Link to this equation">¶</a></span>\[\mathbf{g} =
+\sum_{A\in \Omega^{v}-\Gamma^{v}_{g_i}}{N_A g_{iA}\mathbf{e}_i}\]</div>
+<div class="math notranslate nohighlight" id="equation-p-shape-functionn">
+<span class="eqno">(2.7)<a class="headerlink" href="#equation-p-shape-functionn" title="Link to this equation">¶</a></span>\[P = \sum_{B\in \Omega^{p}}{M_B P_B}\]</div>
+<div class="math notranslate nohighlight" id="equation-q-shape-function">
+<span class="eqno">(2.8)<a class="headerlink" href="#equation-q-shape-function" title="Link to this equation">¶</a></span>\[q = \sum_{B\in \Omega^{p}}{M_B q_B}\]</div>
+<p>where <span class="math notranslate nohighlight">\(N_A\)</span> is the shape function for the velocity at node A, <span class="math notranslate nohighlight">\(M_B\)</span> is the shape function for the pressure at node B, <span class="math notranslate nohighlight">\(\Omega^{v}\)</span> is the velocity nodes set, <span class="math notranslate nohighlight">\(\Omega^{p}\)</span> is the pressure nodes set and <span class="math notranslate nohighlight">\(\Gamma^{g}_{g_i}\)</span> is the velocity nodes set along the boundary <span class="math notranslate nohighlight">\(\Gamma_{g_i}\)</span>. <em>Mandyoc</em> defines <span class="math notranslate nohighlight">\(\Omega^{p}\)</span> at the center of each element, while <span class="math notranslate nohighlight">\(\Omega^{v}\)</span> is defined at every element vertex. This avoids spurious flow solutions and numerical instabilities <span id="id3">[<a class="reference internal" href="references.html#id20" title="Shijie Zhong, David A. Yuen, Louis N. Moresi, and G. Schubert. Numerical methods for mantle convection. Treatise on geophysics, 7:227–252, 2007.">1</a>]</span> and it keeps the velocity shape functions one order higher than the pressure shape functions, a common strategy used in finite element modeling of incompressible media <span id="id4">[<a class="reference internal" href="references.html#id8" title="Thomas JR Hughes. The finite element method: linear static and dynamic finite element analysis. Courier Corporation, 2000.">6</a>]</span>.</p>
+<p>From the shape functions above and the Galerkin weak formulation (<a class="reference internal" href="#equation-weak-formulation-2">Eq. 2.3</a>), the following expression can be obtained:</p>
+<div class="math notranslate nohighlight" id="equation-implication-1">
+<span class="eqno">(2.9)<a class="headerlink" href="#equation-implication-1" title="Link to this equation">¶</a></span>\[\begin{split}\sum_{B\in\Omega^{v}-\Gamma^{v}_{g_j}}{\Big( \mathbf{e}^{T}_{i} \int_{\Omega}{B^T_A D B_B d\Omega \mathbf{e}_j v_{jB}} \Big)} -
+\sum_{B\in \Omega^p}{\Big( \mathbf{e}_i \int_{\Omega}{N_{A,i} M_B d\Omega P_{B}} \Big)} = \\
+\int_{\Omega}{N_A \mathbf{e}_i f_i d\Omega} +
+\sum_{i=1}^{n_{sd}}{\int_{\Gamma_{h_i}}{N_A \mathbf{e}_i h_i d\Gamma}} -
+\sum_{B\in \Gamma^{v}_{g_j}}{\Big( \mathbf{e}^{T}_{i} \int_{\Omega}{B^{T}_{A} D B^{T}_{B} d\Omega \mathbf{e}_j g_{jB}} \Big)}\end{split}\]</div>
+<p>and also:</p>
+<div class="math notranslate nohighlight" id="equation-implication-2">
+<span class="eqno">(2.10)<a class="headerlink" href="#equation-implication-2" title="Link to this equation">¶</a></span>\[\sum_{B\in \Omega^{v} - \Gamma^{v}_{g_j}}{\int_{\Omega}{M_A N_{Bj} d\Omega \mathbf{e}_j v_{jB}}} = 0\]</div>
+<p>The matrix representation of these two equations above can be presented:</p>
+<div class="math notranslate nohighlight" id="equation-matrix-representation">
+<span class="eqno">(2.11)<a class="headerlink" href="#equation-matrix-representation" title="Link to this equation">¶</a></span>\[\begin{split}\begin{bmatrix}
+    K &amp; G \\
+    G^T &amp; 0
+\end{bmatrix}
+\left\{
+    \begin{array}{c}
+        V \\
+        P
+    \end{array}
+\right\} =
+\left\{
+    \begin{array}{c}
+        F \\
+        0
+    \end{array}
+\right\}\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(V\)</span> is the vector of velocity values at <span class="math notranslate nohighlight">\(\Omega^v\)</span>, <span class="math notranslate nohighlight">\(P\)</span> is the vector of pressure values at <span class="math notranslate nohighlight">\(\Omega^p\)</span>, <span class="math notranslate nohighlight">\(F\)</span> is the resulting vector of the rigth-hand side of equations <a class="reference internal" href="#equation-implication-1">Eq. 2.9</a> or <a class="reference internal" href="#equation-implication-2">Eq. 2.10</a>, <span class="math notranslate nohighlight">\(K\)</span> is the stiffness matrix, <span class="math notranslate nohighlight">\(G\)</span> is the discrete gradient operator, and <span class="math notranslate nohighlight">\(G^T\)</span> is the discrete divergence operator <span id="id5">[<a class="reference internal" href="references.html#id20" title="Shijie Zhong, David A. Yuen, Louis N. Moresi, and G. Schubert. Numerical methods for mantle convection. Treatise on geophysics, 7:227–252, 2007.">1</a>]</span>. <span class="math notranslate nohighlight">\(K\)</span>, <span class="math notranslate nohighlight">\(G\)</span> and <span class="math notranslate nohighlight">\(G^T\)</span> are derived from the first and second terms of <a class="reference internal" href="#equation-implication-1">Eq. 2.9</a> and <a class="reference internal" href="#equation-implication-2">Eq. 2.10</a>.</p>
+<p>The matrix operator <span class="math notranslate nohighlight">\(B\)</span> from <a class="reference internal" href="#equation-implication-1">Eq. 2.9</a> contains the spatial derivatives of the shapes function <span class="math notranslate nohighlight">\(N\)</span> and, for a 2-D plane, can be written as:</p>
+<div class="math notranslate nohighlight" id="equation-b-a">
+<span class="eqno">(2.12)<a class="headerlink" href="#equation-b-a" title="Link to this equation">¶</a></span>\[\begin{split}B_A =
+\begin{bmatrix}
+    N_{A,1} &amp; 0 \\
+    0 &amp; N_{A,2} \\
+    N_{A,2} &amp; N_{A,1}
+\end{bmatrix}\end{split}\]</div>
+<p>Again from <a class="reference internal" href="#equation-implication-1">Eq. 2.9</a> and for 2-D plane strain problems, the effective viscosity matrix <span class="math notranslate nohighlight">\(D\)</span> can be written:</p>
+<div class="math notranslate nohighlight" id="equation-d">
+<span class="eqno">(2.13)<a class="headerlink" href="#equation-d" title="Link to this equation">¶</a></span>\[\begin{split}D =
+\begin{bmatrix}
+    2\eta &amp; 0 &amp; 0 \\
+    0 &amp; 2\eta &amp; 0 \\
+    0 &amp; 0 &amp; \eta
+\end{bmatrix}\end{split}\]</div>
+<p>The stiffness matrix <span class="math notranslate nohighlight">\(K\)</span> and the gradient operator <span class="math notranslate nohighlight">\(G\)</span> can be written:</p>
+<div class="math notranslate nohighlight" id="equation-k">
+<span class="eqno">(2.14)<a class="headerlink" href="#equation-k" title="Link to this equation">¶</a></span>\[K_{lm} = \mathbf{e}^T_{i} \int_{\Omega}{B^T_A D B_B d\Omega \mathbf{e}_j}\]</div>
+<div class="math notranslate nohighlight" id="equation-g">
+<span class="eqno">(2.15)<a class="headerlink" href="#equation-g" title="Link to this equation">¶</a></span>\[G_{lm} = \mathbf{e}_i \int_{\Omega}{N_A M_B d\Omega \mathbf{e}_j}\]</div>
+<p>where the subscripts <span class="math notranslate nohighlight">\(A\)</span> and <span class="math notranslate nohighlight">\(B\)</span> are the global velocity node numbers, <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(j\)</span> are the degree of freedom per grid node, ranging from <span class="math notranslate nohighlight">\(1\)</span> to <span class="math notranslate nohighlight">\(n_{sd}\)</span>, <span class="math notranslate nohighlight">\(l\)</span> and <span class="math notranslate nohighlight">\(m\)</span> are global equation numbers for the velocity ranging from <span class="math notranslate nohighlight">\(1\)</span> to <span class="math notranslate nohighlight">\(n_v n_{sd}\)</span>, where <span class="math notranslate nohighlight">\(n_{v}\)</span> is the number of velocity nodes in the grid.</p>
+</section>
+<section id="energy-equation">
+<span id="energyimplementation"></span><h2><span class="section-number">2.2. </span>Energy equation<a class="headerlink" href="#energy-equation" title="Link to this heading">¶</a></h2>
+<p>It is possible to represent the energy conservation equation (<a class="reference internal" href="theory.html#equation-energy-conservation">Eq. 1.3</a>) as a finite element problem for a solution domain <span class="math notranslate nohighlight">\(\Omega_V\)</span> as follow:</p>
+<div class="math notranslate nohighlight" id="equation-fe-energy-conservation">
+<span class="eqno">(2.16)<a class="headerlink" href="#equation-fe-energy-conservation" title="Link to this equation">¶</a></span>\[\mathbf{M} \mathbf{\dot{a}}_T + (\mathbf{K_a} + \mathbf{K_c})\mathbf{a}_T = \mathbf{F}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{M}\)</span>, <span class="math notranslate nohighlight">\(\mathbf{K}_a\)</span>, <span class="math notranslate nohighlight">\(\mathbf{K}_c\)</span> and <span class="math notranslate nohighlight">\(\mathbf{F}\)</span> are written below:</p>
+<div class="math notranslate nohighlight" id="equation-m">
+<span class="eqno">(2.17)<a class="headerlink" href="#equation-m" title="Link to this equation">¶</a></span>\[\mathbf{M} = \int_{\Omega_V}{\mathbf{N}^T_V \rho_0 c_p \mathbf{N}_V d\Omega_V}\]</div>
+<div class="math notranslate nohighlight" id="equation-ka">
+<span class="eqno">(2.18)<a class="headerlink" href="#equation-ka" title="Link to this equation">¶</a></span>\[\mathbf{K}_a = \int_{\Omega_V}{\mathbf{N}^T_V  \rho_0 c_p \mathbf{v} \cdot \mathbf{B}_V d\Omega_v}\]</div>
+<div class="math notranslate nohighlight" id="equation-kc">
+<span class="eqno">(2.19)<a class="headerlink" href="#equation-kc" title="Link to this equation">¶</a></span>\[\mathbf{K}_c = \int_{\Omega_V}{\mathbf{B}^T_V \rho_0 c_p \mathbf{v} \cdot \mathbf{B}_v d\Omega_v}\]</div>
+<div class="math notranslate nohighlight" id="equation-f">
+<span class="eqno">(2.20)<a class="headerlink" href="#equation-f" title="Link to this equation">¶</a></span>\[\mathbf{F} = \int_{\Omega_V}{\mathbf{N}^T_V \Big( \frac{H}{c_p} - \frac{\alpha T g u_3}{c_p} \Big) d\Omega_v}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{N}_V\)</span> is a row vector of shape functions, <span class="math notranslate nohighlight">\(\mathbf{a}_T\)</span> is a column vector of the unknown temperature parameters, <span class="math notranslate nohighlight">\(\mathbf{\dot{a}}_T\)</span> is its time derivative, and <span class="math notranslate nohighlight">\(\mathbf{B}_V \equiv \nabla \mathbf{N}_V\)</span>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The superscript <span class="math notranslate nohighlight">\(T\)</span> represents the transpose of the matrix, while the non-superscript <span class="math notranslate nohighlight">\(T\)</span> represents the temperature.</p>
+</div>
+<p><span class="math notranslate nohighlight">\(\mathbf{M}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{K}_c\)</span> are symmetric, but <span class="math notranslate nohighlight">\(\mathbf{K}_a\)</span> is not. This asymmetry decreases the accuracy of the solution when advection is more dominant than conduction (<span id="id6">[<a class="reference internal" href="references.html#id19" title="Olgierd Cecil Zienkiewicz and Robert Leroy Taylor. The finite element method, vol. 2. Butterworth-Heinemann, 2000.">7</a>]</span>, chapter 2). To increase numerical accuracy and stability, <em>Mandyoc</em> uses the streamline upwind Petrov-Galerkin process to modify <span class="math notranslate nohighlight">\(\mathbf{K}_a\)</span> to <span class="math notranslate nohighlight">\(\mathbf{K}_a^*\)</span> <span id="id7">[<a class="reference internal" href="references.html#id19" title="Olgierd Cecil Zienkiewicz and Robert Leroy Taylor. The finite element method, vol. 2. Butterworth-Heinemann, 2000.">7</a>, <a class="reference internal" href="references.html#id6" title="Thomas JR Hughes. A multidimentional upwind scheme with no crosswind diffusion. Finite Element Methods for Convection Dominated Flows, AMD 34, 1979.">8</a>, <a class="reference internal" href="references.html#id7" title="Thomas JR Hughes. A theoretical framework for petrov-galerkin methods with discontinuous weighting functions: application to the streamline-upwind procedure. Finite element in fluids, 4:Chapter–3, 1982.">9</a>]</span>:</p>
+<div class="math notranslate nohighlight" id="equation-ka-star">
+<span class="eqno">(2.21)<a class="headerlink" href="#equation-ka-star" title="Link to this equation">¶</a></span>\[\mathbf{K}_a^* = \int_{\Omega_V}{\mathbf{N}^{*T}_V \rho_0 c_p \mathbf{v} \cdot \mathbf{B}_V d\Omega_V}\]</div>
+<p>where <span class="math notranslate nohighlight">\(N^{*}_{Vi}\)</span> is:</p>
+<div class="math notranslate nohighlight" id="equation-n-star">
+<span class="eqno">(2.22)<a class="headerlink" href="#equation-n-star" title="Link to this equation">¶</a></span>\[N^{*}_{Vi} = N_{Vi} + \frac{\alpha_{opt} h^e \mathbf{v} \cdot \nabla N_{Vi}}{2|\mathbf{v}|}\]</div>
+<p>where <span class="math notranslate nohighlight">\(h^e\)</span> is the characteristic element size in the advection velocity direction (<span class="math notranslate nohighlight">\(\mathbf{v}\)</span>), and <span class="math notranslate nohighlight">\(\alpha_{opt}\)</span> is:</p>
+<div class="math notranslate nohighlight" id="equation-alpha-opt">
+<span class="eqno">(2.23)<a class="headerlink" href="#equation-alpha-opt" title="Link to this equation">¶</a></span>\[\alpha_{opt} = \coth{Pe} - \frac{1}{Pe} \text{, where } Pe = \frac{|\mathbf{v}|h^e}{2 \kappa \rho_0 c_p}\]</div>
+<p>The time discretization is made by an implicit scheme <span id="id8">[<a class="reference internal" href="references.html#id2" title="Jean Braun. Pecube: a new finite-element code to solve the 3d heat transport equation including the effects of a time-varying, finite amplitude surface topography. Computers &amp; Geosciences, 29(6):787–794, 2003.">3</a>]</span>:</p>
+<div class="math notranslate nohighlight" id="equation-time-discretization">
+<span class="eqno">(2.24)<a class="headerlink" href="#equation-time-discretization" title="Link to this equation">¶</a></span>\[\frac{\mathbf{a}_T(t+\Delta t) - \mathbf{a}_T(t)}{\Delta t} =
+\theta \mathbf{\dot{a}}_T(t+\Delta t)+(1-\theta)\mathbf{a}_T(t)\]</div>
+<p>where <span class="math notranslate nohighlight">\(\theta=0.5\)</span> is a weighting parameter. Multiplying both sides of <a class="reference internal" href="#equation-time-discretization">Eq. 2.24</a> by <span class="math notranslate nohighlight">\(\mathbf{M}(t+\Delta t)\)</span> and assuming <span class="math notranslate nohighlight">\(\mathbf{M}(t+\Delta t) \approx \mathbf{M}(t)\)</span>:</p>
+<div class="math notranslate nohighlight" id="equation-time-discretization-2">
+<span class="eqno">(2.25)<a class="headerlink" href="#equation-time-discretization-2" title="Link to this equation">¶</a></span>\[\begin{split}\mathbf{M}(t+\Delta t) \frac{\mathbf{a}_T(t+\Delta t) - \mathbf{a}_T(t)}{\Delta t} =
+\theta [\mathbf{F}(t+\Delta t) - \mathbf{K}_T(t+\Delta t) \mathbf{a}_T(t+\Delta t)] + \\
+(1-\theta)[\mathbf{F}(t)-\mathbf{K}_T(t)\mathbf{a}_T(t)]\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{K}_T=\mathbf{K}^*_a+\mathbf{K}_c\)</span>.</p>
+<p>Rearranging <a class="reference internal" href="#equation-time-discretization-2">Eq. 2.25</a> allows to rewrite it in a numerical form to solve the energy equation.</p>
+<div class="math notranslate nohighlight" id="equation-numerical-form-energy-equation">
+<span class="eqno">(2.26)<a class="headerlink" href="#equation-numerical-form-energy-equation" title="Link to this equation">¶</a></span>\[\begin{split}[\mathbf{M}(t+\Delta t) + \Delta t \theta \mathbf{K}_T(t+\Delta t)]\mathbf{a}_T(t)(t+\Delta t) = \\
+[\mathbf{M}(t+\Delta t)- \Delta t(1-\theta)\mathbf{K}_T(t)]\mathbf{a}_T(t) + \\
+\Delta t[\theta \mathbf{F}(t+\Delta t) + (1-\theta)\mathbf{F}(t)]\end{split}\]</div>
+</section>
+<section id="free-surface">
+<h2><span class="section-number">2.3. </span>Free surface<a class="headerlink" href="#free-surface" title="Link to this heading">¶</a></h2>
+<p><em>Mandyoc</em> uses the <em>Free Surface Stabilization Algorithm</em> <span id="id9">[<a class="reference internal" href="references.html#id11" title="Boris JP Kaus, Hans Mühlhaus, and Dave A May. A stabilization algorithm for geodynamic numerical simulations with a free surface. Physics of the Earth and Planetary Interiors, 181(1-2):12–20, 2010.">10</a>]</span> to modify the Stokes equation and avoid numerical instabilities that can occur on the surface of the model. The up-and-down oscillations around the steady state (“sloshing instability” or “drunken sailer effect”) would require small time steps, which would increase running time by unfeasible amounts.</p>
+<p>The modification is done on the stiffness matrix <span class="math notranslate nohighlight">\(K_e\)</span>, such that <span class="math notranslate nohighlight">\(\tilde{K}_e=K_e+L_e\)</span>, where the correction <span class="math notranslate nohighlight">\(L_e\)</span> is evaluated at the boundary <span class="math notranslate nohighlight">\(\Gamma_e\)</span> of each finite element. The correction is given by the <a class="reference internal" href="#equation-le">Eq. 2.27</a> below:</p>
+<div class="math notranslate nohighlight" id="equation-le">
+<span class="eqno">(2.27)<a class="headerlink" href="#equation-le" title="Link to this equation">¶</a></span>\[L_e = \int_{\Gamma_e}{\mathbf{N} \Theta \Delta\rho \Delta t \mathbf{g} \mathbf{n} d\Gamma}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{N}\)</span> is the element shape function, <span class="math notranslate nohighlight">\(0 \leq \Theta \leq 1\)</span> is a wight factor of the correction term, <span class="math notranslate nohighlight">\(\Delta \rho\)</span> is the density contrast between the two mediums, <span class="math notranslate nohighlight">\(\Delta t\)</span> is the numerical integration time step, <span class="math notranslate nohighlight">\(\mathbf{g}\)</span> is the gravity acceleration vector, and <span class="math notranslate nohighlight">\(\mathbf{n}\)</span> is the normal vector to the element.</p>
+</section>
+<section id="rheology">
+<span id="rheologysection"></span><h2><span class="section-number">2.4. </span>Rheology<a class="headerlink" href="#rheology" title="Link to this heading">¶</a></h2>
+<p>Considering a visco-plastic model, the effective viscosity <span class="math notranslate nohighlight">\(\eta\)</span> follows the formulation described by Moresi and Solomatov (1998) <span id="id10">[<a class="reference internal" href="references.html#id13" title="Louis Moresi and Viatcheslav Solomatov. Mantle convection with a brittle lithosphere: thoughts on the global tectonic styles of the earth and venus. Geophysical Journal International, 133(3):669–682, 1998.">11</a>]</span>, which combines plastic deformation and viscous deformation:</p>
+<div class="math notranslate nohighlight" id="equation-effective-eta">
+<span class="eqno">(2.28)<a class="headerlink" href="#equation-effective-eta" title="Link to this equation">¶</a></span>\[\eta
+= \min{(\eta_{plas},\eta_{visc})}
+= \min{\bigg(\frac{\tau_{yield}}{2\dot{\varepsilon}_{II}},\eta_{visc}\bigg)}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\tau_{yield}\)</span> is the rupture tension and <span class="math notranslate nohighlight">\(\dot{\varepsilon}_{II}=(\dot{\varepsilon}_{ij}'\dot{\varepsilon}_{ij}'/2)^{1/2}\)</span> is the second invariant of the deviatoric strain rate tensor, and <span class="math notranslate nohighlight">\(\eta_{plas}\)</span> and <span class="math notranslate nohighlight">\(\eta_{visc}\)</span> are the plastic and ductile viscosities.</p>
+<section id="plastic-deformation">
+<h3><span class="section-number">2.4.1. </span>Plastic deformation<a class="headerlink" href="#plastic-deformation" title="Link to this heading">¶</a></h3>
+<p>The plastic deformation can be calculated using the Byerlee Law <span id="id11">[<a class="reference internal" href="references.html#id3" title="James D Byerlee. Brittle-ductile transition in rocks. Journal of Geophysical Research, 73(14):4741–4750, 1968.">12</a>]</span> to compute <span class="math notranslate nohighlight">\(\tau_{yield}\)</span> and <span class="math notranslate nohighlight">\(\eta_{plas}\)</span>. <a class="reference internal" href="#equation-byerlee-law">Eq. 2.29</a> shows the relationship implemented in <em>Mandyoc</em>.</p>
+<div class="math notranslate nohighlight" id="equation-byerlee-law">
+<span class="eqno">(2.29)<a class="headerlink" href="#equation-byerlee-law" title="Link to this equation">¶</a></span>\[\tau_{yield} = c_{0}+\mu \rho g z\]</div>
+<p>where <span class="math notranslate nohighlight">\(c_{0}\)</span> in the internal cohesion of the rock, <span class="math notranslate nohighlight">\(\mu\)</span> is the friction coefficient, <span class="math notranslate nohighlight">\(\rho\)</span> is the density and <span class="math notranslate nohighlight">\(z\)</span> is the depth.</p>
+<p>Alternatively, the user can choose to use the the Druker-Prager criterion <span id="id12">[<a class="reference internal" href="references.html#id22" title="Daniel Charles Drucker and William Prager. Soil mechanics and plastic analysis or limit design. Quarterly of applied mathematics, 10(2):157–165, 1952.">13</a>]</span>, which is presented in <a class="reference internal" href="#equation-drucker-prager">Eq. 2.30</a>.</p>
+<div class="math notranslate nohighlight" id="equation-drucker-prager">
+<span class="eqno">(2.30)<a class="headerlink" href="#equation-drucker-prager" title="Link to this equation">¶</a></span>\[\tau_{yield} = c_0 \cos{\varphi} + P \sin{\varphi}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\varphi\)</span> is the internal angle of friction.</p>
+</section>
+<section id="viscous-deformation">
+<h3><span class="section-number">2.4.2. </span>Viscous deformation<a class="headerlink" href="#viscous-deformation" title="Link to this heading">¶</a></h3>
+<p><em>Mandyoc</em> contains several rheology models that the user can choose for viscous deformation. Among them, two will be discussed here.</p>
+<p>The ductile rheology can be simulated using the Frank-Kamenetskii approximation, following the formulation described by Solomatov and Moresi (2000) <span id="id13">[<a class="reference internal" href="references.html#id15" title="Viatcheslav S Solomatov and L-N Moresi. Scaling of time-dependent stagnant lid convection: application to small-scale convection on earth and other terrestrial planets. Journal of Geophysical Research: Solid Earth, 105(B9):21795–21817, 2000.">14</a>]</span>, where the viscosity is a function of the temperature <span class="math notranslate nohighlight">\(T\)</span> as in the equation below. Such formulation was also used by Sacek (2017) <span id="id14">[<a class="reference internal" href="references.html#id12" title="Victor Sacek. Post-rift influence of small-scale convection on the landscape evolution at divergent continental margins. Earth and Planetary Science Letters, 459:48–57, 2017.">15</a>]</span> in an earlier <em>Mandyoc</em> version.</p>
+<div class="math notranslate nohighlight" id="equation-frank-kamenetskii">
+<span class="eqno">(2.31)<a class="headerlink" href="#equation-frank-kamenetskii" title="Link to this equation">¶</a></span>\[\eta_{visc}(T) = C \eta_r b^* \exp{(-\gamma T)}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\eta_r\)</span> is the reference viscosity, <span class="math notranslate nohighlight">\(C\)</span> is a compositional factor to scale the effective viscosity, and <span class="math notranslate nohighlight">\(b^*\)</span> and <span class="math notranslate nohighlight">\(\gamma = E_a / RT^2_b\)</span> are constants, which in turn, <span class="math notranslate nohighlight">\(E_a\)</span> is the activation energy, <span class="math notranslate nohighlight">\(R\)</span> is the gas constant, and <span class="math notranslate nohighlight">\(T_b\)</span> is the basal temperature.</p>
+<p>Additionally, the rheology can also be considered to follow a power law, as a function of the temperature <span class="math notranslate nohighlight">\(T\)</span>, compositional factor <span class="math notranslate nohighlight">\(C\)</span>, pressure <span class="math notranslate nohighlight">\(P\)</span> and strain rate <span class="math notranslate nohighlight">\(\varepsilon\)</span> as follows:</p>
+<div class="math notranslate nohighlight" id="equation-power-law">
+<span class="eqno">(2.32)<a class="headerlink" href="#equation-power-law" title="Link to this equation">¶</a></span>\[\eta_{visc} = C A^{\frac{-1}{n}} \dot{\varepsilon}^{\frac{1-n}{n}} \exp{\frac{Q+V P}{nRT}}\]</div>
+<p>where <span class="math notranslate nohighlight">\(A\)</span> is a pre-exponential scale factor, <span class="math notranslate nohighlight">\(n\)</span> is the power law exponent, <span class="math notranslate nohighlight">\(\dot{\varepsilon}\)</span> is the square root of the second invariant of the strain rate tensor, <span class="math notranslate nohighlight">\(Q\)</span> is the activation energy, and <span class="math notranslate nohighlight">\(V\)</span> is the activation volume. The values of <span class="math notranslate nohighlight">\(A\)</span>, <span class="math notranslate nohighlight">\(n\)</span>, <span class="math notranslate nohighlight">\(Q\)</span>, and <span class="math notranslate nohighlight">\(V\)</span> are measured under laboratory conditions <span id="id15">[<a class="reference internal" href="references.html#id10" title="Shun-ichiro Karato and Patrick Wu. Rheology of the upper mantle: a synthesis. Science, 260(5109):771–778, 1993.">16</a>, <a class="reference internal" href="references.html#id4" title="Gayle C Gleason and Jan Tullis. A flow law for dislocation creep of quartz aggregates determined with the molten salt cell. Tectonophysics, 247(1-4):1–23, 1995.">17</a>]</span>.</p>
+</section>
+<section id="non-linear-iterations">
+<h3><span class="section-number">2.4.3. </span>Non-linear iterations<a class="headerlink" href="#non-linear-iterations" title="Link to this heading">¶</a></h3>
+<p>When the non-linear option is chosen by the user, the effective viscosity is dependent on the velocity field, which is iteratively updated following the algorithm described by Thieulot (2014) <span id="id16">[<a class="reference internal" href="references.html#id18" title="C Thieulot. Elefant: a user-friendly multipurpose geodynamics code. Solid Earth Discussions, 6(2):1949–2096, 2014.">4</a>]</span>. In this algorithm, the velocity and effective viscosity field are iteratively updated until the following convergence criterion is satisfied:</p>
+<div class="math notranslate nohighlight" id="equation-non-linear">
+<span class="eqno">(2.33)<a class="headerlink" href="#equation-non-linear" title="Link to this equation">¶</a></span>\[\chi_f = 1 - \frac{\langle (f^i-\langle f^i\rangle) \cdot (f^{i+1}-\langle f^{i+1}\rangle) \rangle}{|f^i-\langle f^i\rangle| \ |f^{i+1}-\langle f^{i+1}\rangle|} \le tol\]</div>
+<p>where <span class="math notranslate nohighlight">\(f\)</span> represents an array with all the nodal values of the velocity components, <span class="math notranslate nohighlight">\(tol\)</span> is a tolerance factor, and <span class="math notranslate nohighlight">\(\langle f\rangle\)</span> is the mean value of <span class="math notranslate nohighlight">\(f\)</span>. The superscript <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(i+1\)</span> indicate two consecutive iterations in the same time step.  In each iteration, the momentum and mass equations are calculated with an updated effective viscosity field.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="theory.html" class="btn btn-neutral float-left" title="1. Basic theory" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="installation.html" class="btn btn-neutral float-right" title="3. How to install" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, The Mandyoc Developers.
+      <span class="lastupdated">Last updated on Jun 11, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

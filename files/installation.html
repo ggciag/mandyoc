@@ -1,0 +1,314 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3. How to install &mdash; Mandyoc</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=4336b194" />
+
+  
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="4. Parameter file" href="parameter-file.html" />
+    <link rel="prev" title="2. Numerical implementation" href="implementation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Mandyoc
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="theory.html">1. Basic theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="implementation.html">2. Numerical implementation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">3. How to install</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#dependencies">3.1. Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#petsc-installation">3.2. PETSc Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mandyoc-installation">3.3. <em>Mandyoc</em> Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#docker-container">3.4. Docker Container</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#examples">3.5. Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="parameter-file.html">4. Parameter file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input.html">5. Input files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="benchmarks.html">6. Benchmarks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">7. References</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Getting help and contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/ggciag/mandyoc/blob/main/CONTRIBUTING.md">How to contribute</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/ggciag/mandyoc/blob/main/CODE_OF_CONDUCT.md">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/ggciag/mandyoc">Source code</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Mandyoc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">3. </span>How to install</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/files/installation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="how-to-install">
+<h1><span class="section-number">3. </span>How to install<a class="headerlink" href="#how-to-install" title="Link to this heading">¶</a></h1>
+<p><em>Mandyoc</em> installation is very simple and it consists of installing both <a class="reference external" href="https://petsc.org/release/">PETSc</a>
+and <em>Mandyoc</em>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The following installation steps work for both Linux and macOS machines
+<strong>only</strong> and no tests were made to install <em>Mandyoc</em> on Windows machines yet.</p>
+</div>
+<section id="dependencies">
+<span id="id1"></span><h2><span class="section-number">3.1. </span>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading">¶</a></h2>
+<p>To build <em>Mandyoc</em>, the following requirements are needed:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://petsc.org/release/">PETSc</a> (currently tested on version v3.15.5)</p></li>
+<li><p>gcc</p></li>
+<li><p>make</p></li>
+<li><p>git (recommended, but not strictly needed)</p></li>
+</ul>
+<p>If you do not already have a PETSc installation, you may need a Fortran compiler.</p>
+<p>Additionally, the following additional software is needed to run the examples
+that come with <em>Mandyoc</em>:</p>
+<ul class="simple">
+<li><p>Python 3.5+</p></li>
+</ul>
+<p>With required python packages:</p>
+<ul class="simple">
+<li><p>numpy</p></li>
+<li><p>matplotlib</p></li>
+<li><p>pandas</p></li>
+<li><p>jupyterlab</p></li>
+</ul>
+<p>To run the tests, some additional python packages are required:</p>
+<ul class="simple">
+<li><p>pytest</p></li>
+<li><p>numpy</p></li>
+</ul>
+<p>To build the documentation, further python packages are necessary:</p>
+<ul class="simple">
+<li><p>sphinx</p></li>
+<li><p>sphinx_rtd_theme</p></li>
+</ul>
+</section>
+<section id="petsc-installation">
+<h2><span class="section-number">3.2. </span>PETSc Installation<a class="headerlink" href="#petsc-installation" title="Link to this heading">¶</a></h2>
+<p><em>Mandyoc</em> requires the PETSc library to run.
+Check out the <a class="reference external" href="https://petsc.org/release/install/">PETSc installation</a> for details.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The following steps its a example installation with minimum requirements
+to run <em>Mandyoc</em>.</p>
+</div>
+<p><strong>Requirements:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">CMake</span></code></p></li>
+</ul>
+<p>The first step is to <strong>download</strong> PETSc (v3.15.5) release from <a class="reference external" href="https://petsc.org/release/download/">PETSc website</a>
+or <strong>clone</strong> the repository into your machine.
+<em>Mandyoc</em> might work with latest release of PETSc, but this is not guaranteed
+since new versions might introduce breaking changes.</p>
+<p>Clone the repository to your desired location:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="o">-</span><span class="n">b</span> <span class="n">v3</span><span class="mf">.15.5</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">gitlab</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">petsc</span><span class="o">/</span><span class="n">petsc</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>Second, <strong>configure the PETSc build</strong> and set up the installation directory.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>path/to/petsc
+./configure<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">PETSC_DIR</span><span class="o">=</span>/path/to/petsc<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">PETSC_ARCH</span><span class="o">=</span>arch-label-optimized<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--with-debugging<span class="o">=</span><span class="m">0</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--with-cc<span class="o">=</span>gcc<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--with-cxx<span class="o">=</span>g++<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--with-fc<span class="o">=</span>gfortran<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--download-fblaslapack<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--download-mpich<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--download-mumps<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--download-scalapack<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--download-parmetis<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--download-metis
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This example installation uses the <code class="docutils literal notranslate"><span class="pre">gfortran</span></code> compiler.
+You may use another Fortran compiler changing the <code class="docutils literal notranslate"><span class="pre">--with-fc</span></code> flag.
+It is also possible to configure PETSc without Fortran by using <code class="docutils literal notranslate"><span class="pre">--with-fc=0</span></code>
+and changing <code class="docutils literal notranslate"><span class="pre">--download-fblaslapack</span></code> to <code class="docutils literal notranslate"><span class="pre">--download-f2cblaslapack</span></code>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>By default, <em>Mandyoc</em> uses direct solvers (LU and Cholesky) provided by <a class="reference external" href="http://mumps.enseeiht.fr/">MUMPS</a>.
+This requires additional external packages. Refer to <a class="reference external" href="https://petsc.org/main/docs/manualpages/Mat/MATSOLVERMUMPS.html">PETSc documentation</a>
+for further information.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you want to build a development version of <em>Mandyoc</em>
+its recommended to build a <strong>debug version</strong> of PETSc
+by setting <code class="docutils literal notranslate"><span class="pre">--with-debugging=1</span></code>.
+In this case, you may set <code class="docutils literal notranslate"><span class="pre">PETSC_ARCH=arch-label-debug</span></code>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you prefer <em>openmpi</em>, you need to swith <code class="docutils literal notranslate"><span class="pre">--download-mpich</span></code> to <code class="docutils literal notranslate"><span class="pre">--download-openmpi</span></code>.</p>
+</div>
+<p><strong>Check</strong> the installation with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="nb">all</span> <span class="n">check</span>
+</pre></div>
+</div>
+<p>Or follow the instructions that pop up on the terminal.</p>
+<p>For further information about the PETSc library, check out the <a class="reference external" href="https://petsc.org/release/download/">PETSc website</a>.</p>
+<p>Finally, add a symlink of <cite>mpirun</cite> to <cite>~/.local/bin</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ln</span> <span class="o">-</span><span class="n">s</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">petsc</span><span class="o">/</span><span class="n">arch</span><span class="o">-</span><span class="n">label</span><span class="o">-</span><span class="n">optimized</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">mpirun</span> <span class="o">~/.</span><span class="n">local</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">mpirun</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Make sure the directory <code class="docutils literal notranslate"><span class="pre">~/.local/bin</span></code> exists, otherwise the above
+command will fail.</p>
+<blockquote>
+<div><p>You can create it by running <code class="docutils literal notranslate"><span class="pre">mkdir</span> <span class="pre">-p</span> <span class="pre">~/.local/bin</span></code>.</p>
+</div></blockquote>
+</div>
+</section>
+<section id="mandyoc-installation">
+<h2><span class="section-number">3.3. </span><em>Mandyoc</em> Installation<a class="headerlink" href="#mandyoc-installation" title="Link to this heading">¶</a></h2>
+<p>To install the <em>Mandyoc</em> in your machine, you need to <strong>clone or download the latest release</strong> of the code from the <a class="reference external" href="https://github.com/ggciag/mandyoc">Mandyoc repository</a>.
+To clone the repository, navigate to the directory you wish to install <em>Mandyoc</em> and type:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ggciag/mandyoc
+<span class="nb">cd</span><span class="w"> </span>mandyoc
+</pre></div>
+</div>
+<p>Before to install Mandyoc, you mast <em>set an environment variable</em> which indicates the path to PETSc installation folder:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PETSC_DIR</span><span class="o">=</span>/path/to/petsc
+</pre></div>
+</div>
+<p><em>Build Mandyoc</em> by running:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="nb">all</span>
+</pre></div>
+</div>
+<p>Next, <em>install Mandyoc</em> with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">install</span>
+</pre></div>
+</div>
+<p>By default, it will be installed in <code class="docutils literal notranslate"><span class="pre">~/.local/bin</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Make sure the directory <code class="docutils literal notranslate"><span class="pre">~/.local/bin</span></code> exists, otherwise the above command will fail.
+You can change the installation location setting <code class="docutils literal notranslate"><span class="pre">INSTALL_PATH</span></code> variable by running:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">INSTALL_PATH</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">install</span><span class="o">/</span><span class="n">mandyoc</span> <span class="n">install</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To print <em>Mandyoc</em> runtime options, run mandyoc with <code class="docutils literal notranslate"><span class="pre">-flags</span></code> command line
+argument.</p>
+</div>
+<p><strong>Check</strong> Mandyoc installation with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">test</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You need python and some python packages to run the last commmand succesfully.
+Check out requirements in <a class="reference internal" href="#dependencies">Dependencies</a> section.</p>
+</div>
+</section>
+<section id="docker-container">
+<h2><span class="section-number">3.4. </span>Docker Container<a class="headerlink" href="#docker-container" title="Link to this heading">¶</a></h2>
+<p>We provide a <a class="reference external" href="https://www.docker.com/resources/what-container">Docker container</a> image for <em>Mandyoc</em>.
+Docker is an implementation of container virtualization.
+Citing their documentation “it is a lightweight, standalone, executable package of software
+that includes everything needed to run an application:
+code, runtime, system tools, system libraries and settings”.</p>
+<p>Visit the <a class="reference external" href="https://hub.docker.com/r/ggciag/mandyoc">Dockerhub Mandyoc repository</a> to find out more on how to use the container to run <em>Mandyoc</em>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To use the <em>Mandyoc</em> docker image, it is required to install the Docker Engine.
+Find out more on <a class="reference external" href="https://docs.docker.com/engine/install/">Install Docker Engine</a> page.</p>
+</div>
+</section>
+<section id="examples">
+<h2><span class="section-number">3.5. </span>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<p>The benchmarks and other experiments are located in the <a class="reference external" href="https://github.com/ggciag/mandyoc/tree/main/examples">examples</a> folder of the Mandyoc repository.</p>
+<p>Inside each example folder, you find a Jupyter notebook with detailed explanation and instructions on how to run the experiment.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="implementation.html" class="btn btn-neutral float-left" title="2. Numerical implementation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="parameter-file.html" class="btn btn-neutral float-right" title="4. Parameter file" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, The Mandyoc Developers.
+      <span class="lastupdated">Last updated on Jun 11, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,898 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4. Parameter file &mdash; Mandyoc</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=4336b194" />
+
+  
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="5. Input files" href="input.html" />
+    <link rel="prev" title="3. How to install" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Mandyoc
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="theory.html">1. Basic theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="implementation.html">2. Numerical implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">3. How to install</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">4. Parameter file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input.html">5. Input files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="benchmarks.html">6. Benchmarks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">7. References</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Getting help and contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/ggciag/mandyoc/blob/main/CONTRIBUTING.md">How to contribute</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/ggciag/mandyoc/blob/main/CODE_OF_CONDUCT.md">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/ggciag/mandyoc">Source code</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Mandyoc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4. </span>Parameter file</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/files/parameter-file.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="parameter-file">
+<span id="parameterfile"></span><h1><span class="section-number">4. </span>Parameter file<a class="headerlink" href="#parameter-file" title="Link to this heading">¶</a></h1>
+<p>The parameter file <code class="docutils literal notranslate"><span class="pre">param.txt</span></code> contains the information that is necessary for the simulation to run.</p>
+<ol class="arabic">
+<li><p>Geometry</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>nx</dt><dd><p>default: <span class="raw-html"><br /></span>
+type: integer <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: number of nodes in the horizontal direction</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>nz</dt><dd><p>default: <span class="raw-html"><br /></span>
+type: integer <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: number of nodes in the vertical direction</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>lx</dt><dd><p>default: <span class="raw-html"><br /></span>
+type: real <span class="raw-html"><br /></span>
+unit: m <span class="raw-html"><br /></span>
+definition: extent in the horizontal direction</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>lz</dt><dd><p>default: <span class="raw-html"><br /></span>
+type: real <span class="raw-html"><br /></span>
+unit: m <span class="raw-html"><br /></span>
+definition: extent in the vertical direction</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Simulation options</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>solver</dt><dd><p>default: direct <span class="raw-html"><br /></span>
+type: direct/iterative <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set the solver to be direct or iterative</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>denok</dt><dd><p>default: 1.0e-4 <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: tolerance criterion for the Uzawa’s scheme</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>rtol</dt><dd><p>default: 1.0e-5 <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: the absolute size of the residual norm (relevant only for iterative methods)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>RK4</dt><dd><p>default: Euler  <span class="raw-html"><br /></span>
+type: Euler/Runge-Kutta <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: particles advection method</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Xi_min</dt><dd><p>default: 1.0e-14        <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: tolerance criterion for the convergence of the non-linear flow</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>random_initial_strain</dt><dd><p>default: 0.0            <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: non-dimensional value for the initial strain perturbation for the entire domain</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>pressure_const</dt><dd><p>default: -1.0 (i.e. not used) <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: Pa <span class="raw-html"><br /></span>
+definition: set constant pressure value for the domain (relevant when 2-D is plain view)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>initial_dynamic_range</dt><dd><p>default: False  <span class="raw-html"><br /></span>
+type: True/False <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: method to smoothen convergence of the velocity field in scenarios with wide viscosity range, see Gerya (2019) <span id="id1">[<a class="reference internal" href="references.html#id21" title="Taras Gerya. Introduction to numerical geodynamic modelling. Cambridge University Press, 2019.">18</a>]</span></p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>periodic_boundary</dt><dd><p>default: False  <span class="raw-html"><br /></span>
+type: True/False <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: allows simulation with periodic boundary in the horizontal direction</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>high_kappa_in_asthenosphere</dt><dd><p>default: False  <span class="raw-html"><br /></span>
+type: True/False <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: mimics high heat transport in the asthenosphere increasing its thermal diffusivity coefficient</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>basal_heat</dt><dd><p>default: -1.0 (i.e. not used)  <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: W/m^2 <span class="raw-html"><br /></span>
+definition: set basal heat flux value</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Particles options</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>particles_per_element</dt><dd><p>default: 81           <span class="raw-html"><br /></span>
+type: integer <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: number of Lagrangian particles in each element</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>particles_per_element_x</dt><dd><p>default: 0 (automatic calculation) <span class="raw-html"><br /></span>
+type: integer <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: number of Lagrangian particles in the horizontal direction</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>particles_per_element_z</dt><dd><p>default: 0 (automatic calculation) <span class="raw-html"><br /></span>
+type: integer <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: number of Lagrangian particles in the vertical direction</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>particles_perturb_factor</dt><dd><p>default: 0.5  <span class="raw-html"><br /></span>
+type: real number between 0 and 1 <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: indicates the amount of perturbation of the initial location of the particles relative to a regular grid distribution.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Surface processes</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>sp_surface_tracking</dt><dd><p>default: False  <span class="raw-html"><br /></span>
+type: True/False <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: allows free surface tracking across time and outputs it</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>sea_level</dt><dd><p>default: 0.0            <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: m <span class="raw-html"><br /></span>
+definition: sea level used to limit the influence of the surface process</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>sp_surface_processes</dt><dd><p>default: False  <span class="raw-html"><br /></span>
+type: True/False <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: allows erosion and sedimentation simulation</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>sp_dt</dt><dd><p>default: 0              <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: years <span class="raw-html"><br /></span>
+definition: time step for surface processes simulation</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>a2l</dt><dd><p>default: True  <span class="raw-html"><br /></span>
+type:  True/False <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: allows the conversion of air particles to land particles during sedimentation</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>sp_mode</dt><dd><p>default: 1              <span class="raw-html"><br /></span>
+type: integer <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: specify the surface processes method</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>free_surface_stab</dt><dd><p>default: True  <span class="raw-html"><br /></span>
+type: True/False <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set if the free surface stabilization algorithm (FSSA) is used, see Kaus et al. (2010) <span id="id2">[<a class="reference internal" href="references.html#id11" title="Boris JP Kaus, Hans Mühlhaus, and Dave A May. A stabilization algorithm for geodynamic numerical simulations with a free surface. Physics of the Earth and Planetary Interiors, 181(1-2):12–20, 2010.">10</a>]</span></p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>theta_FSSA</dt><dd><p>default: 0.5            <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: weight of the influence of the FSSA method (only relevant when &lt;free_surface_stab&gt; is True)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>sticky_blanket_air</dt><dd><p>default: False  <span class="raw-html"><br /></span>
+type: True/False <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: allows the increase of viscosity for the first air layer of particles</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>precipitation_profile_from_ascii</dt><dd><p>default: False  <span class="raw-html"><br /></span>
+type: True/False <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set if precipitation profile along the horizontal axis is read from an ASCII file</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>climate_change_from_ascii</dt><dd><p>default: False  <span class="raw-html"><br /></span>
+type: True/False <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: if True, re-scales through time the precipitation profile using an ASCII file</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Time constrains</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>step_max</dt><dd><p>default: <span class="raw-html"><br /></span>
+type: integer <span class="raw-html"><br /></span>
+unit: steps <span class="raw-html"><br /></span>
+definition: maximum time-step of the simulation</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>time_max</dt><dd><p>default:  <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: years <span class="raw-html"><br /></span>
+definition: maximum time of the simulation</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>dt_max</dt><dd><p>default: <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: years <span class="raw-html"><br /></span>
+definition: maximum time between steps of the simulation</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>step_print</dt><dd><p>default:              <span class="raw-html"><br /></span>
+type: integer <span class="raw-html"><br /></span>
+unit: steps <span class="raw-html"><br /></span>
+definition: make output files every &lt;step_print&gt;</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>sub_division_time_step</dt><dd><p>default: 1.0            <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: re-scale value for the calculated time-step</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>initial_print_step</dt><dd><p>default: 0 (i.e. not used) <span class="raw-html"><br /></span>
+type: integer <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: &lt;step_print&gt; used until &lt;initial_print_max_time&gt;</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>initial_print_max_time</dt><dd><p>default: 1.0e6 <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: years <span class="raw-html"><br /></span>
+definition: maximum time to make output files every &lt;initial_print_step&gt;</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Viscosity</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>viscosity_reference</dt><dd><p>default:  <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: Pa.s <span class="raw-html"><br /></span>
+definition: reference mantle viscosity</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>viscosity_max</dt><dd><p>default:  <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: Pa.s <span class="raw-html"><br /></span>
+definition: maximum viscosity during simulation</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>viscosity_min</dt><dd><p>default:  <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: Pa.s <span class="raw-html"><br /></span>
+definition: minimum viscosity during simulation</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>viscosity_per_element</dt><dd><p>default: constant  <span class="raw-html"><br /></span>
+type: constant/variable <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: sets if viscosity is constant or linearly variable for every element</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>viscosity_mean_method</dt><dd><p>default: harmonic  <span class="raw-html"><br /></span>
+type: harmonic/arithmetic <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: defines method do calculate the viscosity for each element</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>viscosity_dependence</dt><dd><p>default: depth  <span class="raw-html"><br /></span>
+type: pressure/depth <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: defines if viscosity depends on pressure or depth</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>External ASCII inputs/outputs</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>interfaces_from_ascii</dt><dd><p>default: False  <span class="raw-html"><br /></span>
+type: True/False <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set if interfaces between lithologies are read from an ASCII file (interfaces.txt)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>n_interfaces</dt><dd><p>default:        <span class="raw-html"><br /></span>
+type: <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set the number of interfaces to be read from the interfaces ASCII file (interfaces.txt)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>temperature_from_ascii</dt><dd><p>default: False  <span class="raw-html"><br /></span>
+type: True/False <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set if initial temperature is read from an ASCII file (input_temperature_0.txt)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>velocity_from_ascii</dt><dd><p>default: False  <span class="raw-html"><br /></span>
+type: True/False <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set if initial velocity field is read from an ASCII file (input_velocity_0.txt)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>variable_bcv</dt><dd><p>default: False  <span class="raw-html"><br /></span>
+type: True/False <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: allows velocity field re-scaling through time according to an ASCII file (scale_bcv.txt)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>multi_velocity</dt><dd><p>default: False  <span class="raw-html"><br /></span>
+type: True/False <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set if boundary velocities can change with time from ASCII file(s) (multi_veloc.txt and additional input_velocity_[X].txt files)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>binary_output</dt><dd><p>default: False  <span class="raw-html"><br /></span>
+type: True/False <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set if output is in binary format</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>print_step_files</dt><dd><p>default: True  <span class="raw-html"><br /></span>
+type: True/False <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set if the particles position are printed to an output file</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Physical parameters</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>temperature_difference</dt><dd><p>default:  <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: K <span class="raw-html"><br /></span>
+definition: temperature difference between the top and bottom of the model (relevant if &lt;temperature_from_ascii&gt; is False)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>thermal_expansion_coefficient</dt><dd><p>default:  <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: 1/K <span class="raw-html"><br /></span>
+definition: value for the coefficient of thermal expansion</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>thermal_diffusivity_coefficient</dt><dd><p>default:  <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: m^2/s <span class="raw-html"><br /></span>
+definition: value for the coefficient of thermal diffusivity</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>gravity_acceleration</dt><dd><p>default:  <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: m/s^2 <span class="raw-html"><br /></span>
+definition: value for the gravity acceleration</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>density_mantle</dt><dd><p>default:  <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: kg/m^3 <span class="raw-html"><br /></span>
+definition: value for the mantle reference density</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>heat_capacity</dt><dd><p>default:  <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: J/K <span class="raw-html"><br /></span>
+definition: value for the heat capacity</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>non_linear_method</dt><dd><p>default:  <span class="raw-html"><br /></span>
+type: on/off <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set if non linear method is used for the momentum equation</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>adiabatic_component</dt><dd><p>default:  <span class="raw-html"><br /></span>
+type: on/off <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set if adiabatic heating/cooling is active</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>radiogenic_component</dt><dd><p>default:  <span class="raw-html"><br /></span>
+type: on/off <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set if radiogenic heating is active</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Strain softening parameters</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>weakeing_min</dt><dd><p>default: 0.05 <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: value of the accumulated strain where strain softening starts <span id="id3">[<a class="reference internal" href="references.html#id28" title="Claudio A. Salazar-Mora, Ritske S. Huismans, Haakon Fossen, and Marcos Egydio-Silva. The wilson cycle and effects of tectonic structural inheritance on rifted passive margin formation. Tectonics, 37(9):3085-3101, 2018.">19</a>]</span></p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>weakening_max</dt><dd><p>default: 1.05 <span class="raw-html"><br /></span>
+type: real number <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: value of the accumulated strain where strain softening stops <span id="id4">[<a class="reference internal" href="references.html#id28" title="Claudio A. Salazar-Mora, Ritske S. Huismans, Haakon Fossen, and Marcos Egydio-Silva. The wilson cycle and effects of tectonic structural inheritance on rifted passive margin formation. Tectonics, 37(9):3085-3101, 2018.">19</a>]</span></p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Velocity boundary conditions</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>top_normal_velocity</dt><dd><p>default:            <span class="raw-html"><br /></span>
+type: fixed/free <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set the normal velocity on the top side of the model to be fixed or free</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>top_tangential_velocity</dt><dd><p>default:            <span class="raw-html"><br /></span>
+type: fixed/free <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set the tangential velocity on the top side of the model to be fixed or free</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>bot_normal_velocity</dt><dd><p>default:            <span class="raw-html"><br /></span>
+type: fixed/free <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set the normal velocity on the bottom side of the model to be fixed or free</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>bot_tangential_velocity</dt><dd><p>default:            <span class="raw-html"><br /></span>
+type: fixed/free <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set the tangential velocity on the bot side of the model to be fixed or free</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>left_normal_velocity</dt><dd><p>default:            <span class="raw-html"><br /></span>
+type: fixed/free <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set the normal velocity on the left side of the model to be fixed or free</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>left_tangential_velocity</dt><dd><p>default:             <span class="raw-html"><br /></span>
+type: fixed/free <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set the tangential velocity on the left side of the model to be fixed or free</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>right_normal_velocity</dt><dd><p>default:            <span class="raw-html"><br /></span>
+type: fixed/free <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set the normal velocity on the right side of the model to be fixed or free</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>right_tangential_velocity</dt><dd><p>default:             <span class="raw-html"><br /></span>
+type: fixed/free <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set the tangential velocity on the right side of the model to be fixed or free</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Temperature boundary conditions</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>top_temperature</dt><dd><p>default:            <span class="raw-html"><br /></span>
+type: fixed/free <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set temperature on the top side of the model to be fixed or free</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>bot_temperature</dt><dd><p>default:            <span class="raw-html"><br /></span>
+type: fixed/free <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set temperature on the bottom side of the model to be fixed or free</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>left_temperature</dt><dd><p>default:             <span class="raw-html"><br /></span>
+type: fixed/free <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set temperature on the left side of the model to be fixed or free</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>right_temperature</dt><dd><p>default:             <span class="raw-html"><br /></span>
+type: fixed/free <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: set temperature on the right side of the model to be fixed or free</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>rheology_model</dt><dd><p>default:  <span class="raw-html"><br /></span>
+type: integer <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: flag number of a pre-defined rheology model to use during simulation</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>T_initial</dt><dd><p>default:  <span class="raw-html"><br /></span>
+type: integer <span class="raw-html"><br /></span>
+unit: <span class="raw-html"><br /></span>
+definition: flag number of a pre-defined temperature model to use during simulation (relevant when &lt;temperature_from_ascii&gt; is False)</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
+</ol>
+<p>Below there is an example of a parameter file <code class="docutils literal notranslate"><span class="pre">param.txt</span></code> used to make a simulation with <em>Mandyoc</em>.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span># Geometry
+<span class="linenos"> 2</span>nx                                  = 81            # n. of nodes in the horizontal direction
+<span class="linenos"> 3</span>nz                                  = 81            # n. of nodes in the vertical direction
+<span class="linenos"> 4</span>lx                                  = 91420.0       # extent in the horizontal direction
+<span class="linenos"> 5</span>lz                                  = 100000.       # extent in the vertical direction
+<span class="linenos"> 6</span>
+<span class="linenos"> 7</span># Simulation options
+<span class="linenos"> 8</span>solver                              = direct        # set the solver to be direct or iterative, default is direct [direct/iterative]
+<span class="linenos"> 9</span>denok                               = 1.0e-15       # tolerance criterion for the Uzawa&#39;s scheme, default is 1.0e-4
+<span class="linenos">10</span>rtol                                = 1.0e-5        # the absolute size of the residual norm (relevant only for iterative methods), default is 1.0e-5
+<span class="linenos">11</span>RK4                                 = Euler         # particles advection method, default is Euler [Euler/Runge-Kutta]
+<span class="linenos">12</span>Xi_min                              = 1.0e-14       # tolerance criterion for the convergence of the non-linear flow, default is 1.0e-14
+<span class="linenos">13</span>random_initial_strain               = 0.0           # non-dimensional value for the initial strain perturbation for the entire domain, default is 0.0 
+<span class="linenos">14</span>pressure_const                      = -1.0          # set constant pressure value for the domain (relevant only when 2D is plain view), default is -1.0 (i.e. not used) [Pa]
+<span class="linenos">15</span>initial_dynamic_range               = False         # method to smoothen convergence of the velocity field in scenarios with wide viscosity range, default is False [True/False], Gerya (2019)
+<span class="linenos">16</span>periodic_boundary                   = False         # allows simulation with periodic boundary in the horizontal direction, default is False [True/False]
+<span class="linenos">17</span>high_kappa_in_asthenosphere         = False         # mimics high heat transport in the asthenosphere increasing its thermal diffusivity coefficient, default is False [True/False]
+<span class="linenos">18</span>basal_heat                          = -1.0          # set basal heat flux value, default is -1.0 (i.e. not used) [W/m^2]
+<span class="linenos">19</span>
+<span class="linenos">20</span># Particles options
+<span class="linenos">21</span>particles_per_element               = 1100          # n. of Lagrangian particles in each element, default is 81
+<span class="linenos">22</span>particles_per_element_x             = 0             # n. of Lagrangian particles in the horizontal direction, default is 0 for automatic calculation
+<span class="linenos">23</span>particles_per_element_z             = 0             # n. of Lagrangian particles in the vertical direction, default is 0 for automatic calculation
+<span class="linenos">24</span>particles_perturb_factor            = 0.0           # indicates the amount of perturbation of the initial location of the particles relative to a regular grid distribution. Default is 0.5 [values are between 0 and 1]
+<span class="linenos">25</span>
+<span class="linenos">26</span># Surface processes
+<span class="linenos">27</span>sp_surface_tracking                 = False         # allows free surface tracking across time and outputs it, default is False [True/False]
+<span class="linenos">28</span>sea_level                           = 0.0           # sea level used to limit the influence of the surface process, default is 0.0 [m]
+<span class="linenos">29</span>sp_surface_processes                = False         # allows erosion and sedimentation simulation, default is False [True/False]
+<span class="linenos">30</span>sp_dt                               = 0             # time step for surface processes simulation, default is 0 [years]
+<span class="linenos">31</span>a2l                                 = True          # allows the conversion of air particles to land particles during sedimentation, default is True [True/False]
+<span class="linenos">32</span>sp_mode                             = 1             # specify the surface processes method, default is 1
+<span class="linenos">33</span>free_surface_stab                   = True          # set if the free surface stabilization algorithm (FSSA) is used, default is True [True/False], Kaus et al. (2010)
+<span class="linenos">34</span>theta_FSSA                          = 0.5           # weight of the influence of the FSSA method, default is 0.5 (only relevant when &lt;free_surface_stab&gt; is True)
+<span class="linenos">35</span>sticky_blanket_air                  = False         # allows the increase of viscosity for the first air layer of particles, default is False [True/False]
+<span class="linenos">36</span>precipitation_profile_from_ascii    = False         # set if precipitation profile along the horizontal axis is read from an ASCII file, default is False [True/False]
+<span class="linenos">37</span>climate_change_from_ascii           = False         # if True, re-scales through time the precipitation profile using an ASCII file, default is False [True/False]
+<span class="linenos">38</span>
+<span class="linenos">39</span># Time constrains
+<span class="linenos">40</span>step_max                            = 4000          # maximum time-step of the simulation [steps]
+<span class="linenos">41</span>time_max                            = 140000.0e6    # maximum time of the simulation [years]
+<span class="linenos">42</span>dt_max                              = 1000.0e6      # maximum time between steps of the simulation [years]
+<span class="linenos">43</span>step_print                          = 20            # make output files every &lt;step_print&gt;
+<span class="linenos">44</span>sub_division_time_step              = 1.0           # re-scale value for the calculated time-step, default is 1.0
+<span class="linenos">45</span>initial_print_step                  = 0             # &lt;step_print&gt; used until &lt;initial_print_max_time&gt;, default is 0 (i.e. not used)
+<span class="linenos">46</span>initial_print_max_time              = 1.0e6         # maximum time to make output files every &lt;initial_print_step&gt;, default is 1.0e6 [years]
+<span class="linenos">47</span>
+<span class="linenos">48</span># Viscosity
+<span class="linenos">49</span>viscosity_reference                 = 1.0e21        # reference mantle viscosity [Pa.s]
+<span class="linenos">50</span>viscosity_max                       = 1.0e25        # maximum viscosity during simulation [Pa.s]
+<span class="linenos">51</span>viscosity_min                       = 1.0e17        # minimum viscosity during simulation [Pa.s]
+<span class="linenos">52</span>viscosity_per_element               = constant      # sets if viscosity is constant or linearly variable for every element, default is variable [constant/variable]
+<span class="linenos">53</span>viscosity_mean_method               = harmonic      # defines method do calculate the viscosity for each element, default is harmonic [harmonic/arithmetic]
+<span class="linenos">54</span>viscosity_dependence                = pressure      # defines if viscosity depends on pressure or depth, default is depth [pressure/depth]
+<span class="linenos">55</span>
+<span class="linenos">56</span># External ASCII inputs/outputs
+<span class="linenos">57</span>interfaces_from_ascii               = True          # set if interfaces between lithologies are read from an ASCII file (interfaces.txt), default is False [True/False]
+<span class="linenos">58</span>n_interfaces                        = 1             # set the number of interfaces to be read from the interfaces ASCII file (interfaces.txt) 
+<span class="linenos">59</span>temperature_from_ascii              = False         # set if initial temperature is read from an ASCII file (input_temperature_0.txt), default is False [True/False]
+<span class="linenos">60</span>velocity_from_ascii                 = False         # set if initial velocity field is read from an ASCII file (input_velocity_0.txt), default is False [True/False]
+<span class="linenos">61</span>variable_bcv                        = False         # allows velocity field re-scaling through time according to an ASCII file (scale_bcv.txt), default is False [True/False]
+<span class="linenos">62</span>multi_velocity                      = False         # set if boundary velocities can change with time from ASCII file(s) (multi_veloc.txt and additional input_velocity_[X].txt files), default is False [True/False]
+<span class="linenos">63</span>binary_output                       = False         # set if output is in binary format, default is False [True/False]
+<span class="linenos">64</span>print_step_files                    = True          # set if the particles position are printed to an output file, default is True [True/False]
+<span class="linenos">65</span>
+<span class="linenos">66</span># Physical parameters
+<span class="linenos">67</span>temperature_difference              = 0.            # temperature difference between the top and bottom of the model (relevant if &lt;temperature_from_ascii&gt; is False) [K]
+<span class="linenos">68</span>thermal_expansion_coefficient       = 3.28e-5       # value for the coefficient of thermal expansion [1/K]
+<span class="linenos">69</span>thermal_diffusivity_coefficient     = 1.0e-6        # value for the coefficient of thermal diffusivity [m^2/s]
+<span class="linenos">70</span>gravity_acceleration                = 10.0          # value for the gravity acceleration [m/s^2]
+<span class="linenos">71</span>density_mantle                      = 3300.         # value for the mantle reference density [kg/m^3]
+<span class="linenos">72</span>heat_capacity                       = 1250.         # value for the heat capacity [J/K]
+<span class="linenos">73</span>
+<span class="linenos">74</span>non_linear_method                   = off           # set if non linear method is used for the momentum equation [on/off]
+<span class="linenos">75</span>adiabatic_component                 = off           # set if adiabatic heating/cooling is active [on/off]
+<span class="linenos">76</span>radiogenic_component                = off           # set if radiogenic heating is active [on/off]
+<span class="linenos">77</span>
+<span class="linenos">78</span># Velocity boundary conditions
+<span class="linenos">79</span>top_normal_velocity                 = fixed         # set the normal velocity on the top side of the model to be fixed or free [fixed/free] 
+<span class="linenos">80</span>top_tangential_velocity             = fixed         # set the tangential velocity on the top side of the model to be fixed or free [fixed/free]
+<span class="linenos">81</span>bot_normal_velocity                 = fixed         # set the normal velocity on the bottom side of the model to be fixed or free [fixed/free]
+<span class="linenos">82</span>bot_tangential_velocity             = fixed         # set the tangential velocity on the bot side of the model to be fixed or free [fixed/free]
+<span class="linenos">83</span>left_normal_velocity                = fixed         # set the normal velocity on the left side of the model to be fixed or free [fixed/free]
+<span class="linenos">84</span>left_tangential_velocity            = free          # set the tangential velocity on the left side of the model to be fixed or free [fixed/free]
+<span class="linenos">85</span>right_normal_velocity               = fixed         # set the normal velocity on the right side of the model to be fixed or free [fixed/free]
+<span class="linenos">86</span>right_tangential_velocity           = free          # set the tangential velocity on the right side of the model to be fixed or free [fixed/free]
+<span class="linenos">87</span>
+<span class="linenos">88</span># Temperature boundary conditions
+<span class="linenos">89</span>top_temperature                     = fixed         # set temperature on the top side of the model to be fixed or free [fixed/free]
+<span class="linenos">90</span>bot_temperature                     = fixed         # set temperature on the bottom side of the model to be fixed or free [fixed/free]
+<span class="linenos">91</span>left_temperature                    = free          # set temperature on the left side of the model to be fixed or free [fixed/free]
+<span class="linenos">92</span>right_temperature                   = free          # set temperature on the right side of the model to be fixed or free [fixed/free]
+<span class="linenos">93</span>
+<span class="linenos">94</span>rheology_model                      = 0             # flag n. of a pre-defined rheology model to use during simulation
+<span class="linenos">95</span>T_initial                           = 0             # flag n. of a pre-defined temperature model to use during simulation (relevant when &lt;temperature_from_ascii&gt; is False)
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="3. How to install" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="input.html" class="btn btn-neutral float-right" title="5. Input files" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, The Mandyoc Developers.
+      <span class="lastupdated">Last updated on Jun 11, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

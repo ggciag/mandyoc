@@ -1,0 +1,168 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>1. Basic theory &mdash; Mandyoc</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=4336b194" />
+
+  
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="2. Numerical implementation" href="implementation.html" />
+    <link rel="prev" title="About" href="../index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Mandyoc
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">1. Basic theory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#basic-equations">1.1. Basic equations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#numerical-approach">1.2. Numerical approach</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="implementation.html">2. Numerical implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">3. How to install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameter-file.html">4. Parameter file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input.html">5. Input files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="benchmarks.html">6. Benchmarks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">7. References</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Getting help and contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/ggciag/mandyoc/blob/main/CONTRIBUTING.md">How to contribute</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/ggciag/mandyoc/blob/main/CODE_OF_CONDUCT.md">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/ggciag/mandyoc">Source code</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Mandyoc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">1. </span>Basic theory</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/files/theory.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="basic-theory">
+<span id="basictheory"></span><h1><span class="section-number">1. </span>Basic theory<a class="headerlink" href="#basic-theory" title="Link to this heading">¶</a></h1>
+<p>The <em>Mandyoc</em> code simulates thermochemical convection of the Earth’s mantle. The following sections explain which equations are being solved by the code and the numerical approach that was used.</p>
+<section id="basic-equations">
+<h2><span class="section-number">1.1. </span>Basic equations<a class="headerlink" href="#basic-equations" title="Link to this heading">¶</a></h2>
+<p>To simulate mantle thermochemical convection, we adopted the formulation for non-Newtonian fluids together with the Boussinesq approximation to solve the following equations of conservation of mass (<a class="reference internal" href="#equation-mass-conservation">Eq. 1.1</a>), momentum (<a class="reference internal" href="#equation-momentum-conservation">Eq. 1.2</a>) and energy (<a class="reference internal" href="#equation-energy-conservation">Eq. 1.3</a>) <span id="id1">[<a class="reference internal" href="references.html#id20" title="Shijie Zhong, David A. Yuen, Louis N. Moresi, and G. Schubert. Numerical methods for mantle convection. Treatise on geophysics, 7:227–252, 2007.">1</a>]</span>.</p>
+<div class="math notranslate nohighlight" id="equation-mass-conservation">
+<span class="eqno">(1.1)<a class="headerlink" href="#equation-mass-conservation" title="Link to this equation">¶</a></span>\[u_{i,i}=0\]</div>
+<div class="math notranslate nohighlight" id="equation-momentum-conservation">
+<span class="eqno">(1.2)<a class="headerlink" href="#equation-momentum-conservation" title="Link to this equation">¶</a></span>\[\sigma_{ij,j}+g_{i}\rho_{0}(1-\alpha(T-T_{0}))=0\]</div>
+<div class="math notranslate nohighlight" id="equation-energy-conservation">
+<span class="eqno">(1.3)<a class="headerlink" href="#equation-energy-conservation" title="Link to this equation">¶</a></span>\[\frac{\partial T}{\partial t} + u_{i}T_{,i}=\kappa T_{,ii} + \frac{H}{c_p}-\frac{\alpha T g u_{e}}{c_{p}}\]</div>
+<p>where <span class="math notranslate nohighlight">\(u\)</span> is the velocity in the <span class="math notranslate nohighlight">\(i\)</span> direction, <span class="math notranslate nohighlight">\(g\)</span> is the gravity acceleration, <span class="math notranslate nohighlight">\(\rho_{0}\)</span> is the reference rock density at temperature <span class="math notranslate nohighlight">\(T_0\)</span>, <span class="math notranslate nohighlight">\(\alpha\)</span> is the coefficient of volumetric expansion, <span class="math notranslate nohighlight">\(T\)</span> is the temperature, <span class="math notranslate nohighlight">\(\kappa\)</span> is the thermal diffusivity, <span class="math notranslate nohighlight">\(H\)</span> is the rate of radiogenic heat per unit of mass, <span class="math notranslate nohighlight">\(c_{p}\)</span> is the specific heat, <span class="math notranslate nohighlight">\(\delta_{ij}\)</span> is the Kronecker delta, and <span class="math notranslate nohighlight">\(\sigma_{ij}\)</span> is the stress tensor:</p>
+<div class="math notranslate nohighlight" id="equation-stress-tensor">
+<span class="eqno">(1.4)<a class="headerlink" href="#equation-stress-tensor" title="Link to this equation">¶</a></span>\[\sigma_{ij}=-P\delta_{ij}+\eta (u_{i,j}+u_{j,i})\]</div>
+<p>where <span class="math notranslate nohighlight">\(P\)</span> is the dynamic pressure and <span class="math notranslate nohighlight">\(\eta\)</span> is the effective viscosity of the rock.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For the adopted Einstein notation, repeated indexes in the same term represent summation and indexes after comma are partial derivative to a spatial coordinate.</p>
+</div>
+</section>
+<section id="numerical-approach">
+<h2><span class="section-number">1.2. </span>Numerical approach<a class="headerlink" href="#numerical-approach" title="Link to this heading">¶</a></h2>
+<p>The equations of conservation of mass, momentum and energy are solved using the finite element method <span id="id2">[<a class="reference internal" href="references.html#id20" title="Shijie Zhong, David A. Yuen, Louis N. Moresi, and G. Schubert. Numerical methods for mantle convection. Treatise on geophysics, 7:227–252, 2007.">1</a>]</span>. <em>Mandyoc</em> uses hexahedral elements for three dimensional grids and quadrilateral elements for two dimensional grids <span id="id3">[<a class="reference internal" href="references.html#id9" title="Thomas JR Hughes. The finite element method: linear static and dynamic finite element analysis. Courier Corporation, 2012.">2</a>]</span>. The <a class="reference internal" href="implementation.html#massmomentumimplementation"><span class="std std-ref">Mass and momentum equations</span></a> subsection presents the numerical methods used to solve the mass and momentum equations and the <a class="reference internal" href="implementation.html#energyimplementation"><span class="std std-ref">Energy equation</span></a> subsection shows how an implicit formulation was used to solve the energy equation <span id="id4">[<a class="reference internal" href="references.html#id2" title="Jean Braun. Pecube: a new finite-element code to solve the 3d heat transport equation including the effects of a time-varying, finite amplitude surface topography. Computers &amp; Geosciences, 29(6):787–794, 2003.">3</a>]</span>.</p>
+<p>To simulate any scenario, the user <strong>must</strong> provide the parameter file <code class="docutils literal notranslate"><span class="pre">param.txt</span></code> and, if necessary, the ASCII files with the initial temperature field, velocity field and/or the initial interfaces of the model. To see how these files can be created/modified, see the section <a class="reference internal" href="parameter-file.html#parameterfile"><span class="std std-ref">Parameter file</span></a> and <a class="reference internal" href="input.html#inputfiles"><span class="std std-ref">Input files</span></a>. The flowchart in <a class="reference internal" href="#mandyocscheme"><span class="std std-numref">Fig. 1.1</span></a> summarizes the steps <em>Mandyoc</em> takes to solve the conservation equations and perform a simulation.</p>
+<figure class="align-center" id="id7">
+<span id="mandyocscheme"></span><a class="reference internal image-reference" href="../_images/mandyoc-scheme.png"><img alt="Flowchart" src="../_images/mandyoc-scheme.png" style="width: 100%;" />
+</a>
+<figcaption>
+<p><span class="caption-number">Fig. 1.1 </span><span class="caption-text">Flowchart showing the steps <em>Mandyoc</em> takes to solve the equations of conservation of mass, momentum and energy.</span><a class="headerlink" href="#id7" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<p><a class="reference internal" href="#mandyocscheme"><span class="std std-numref">Fig. 1.1</span></a> shows that once the code starts running and the input files are read (<code class="docutils literal notranslate"><span class="pre">param.txt</span></code> and the ASCII input files), <em>Mandyoc</em> uses the effective viscosity field <span class="math notranslate nohighlight">\(\eta\)</span> (<a class="reference internal" href="implementation.html#equation-effective-eta">Eq. 2.28</a>) to calculate the velocity field <span class="math notranslate nohighlight">\(u\)</span> and checks if the convergence condition satisfies the tolerance <span class="math notranslate nohighlight">\(tol\)</span> as shown in <a class="reference internal" href="#equation-tol">Eq. 1.5</a> <span id="id5">[<a class="reference internal" href="references.html#id18" title="C Thieulot. Elefant: a user-friendly multipurpose geodynamics code. Solid Earth Discussions, 6(2):1949–2096, 2014.">4</a>]</span>.</p>
+<div class="math notranslate nohighlight" id="equation-tol">
+<span class="eqno">(1.5)<a class="headerlink" href="#equation-tol" title="Link to this equation">¶</a></span>\[\chi_{f}=1-\frac{(\langle f^{i}- \langle f^{i} \rangle \rangle)\cdot (\langle f^{i+1}- \langle f^{i+1} \rangle \rangle)}{|\langle f^{i}- \langle f^{i} \rangle \rangle|\cdot |\langle f^{i+1}- \langle f^{i+1} \rangle \rangle|}\leq tol\]</div>
+<p>where <span class="math notranslate nohighlight">\(f\)</span> is a vector with the components of the velocity <span class="math notranslate nohighlight">\(u\)</span> at all mesh nodes, <span class="math notranslate nohighlight">\(i\)</span> is the iteration number, the <span class="math notranslate nohighlight">\(\langle f \rangle\)</span> represents the mean value of <span class="math notranslate nohighlight">\(f\)</span>, and <span class="math notranslate nohighlight">\(tol\)</span> is the tolerance parameter.</p>
+<p>While the minimum tolerance is not reached, <em>Mandyoc</em> utilizes the Uzawa’s method to iteratively calculate new <span class="math notranslate nohighlight">\(u\)</span> and <span class="math notranslate nohighlight">\(P\)</span> fields. The updated fields modify the viscosity field <span class="math notranslate nohighlight">\(\eta\)</span>, which in turn disturbs the velocity field again. These fields are updated until tolerance is reached. By default, the tolerance value for <em>Mandyoc</em> is <span class="math notranslate nohighlight">\(10^{-6}\)</span>.</p>
+<p>Additionally, the compositional factor <span class="math notranslate nohighlight">\(C\)</span> is evaluated for an advection as in the equation below. Its solution is calculated placing randomly a number of particles within each finite element of the mesh, which are displaced based on the adjacent node velocity values <span id="id6">[<a class="reference internal" href="references.html#id16" title="Paul J Tackley and Scott D King. Testing the tracer ratio method for modeling active compositional fields in mantle convection simulations. Geochemistry, Geophysics, Geosystems, 2003.">5</a>]</span>. The individual value for each particle is obtained by linear interpolation of the node values.</p>
+<div class="math notranslate nohighlight" id="equation-advection">
+<span class="eqno">(1.6)<a class="headerlink" href="#equation-advection" title="Link to this equation">¶</a></span>\[\frac{\partial C}{\partial t} + u_{i}C_{,i} = 0\]</div>
+<p>Once the velocity field is solved, <em>Mandyoc</em> computes the temperature field as a function of the <span class="math notranslate nohighlight">\(u\)</span>, <span class="math notranslate nohighlight">\(\kappa\)</span> and <span class="math notranslate nohighlight">\(H\)</span>. In the next steps, the surface processes are computed and if the maximum time step or the maximum simulation time was not reached, the code updates the time and goes back to compute a new velocity field.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../index.html" class="btn btn-neutral float-left" title="About" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="implementation.html" class="btn btn-neutral float-right" title="2. Numerical implementation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, The Mandyoc Developers.
+      <span class="lastupdated">Last updated on Jun 11, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
