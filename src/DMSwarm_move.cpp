@@ -151,6 +151,8 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 	// Pressure
 	PetscScalar ***ppp_aux;
 
+	PetscFunctionBeginUser;
+
 	ierr = VecZeroEntries(local_V);CHKERRQ(ierr);
 
 	ierr = DMGlobalToLocalBegin(da_Veloc,Veloc_weight,INSERT_VALUES,local_V);
@@ -579,7 +581,7 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 										inter_A[layer_array[p]], inter_n[layer_array[p]], inter_Q[layer_array[p]], inter_V[layer_array[p]], layer_array[p]);
 
 			// PetscPrintf(PETSC_COMM_WORLD, "p: %d, strain: %E\n", p, strain_fac[p]);
-			
+
 			array[3*p  ] += dt * vx;
 			array[3*p+1] += dt * vy;
 			array[3*p+2] += dt * vz;
@@ -910,6 +912,8 @@ PetscErrorCode Swarm_add_remove_3d()
 
 
 	PetscScalar             ***qq_cont;
+
+	PetscFunctionBeginUser;
 
 	ierr = VecSet(geoq_cont,0.0);CHKERRQ(ierr);
 

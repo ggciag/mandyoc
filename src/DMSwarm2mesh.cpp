@@ -56,20 +56,22 @@ PetscErrorCode Swarm2Mesh_2d(){
 	PetscScalar             **qq,**qq_cont,**qq_rho,**TT,**qq_H,**qq_strain,**qq_kappa;
 	PetscScalar				**qq_strain_rate;
 
+	PetscFunctionBeginUser;
+
 	ierr = VecSet(geoq,0.0);CHKERRQ(ierr);
 	ierr = VecSet(geoq_rho,0.0);CHKERRQ(ierr);
 	ierr = VecSet(geoq_cont,0.0);CHKERRQ(ierr);
 	ierr = VecSet(geoq_H,0.0);CHKERRQ(ierr);
 	ierr = VecSet(geoq_strain,0.0);CHKERRQ(ierr);
 	ierr = VecSet(geoq_strain_rate,0.0);CHKERRQ(ierr);
-	
+
 
 	ierr = VecZeroEntries(local_geoq);CHKERRQ(ierr);
 	ierr = VecZeroEntries(local_geoq_rho);CHKERRQ(ierr);
 	ierr = VecZeroEntries(local_geoq_H);CHKERRQ(ierr);
 	ierr = VecZeroEntries(local_geoq_strain);CHKERRQ(ierr);
 	ierr = VecZeroEntries(local_geoq_strain_rate);CHKERRQ(ierr);
-	
+
 
 	ierr = DMGlobalToLocalBegin(da_Thermal,geoq,INSERT_VALUES,local_geoq);
 	ierr = DMGlobalToLocalEnd(  da_Thermal,geoq,INSERT_VALUES,local_geoq);
@@ -506,6 +508,8 @@ PetscErrorCode Swarm2Mesh_3d(){ ///!!!  geoq_kappa for 3D models have to be impl
 	PetscErrorCode ierr;
 	PetscScalar             ***qq,***qq_cont,***qq_rho,***TT,***qq_H,***qq_strain;
 	PetscScalar				***qq_strain_rate;
+
+	PetscFunctionBeginUser;
 
 	ierr = VecSet(geoq,0.0);CHKERRQ(ierr);
 	ierr = VecSet(geoq_rho,0.0);CHKERRQ(ierr);

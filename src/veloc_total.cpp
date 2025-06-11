@@ -23,6 +23,8 @@ PetscErrorCode veloc_total(int dimensions)
 {
 	PetscErrorCode ierr;
 
+	PetscFunctionBeginUser;
+
 	PetscPrintf(PETSC_COMM_WORLD,"\nSolving Stokes system:\n");
 
 	PetscInt n;

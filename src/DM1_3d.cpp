@@ -152,6 +152,8 @@ PetscErrorCode AssembleA_Thermal_3d(Mat A,DM thermal_da,PetscReal *TKe,PetscReal
 
 	Stokes					***VV;
 
+	PetscFunctionBeginUser;
+
 	ierr = VecZeroEntries(local_V);CHKERRQ(ierr);
 
 	ierr = DMGlobalToLocalBegin(veloc_da,Veloc_total,INSERT_VALUES,local_V);
@@ -183,7 +185,6 @@ PetscErrorCode AssembleA_Thermal_3d(Mat A,DM thermal_da,PetscReal *TKe,PetscReal
 
 	PetscScalar u[8*8],val_cond[1];
 
-	PetscFunctionBeginUser;
 	ierr = DMDAGetInfo(thermal_da,0,&M,&N,&P,0,0,0, 0,0,0,0,0,0);CHKERRQ(ierr);
 
 
@@ -761,6 +762,8 @@ double Thermal_profile_3d(double t, double zz){
 
 PetscErrorCode ascii2bin_3d(char *ss1, char *ss2){
 	FILE *entra;
+
+	PetscFunctionBeginUser;
 
 	//entra = fopen("Temper_0_3D.txt","r");
 	entra = fopen(ss1,"r");

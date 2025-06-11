@@ -94,6 +94,8 @@ PetscErrorCode _DMLocatePoints_DMDARegular_IS_3d(DM dm,Vec pos,IS *iscell)
 	PetscErrorCode ierr;
 	PetscMPIInt rank;
 
+	PetscFunctionBeginUser;
+
 	ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
 	ierr = VecGetLocalSize(pos,&n);CHKERRQ(ierr);
 	ierr = VecGetBlockSize(pos,&bs);CHKERRQ(ierr);
@@ -158,6 +160,8 @@ PetscErrorCode DMLocatePoints_DMDARegular_3d(DM dm,Vec pos,DMPointLocationType l
 	const PetscInt *boxCells;
 	PetscErrorCode ierr;
 
+	PetscFunctionBeginUser;
+
 	ierr = _DMLocatePoints_DMDARegular_IS_3d(dm,pos,&iscell);CHKERRQ(ierr);
 
 	//PetscPrintf(PETSC_COMM_WORLD,"teste swarm\n");
@@ -188,6 +192,8 @@ PetscErrorCode DMGetNeighbors_DMDARegular_3d(DM dm,PetscInt *nneighbors,const Pe
 	DM dmregular;
 	PetscErrorCode ierr;
 
+	PetscFunctionBeginUser;
+
 	ierr = DMGetApplicationContext(dm,(void**)&dmregular);CHKERRQ(ierr);
 	ierr = DMGetNeighbors(dmregular,nneighbors,neighbors);CHKERRQ(ierr);
 	PetscFunctionReturn(0);
@@ -205,6 +211,8 @@ PetscErrorCode SwarmViewGP_3d(DM dms,const char prefix[])
 	char name[PETSC_MAX_PATH_LEN];
 	PetscMPIInt rank;
 	PetscErrorCode ierr;
+
+	PetscFunctionBeginUser;
 
 	ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
 	PetscSNPrintf(name,PETSC_MAX_PATH_LEN-1,"%s-rank_new%d.txt",prefix,rank);
@@ -238,6 +246,8 @@ PetscErrorCode SwarmViewGP_3d(DM dms,const char prefix[])
 PetscErrorCode createSwarm_3d()
 {
 	PetscErrorCode ierr=0;
+
+	PetscFunctionBeginUser;
 
 	PetscMPIInt rank;
 	ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);

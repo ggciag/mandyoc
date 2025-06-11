@@ -111,6 +111,7 @@ PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt
 	DMBoundaryType boundary_type;
 	PetscErrorCode ierr;
 
+	PetscFunctionBeginUser;
 
 
 	int rank;
@@ -324,6 +325,8 @@ PetscErrorCode build_thermal(int dimensions)
 
 	PetscErrorCode ierr;
 
+	PetscFunctionBeginUser;
+
 	int rank;
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
 
@@ -355,6 +358,8 @@ PetscErrorCode solve_thermal(int dimensions)
 {
 	PetscErrorCode ierr;
 	PetscLogDouble Tempo1,Tempo2;
+
+	PetscFunctionBeginUser;
 
 	int rank;
 
@@ -390,6 +395,8 @@ PetscErrorCode solve_thermal(int dimensions)
 PetscErrorCode Heat_flow_at_the_base(){
 	PetscErrorCode ierr;
 	PetscScalar  **TT;
+
+	PetscFunctionBeginUser;
 
 	ierr = DMGlobalToLocalBegin(da_Thermal,Temper,INSERT_VALUES,local_Temper);
 	ierr = DMGlobalToLocalEnd(  da_Thermal,Temper,INSERT_VALUES,local_Temper);
@@ -456,6 +463,8 @@ PetscErrorCode destroy_thermal_()
 
 	int rank;
 
+	PetscFunctionBeginUser;
+
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
 	PetscLogDouble Tempo1,Tempo2;
 	PetscTime(&Tempo1);
@@ -478,6 +487,8 @@ PetscErrorCode destroy_thermal_()
 PetscErrorCode write_all_(int cont,Vec u, char *variable_name, PetscInt binary_out)
 {
 	int rank;
+
+	PetscFunctionBeginUser;
 
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
 	PetscLogDouble Tempo1,Tempo2;
@@ -509,6 +520,8 @@ PetscErrorCode write_pressure(int cont, PetscInt binary_out)
 {
 	char variable_name[100];
 
+	PetscFunctionBeginUser;
+
 	sprintf(variable_name,"pressure");
 	write_all_(cont,Pressure_aux,variable_name,binary_out);
 
@@ -519,6 +532,8 @@ PetscErrorCode write_geoq_(int cont, PetscInt binary_out)
 {
 
 	char variable_name[100];
+
+	PetscFunctionBeginUser;
 
 	sprintf(variable_name,"viscosity");
 	write_all_(cont,geoq,variable_name,binary_out);
