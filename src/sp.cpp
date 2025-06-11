@@ -451,7 +451,7 @@ PetscErrorCode sp_evaluate_surface_processes_2d_diffusion(PetscReal dt)
     PetscInt si;
     PetscInt nlocal;
     PetscReal *array;
-    PetscInt n
+    PetscInt n;
 
     PetscFunctionBeginUser;
 
