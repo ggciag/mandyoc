@@ -1,4 +1,5 @@
 #include <petscksp.h>
+#include "sp_mode.h"
 
 // Prototypes
 int check_a_b(char tkn_w[], char tkn_v[], const char str_a[], const char str_b[]);
@@ -75,7 +76,7 @@ extern PetscInt bcv_extern;
 extern PetscInt binary_output;
 extern PetscInt sticky_blanket_air;
 extern PetscInt multi_velocity;
-extern PetscInt sp_mode;
+extern SP_Mode sp_mode;
 extern PetscInt free_surface_stab;
 extern PetscInt print_step_files;
 extern PetscInt RK4;
@@ -98,6 +99,9 @@ extern PetscBool sp_surface_tracking;
 extern PetscBool sp_surface_processes;
 extern PetscReal sp_d_c;
 extern PetscBool set_sp_d_c;
+extern PetscReal Ks;
+extern PetscReal lambda_s;
+extern PetscInt dms_s_ppe;
 extern PetscInt high_kappa_in_asthenosphere;
 extern PetscBool plot_sediment;
 extern PetscBool a2l;
@@ -235,7 +239,6 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "sub_division_time_step") == 0) {sub_division_time_step = atof(tkn_v);}
 			else if (strcmp(tkn_w, "particles_perturb_factor") == 0) {particles_perturb_factor = atof(tkn_v);}
 			else if (strcmp(tkn_w, "rtol") == 0) {rtol = atof(tkn_v);}
-			else if (strcmp(tkn_w, "sp_mode") == 0) {sp_mode = atoi(tkn_v);}
 			else if (strcmp(tkn_w, "Xi_min") == 0) {Xi_min = atof(tkn_v);}
 			else if (strcmp(tkn_w, "random_initial_strain") == 0) {random_initial_strain = atof(tkn_v);}
 			else if (strcmp(tkn_w, "pressure_const") == 0) {pressure_const = atof(tkn_v);}
@@ -249,8 +252,14 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "sea_level") == 0) {sea_level = atof(tkn_v);}
 			else if (strcmp(tkn_w, "basal_heat") == 0) {basal_heat = atof(tkn_v);}
 			else if (strcmp(tkn_w, "sp_d_c") == 0) {sp_d_c = atof(tkn_v);}
+			else if (strcmp(tkn_w, "sp_Ks") == 0) {Ks = atof(tkn_v);}
+			else if (strcmp(tkn_w, "sp_lambda_s") == 0) {lambda_s = atof(tkn_v);}
+			else if (strcmp(tkn_w, "surface_particles_per_element") == 0) {dms_s_ppe = atoi(tkn_v);}
 			else if (strcmp(tkn_w, "weakening_min") == 0) {weakening_min = atof(tkn_v);}
 			else if (strcmp(tkn_w, "weakening_max") == 0) {weakening_max = atof(tkn_v);}
+
+			// String parameters
+			else if (strcmp(tkn_w, "sp_mode") == 0) {sp_mode = sp_mode_from_string(tkn_v);}
 
 			// Boolean parameters
 			else if (strcmp(tkn_w, "geoq") == 0) {geoq_on = check_a_b(tkn_w, tkn_v, "on", "off");}
@@ -469,6 +478,9 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&sp_surface_processes,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&sp_d_c,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&set_sp_d_c,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&Ks,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&lambda_s,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&dms_s_ppe,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&plot_sediment,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&a2l,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&weakening_min,1,MPIU_REAL,0,PETSC_COMM_WORLD);
@@ -1069,4 +1081,44 @@ PetscBool check_prop(char *s)
 		}
 	}
 	return PETSC_FALSE;
+}
+
+SP_Mode sp_mode_from_string(const char* str) {
+	if (strcmp(str, "none") == 0) {
+		return SP_NONE;
+	}
+    if (strcmp(str, "diffusion") == 0) {
+        return SP_DIFFUSION;
+    }
+	if (strcmp(str, "sedimentation_only") == 0) {
+        return SP_SEDIMENTATION_ONLY;
+    }
+	if (strcmp(str, "diffusion_sedimentation_only") == 0) {
+        return SP_DIFFUSION_SEDIMENTATION_ONLY;
+    }
+
+    fprintf(stderr, "Error: Unknown sp_mode '%s'\nValid modes are:\n", str);
+    for (const char** mode = valid_modes; *mode; mode++) {
+        fprintf(stderr, "%s\n", *mode);
+    }
+
+    exit(1);
+}
+
+const char* sp_mode_to_string(SP_Mode mode) {
+    switch(mode) {
+		case SP_NONE:
+			return "none";
+        case SP_DIFFUSION:
+			return "diffusion";
+		case SP_SEDIMENTATION_ONLY:
+			return "sedimentation_only";
+		case SP_DIFFUSION_SEDIMENTATION_ONLY:
+			return "diffusion_sedimentation_only";
+    }
+
+	// If execution reaches here, it's a programming error
+	fprintf(stderr, "Invalid mode value: %d\n", (int)mode);
+
+    exit(1);
 }

@@ -59,6 +59,7 @@ PetscErrorCode sp_evaluate_surface_processes(PetscInt dimensions, PetscReal dt);
 PetscErrorCode sp_update_surface_swarm_particles_properties();
 PetscErrorCode sp_destroy();
 PetscErrorCode sp_view_2d(DM dm, const char prefix[]);
+PetscErrorCode validate_sp_mode_combination(PetscBool sp_enabled, SP_Mode mode);
 
 int main(int argc,char **args)
 {
@@ -108,25 +109,36 @@ int main(int argc,char **args)
 		PetscPrintf(PETSC_COMM_WORLD, "Error: The number of layers specified in command line \"-seed\" command is higher than the number in \"param.txt\".\n");
 	}
 
-	// Check surface processes configuration
-	if (sp_surface_processes == PETSC_TRUE && (sp_mode != 1)) {
-		PetscPrintf(PETSC_COMM_WORLD, "Error: Invalid \"sp_mode\" in \"param.txt\".\n");
-		exit(1);
-	}
-
 	PetscPrintf(PETSC_COMM_WORLD, "Number of seed layers: %d\n", seed_layer_size);
 	for (int k = 0; k < seed_layer_size; k++) {
 		PetscPrintf(PETSC_COMM_WORLD, "seed layer: %d - strain: %lf\n", seed_layer[k], strain_seed_layer[k]);
 	}
 	PetscPrintf(PETSC_COMM_WORLD, "\n");
 
-	// surface processes
-	if (sp_surface_processes == PETSC_TRUE && sp_mode == 1) {
+	// Check surface processes setup
+	ierr = validate_sp_mode_combination(sp_surface_processes, sp_mode); CHKERRQ(ierr);
+
+	// TODO: improve log for surface process parameters
+	if (sp_surface_processes == PETSC_TRUE) {
+		ierr = PetscPrintf(PETSC_COMM_WORLD, "sp_mode = \"%s\"\n", sp_mode_to_string(sp_mode)); CHKERRQ(ierr);
+	}
+
+	if (sp_mode == SP_DIFFUSION) {
+		ierr = PetscPrintf(PETSC_COMM_WORLD, "sp_d_c = %.3e ", sp_d_c); CHKERRQ(ierr);
+
 		if (set_sp_d_c == PETSC_FALSE) {
-			ierr = PetscPrintf(PETSC_COMM_WORLD, "'sp_mode=1' (diffusion) using default value: sp_d_c %e\n", sp_d_c); CHKERRQ(ierr);
+			ierr = PetscPrintf(PETSC_COMM_WORLD, "(default)\n\n"); CHKERRQ(ierr);
 		} else {
-			ierr = PetscPrintf(PETSC_COMM_WORLD, "'sp_mode=1' (diffusion) using custom value: sp_d_c %e\n", sp_d_c); CHKERRQ(ierr);
+			ierr = PetscPrintf(PETSC_COMM_WORLD, "(custom)\n\n"); CHKERRQ(ierr);
 		}
+	}
+	else if (sp_mode == SP_SEDIMENTATION_ONLY) {
+		ierr = PetscPrintf(PETSC_COMM_WORLD, "sea_level = %.3e\n\n", sea_level); CHKERRQ(ierr);
+	}
+	else if (sp_mode == SP_DIFFUSION_SEDIMENTATION_ONLY) {
+		ierr = PetscPrintf(PETSC_COMM_WORLD, "sea_level = %.3e\n", sea_level); CHKERRQ(ierr);
+		ierr = PetscPrintf(PETSC_COMM_WORLD, "Ks = %.3e\n", Ks); CHKERRQ(ierr);
+		ierr = PetscPrintf(PETSC_COMM_WORLD, "lambda_s = %.3e\n\n", lambda_s); CHKERRQ(ierr);
 	}
 
 	// Update elements aux constants
@@ -518,4 +530,33 @@ PetscErrorCode multi_veloc_change(Vec Veloc_fut,double tempo){
 		}
 	}
 	PetscFunctionReturn(0);
+}
+
+PetscErrorCode validate_sp_mode_combination(PetscBool sp_enabled, SP_Mode mode) {
+    if (sp_enabled == PETSC_TRUE) {
+        if (mode != SP_NONE) {
+			PetscFunctionReturn(0);
+		}
+
+        PetscPrintf(PETSC_COMM_WORLD,
+            "Error: Surface processes enabled, but mode is \"none\"\n"
+            "Valid modes are:\n");
+			for (const char** m = valid_modes + 1; *m; m++) {
+				PetscPrintf(PETSC_COMM_WORLD, "  %s\n", *m);
+			}
+
+			PetscPrintf(PETSC_COMM_WORLD, "\n");
+    }
+    else {
+        if (mode == SP_NONE) {
+			PetscFunctionReturn(0);
+		}
+
+        PetscPrintf(PETSC_COMM_WORLD,
+            "Error: Surface processes disabled, but mode is \"%s\"\n"
+            "Required mode when disabled: \"none\"\n\n",
+            sp_mode_to_string(mode));
+    }
+
+    PETSCABORT(PETSC_COMM_WORLD, PETSC_ERR_USER);
 }

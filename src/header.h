@@ -2,6 +2,8 @@
 #define GIT_VERSION "git-version-unavailable"
 #endif
 
+#include "sp_mode.h"
+
 // Parameter file numerical variables
 PetscReal rtol = PETSC_DEFAULT;
 PetscReal denok_min = 1.0E-4;
@@ -9,7 +11,6 @@ PetscInt particles_per_ele = 81;
 PetscReal theta_FSSA = 0.5;
 PetscReal sub_division_time_step = 1.0;
 PetscReal particles_perturb_factor = 0.5;
-PetscInt sp_mode = 0;
 PetscReal Xi_min = 1.0E-14;
 PetscReal random_initial_strain = 0;
 PetscReal pressure_const = -1.0;
@@ -23,6 +24,8 @@ PetscScalar m_fluvial = 1.0;
 PetscScalar sea_level = 0.0;
 PetscScalar basal_heat = -1.0;
 PetscScalar sp_d_c = 0.0;
+// Parameter file string variables
+SP_Mode sp_mode;
 // Parameter file boolean variables
 PetscInt WITH_NON_LINEAR = 0; // 1=True, 0=False
 PetscInt WITH_ADIABATIC_H = 0; // 1=True, 0=False
@@ -387,5 +390,5 @@ DM dms_s;
 PetscInt dms_s_ppe = 2; // dm swarm surface number of particles per element
 PetscInt buffer_s;
 
-// sp_mode
-// 1 - diffusion
+PetscReal Ks = 1.0e2; // Submarine diffusion coefficient Ks [m2 year-1] // Kaufman et al. (1991)
+PetscReal lambda_s = 5.0e-4; // Submarine diffusion coefficient decay lambda_s [m-1] // // Kaufman et al. (1991)
