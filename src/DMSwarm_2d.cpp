@@ -84,6 +84,8 @@ extern PetscReal random_initial_strain;
 
 extern PetscInt binary_output;
 
+extern PetscBool export_lithology;
+
 
 
 PetscErrorCode _DMLocatePoints_DMDARegular_IS_2d(DM dm,Vec pos,IS *iscell)
@@ -257,6 +259,77 @@ PetscErrorCode SwarmViewGP_2d(DM dms,const char prefix[])
 				fwrite(&strain_fac[p],sizeof(strain_fac[0]),1,fp);
 			}
 		}
+	}
+	ierr = DMSwarmRestoreField(dms,"itag",NULL,NULL,(void**)&iarray);CHKERRQ(ierr);
+	ierr = DMSwarmRestoreField(dms,"layer",NULL,NULL,(void**)&layer_array);CHKERRQ(ierr);
+	ierr = DMSwarmRestoreField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
+	ierr = DMSwarmRestoreField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
+	fclose(fp);
+	PetscFunctionReturn(0);
+}
+
+PetscErrorCode ViewLithology_2d(DM dms,const char prefix[]){
+	PetscReal *array;
+	PetscInt *iarray;
+	PetscInt *layer_array;
+	PetscReal *strain_fac;
+	PetscInt npoints,p,bs;
+	FILE *fp;
+	char name[PETSC_MAX_PATH_LEN];
+	PetscMPIInt rank;
+	PetscErrorCode ierr;
+
+	PetscFunctionBeginUser;
+
+	ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
+	if (binary_output==0){
+		PetscSNPrintf(name,PETSC_MAX_PATH_LEN-1,"%s_%d.txt",prefix,rank);
+		fp = fopen(name,"w");
+	}
+	else{
+		PetscSNPrintf(name,PETSC_MAX_PATH_LEN-1,"%s_%d.bin",prefix,rank);
+		fp = fopen(name,"wb");
+	}
+
+
+	if (!fp) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Cannot open file %s",name);
+	ierr = DMSwarmGetLocalSize(dms,&npoints);CHKERRQ(ierr);
+	//printf("npoints = %d\n",npoints);
+	ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
+	ierr = DMSwarmGetField(dms,"itag",NULL,NULL,(void**)&iarray);CHKERRQ(ierr);
+	ierr = DMSwarmGetField(dms,"layer",NULL,NULL,(void**)&layer_array);CHKERRQ(ierr);
+	ierr = DMSwarmGetField(dms,"strain_fac",NULL,NULL,(void**)&strain_fac);CHKERRQ(ierr);
+	if (binary_output==0){
+		for (p=0; p<npoints; p++) {
+			fprintf(fp,"%d %d %d\n",(int)(array[2*p]*5/dx_const),(int)(-array[2*p+1]*5/dz_const),layer_array[p]);
+		}
+	}
+	else{
+		/*int cont_print=0;
+		for (p=0;p<npoints; p++) {
+			if (iarray[p]>9999 || (PETSC_TRUE == plot_sediment && layer_array[p] == n_interfaces - 1)) cont_print++;
+		}
+		fwrite(&cont_print,sizeof(cont_print),1,fp);
+		for (p=0;p<npoints; p++) {
+			if (iarray[p]>9999 || (PETSC_TRUE == plot_sediment && layer_array[p] == n_interfaces - 1)){
+				fwrite(&array[2*p],sizeof(array[0]),2,fp);
+			}
+		}
+		for (p=0;p<npoints; p++) {
+			if (iarray[p]>9999 || (PETSC_TRUE == plot_sediment && layer_array[p] == n_interfaces - 1)){
+				fwrite(&iarray[p],sizeof(iarray[0]),1,fp);
+			}
+		}
+		for (p=0;p<npoints; p++) {
+			if (iarray[p]>9999 || (PETSC_TRUE == plot_sediment && layer_array[p] == n_interfaces - 1)){
+				fwrite(&layer_array[p],sizeof(layer_array[0]),1,fp);
+			}
+		}
+		for (p=0;p<npoints; p++) {
+			if (iarray[p]>9999 || (PETSC_TRUE == plot_sediment && layer_array[p] == n_interfaces - 1)){
+				fwrite(&strain_fac[p],sizeof(strain_fac[0]),1,fp);
+			}
+		}*/
 	}
 	ierr = DMSwarmRestoreField(dms,"itag",NULL,NULL,(void**)&iarray);CHKERRQ(ierr);
 	ierr = DMSwarmRestoreField(dms,"layer",NULL,NULL,(void**)&layer_array);CHKERRQ(ierr);
@@ -486,6 +559,10 @@ PetscErrorCode createSwarm_2d()
 		ierr = SwarmViewGP_2d(dms,"step_0");CHKERRQ(ierr);
 	}
 
+
+	if (export_lithology==PETSC_TRUE){ //!!! Must be implemented for 3D version
+		ierr = ViewLithology_2d(dms,"litho_0");CHKERRQ(ierr);
+	}
 
 	MPI_Barrier(PETSC_COMM_WORLD);
 

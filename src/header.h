@@ -381,6 +381,8 @@ PetscReal air_threshold_density;
 
 PetscBool export_kappa = PETSC_FALSE;
 
+PetscBool export_lithology = PETSC_FALSE;
+
 // surface processes
 DM dmcell_s;
 DM dms_s;

@@ -39,6 +39,7 @@ PetscErrorCode Swarm_add_remove_2d();
 PetscErrorCode Swarm_add_remove_3d();
 PetscErrorCode SwarmViewGP_2d(DM dms,const char prefix[]);
 PetscErrorCode SwarmViewGP_3d(DM dms,const char prefix[]);
+PetscErrorCode ViewLithology_2d(DM dms,const char prefix[]);
 PetscErrorCode Init_Veloc(int dimensions);
 PetscErrorCode reader(int rank, const char fName[]);
 PetscErrorCode write_veloc(int cont, PetscInt binary_out);
@@ -64,6 +65,7 @@ int main(int argc,char **args)
 {
 	PetscErrorCode ierr;
 	char prefix[PETSC_MAX_PATH_LEN];
+	char prefix_litho[PETSC_MAX_PATH_LEN];
 
 	PetscFunctionBeginUser;
 
@@ -319,12 +321,18 @@ int main(int argc,char **args)
 			ierr = write_pressure(tcont,binary_output);
 			ierr = write_tempo(tcont);
 			PetscSNPrintf(prefix,PETSC_MAX_PATH_LEN-1,"step_%d",tcont);
+			PetscSNPrintf(prefix_litho,PETSC_MAX_PATH_LEN-1,"litho_%d",tcont);
 			if (geoq_on){
 				if (print_step_files==1){
 					if (dimensions == 2) {
 						ierr = SwarmViewGP_2d(dms,prefix);CHKERRQ(ierr);
 					} else {
 						ierr = SwarmViewGP_3d(dms,prefix);CHKERRQ(ierr);
+					}
+				}
+				if (export_lithology==PETSC_TRUE){ //!!! Must be implemented for 3D version
+					if (dimensions == 2) {
+						ierr = ViewLithology_2d(dms,prefix_litho);CHKERRQ(ierr);
 					}
 				}
 
