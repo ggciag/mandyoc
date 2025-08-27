@@ -63,7 +63,7 @@ sticky_blanket_air                  = False         # default is False [True/Fal
 print_step_files                    = True          # default is True [True/False]
 checkered                           = False         # Print one element in the print_step_files (default is False [True/False])
 
-sp_mode                             = 1             # default is 1 [0/1/2]
+sp_mode                             =  none
 
 geoq                                = on
 geoq_fac                            = 100.0
