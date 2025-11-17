@@ -332,6 +332,7 @@ PetscReal sp_evaluate_adjusted_mean_elevation_with_sea_level()
     ierr = MPI_Bcast(&hsl, 1, MPIU_SCALAR, 0, PETSC_COMM_WORLD); CHKERRQ(ierr);
 
     ierr = VecRestoreArray(seq_surface, &seq_array); CHKERRQ(ierr);
+    ierr = VecDestroy(&seq_surface); CHKERRQ(ierr);
 
     return hsl;
 }
@@ -614,6 +615,7 @@ PetscErrorCode sp_evaluate_surface_processes_2d_diffusion(PetscReal dt)
 
     ierr = DMSwarmRestoreField(dms_s, DMSwarmPICField_coor, &bs, NULL, (void **)&array); CHKERRQ(ierr);
     ierr = VecRestoreArray(seq_surface, &seq_array); CHKERRQ(ierr);
+    ierr = VecDestroy(&seq_surface); CHKERRQ(ierr);
 
     PetscFunctionReturn(0);
 }
@@ -841,6 +843,7 @@ PetscErrorCode sp_evaluate_surface_processes_2d_sedimentation_rate_limited(Petsc
 
     ierr = DMSwarmRestoreField(dms_s, DMSwarmPICField_coor, &bs, NULL, (void **)&array); CHKERRQ(ierr);
     ierr = VecRestoreArray(seq_surface, &seq_array); CHKERRQ(ierr);
+    ierr = VecDestroy(&seq_surface); CHKERRQ(ierr);
 
 
     PetscFunctionReturn(0);
@@ -947,6 +950,8 @@ PetscErrorCode sp_update_surface_swarm_particles_properties()
 	ierr = DMSwarmRestoreField(dms, "strain_fac", &bs, NULL, (void**)&strain_fac);CHKERRQ(ierr);
     ierr = DMSwarmRestoreField(dms, DMSwarmPICField_coor, &bs, NULL, (void**)&pcoords); CHKERRQ(ierr);
     ierr = VecRestoreArray(seq_surface, &seq_array); CHKERRQ(ierr);
+    ierr = VecDestroy(&seq_surface); CHKERRQ(ierr);
+
     pcoords = NULL;
 
     ierr = DMSwarmMigrate(dms, PETSC_TRUE); CHKERRQ(ierr);
@@ -1039,6 +1044,7 @@ PetscErrorCode sp_view_2d(DM dm, const char prefix[])
     }
 
     ierr = VecRestoreArray(seq_surface, &seq_array); CHKERRQ(ierr);
+    ierr = VecDestroy(&seq_surface); CHKERRQ(ierr);
 
 	PetscFunctionReturn(0);
 }
