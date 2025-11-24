@@ -266,7 +266,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "surface_particles_per_element") == 0) {dms_s_ppe = atoi(tkn_v);}
 			else if (strcmp(tkn_w, "weakening_min") == 0) {weakening_min = atof(tkn_v);}
 			else if (strcmp(tkn_w, "weakening_max") == 0) {weakening_max = atof(tkn_v);}
-			else if (strcmp(tkn_w, "bottom_temperature_change_rate") == 0) {bottom_temperature_change_rate = atof(tkn_v); bottom_temperature_change_rate*=seg_per_ano;}
+			else if (strcmp(tkn_w, "bottom_temperature_change_rate") == 0) {bottom_temperature_change_rate = atof(tkn_v); bottom_temperature_change_rate/=seg_per_ano;}
 
 			// String parameters
 			else if (strcmp(tkn_w, "sp_mode") == 0) {sp_mode = sp_mode_from_string(tkn_v);}
