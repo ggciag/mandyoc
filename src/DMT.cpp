@@ -404,8 +404,8 @@ PetscErrorCode Heat_flow_at_the_base(){
 
 	PetscFunctionBeginUser;
 
-	ierr = DMGlobalToLocalBegin(da_Thermal,Temper_0,INSERT_VALUES,local_Temper);
-	ierr = DMGlobalToLocalEnd(  da_Thermal,Temper_0,INSERT_VALUES,local_Temper);
+	ierr = DMGlobalToLocalBegin(da_Thermal,Temper,INSERT_VALUES,local_Temper);
+	ierr = DMGlobalToLocalEnd(  da_Thermal,Temper,INSERT_VALUES,local_Temper);
 
 	ierr = DMDAVecGetArray(da_Thermal,local_Temper,&TT);CHKERRQ(ierr);
 
@@ -427,8 +427,8 @@ PetscErrorCode Heat_flow_at_the_base(){
 	}
 
 	ierr = DMDAVecRestoreArray(da_Thermal,local_Temper,&TT);CHKERRQ(ierr);
-	ierr = DMLocalToGlobalBegin(da_Thermal,local_Temper,INSERT_VALUES,Temper_0);CHKERRQ(ierr);
-	ierr = DMLocalToGlobalEnd(da_Thermal,local_Temper,INSERT_VALUES,Temper_0);CHKERRQ(ierr);
+	ierr = DMLocalToGlobalBegin(da_Thermal,local_Temper,INSERT_VALUES,Temper);CHKERRQ(ierr);
+	ierr = DMLocalToGlobalEnd(da_Thermal,local_Temper,INSERT_VALUES,Temper);CHKERRQ(ierr);
 
 	PetscFunctionReturn(0);
 
@@ -441,8 +441,8 @@ PetscErrorCode Bottom_linear_temperature_change(){
 
 	PetscFunctionBeginUser;
 
-	ierr = DMGlobalToLocalBegin(da_Thermal,Temper,INSERT_VALUES,local_Temper);
-	ierr = DMGlobalToLocalEnd(  da_Thermal,Temper,INSERT_VALUES,local_Temper);
+	ierr = DMGlobalToLocalBegin(da_Thermal,Temper_0,INSERT_VALUES,local_Temper);
+	ierr = DMGlobalToLocalEnd(  da_Thermal,Temper_0,INSERT_VALUES,local_Temper);
 
 	ierr = DMDAVecGetArray(da_Thermal,local_Temper,&TT);CHKERRQ(ierr);
 
@@ -461,8 +461,8 @@ PetscErrorCode Bottom_linear_temperature_change(){
 	}
 
 	ierr = DMDAVecRestoreArray(da_Thermal,local_Temper,&TT);CHKERRQ(ierr);
-	ierr = DMLocalToGlobalBegin(da_Thermal,local_Temper,INSERT_VALUES,Temper);CHKERRQ(ierr);
-	ierr = DMLocalToGlobalEnd(da_Thermal,local_Temper,INSERT_VALUES,Temper);CHKERRQ(ierr);
+	ierr = DMLocalToGlobalBegin(da_Thermal,local_Temper,INSERT_VALUES,Temper_0);CHKERRQ(ierr);
+	ierr = DMLocalToGlobalEnd(da_Thermal,local_Temper,INSERT_VALUES,Temper_0);CHKERRQ(ierr);
 
 	PetscFunctionReturn(0);
 
