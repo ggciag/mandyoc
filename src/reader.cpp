@@ -8,6 +8,8 @@ PetscBool check_a_b_bool(char tkn_w[], char tkn_v[], const char str_a[], const c
 void ErrorInterfaces();
 PetscBool check_prop(char *s);
 
+extern double seg_per_ano;
+
 // Parameter file variables
 extern int dimensions;
 extern long Nx, Ny, Nz;
@@ -105,6 +107,7 @@ extern PetscBool plot_sediment;
 extern PetscBool a2l;
 extern PetscBool export_kappa;
 extern PetscBool export_lithology;
+extern PetscReal bottom_temperature_change_rate;
 
 // Removed from parameter file
 extern double H_lito;
@@ -263,6 +266,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "surface_particles_per_element") == 0) {dms_s_ppe = atoi(tkn_v);}
 			else if (strcmp(tkn_w, "weakening_min") == 0) {weakening_min = atof(tkn_v);}
 			else if (strcmp(tkn_w, "weakening_max") == 0) {weakening_max = atof(tkn_v);}
+			else if (strcmp(tkn_w, "bottom_temperature_change_rate") == 0) {bottom_temperature_change_rate = atof(tkn_v); bottom_temperature_change_rate*=seg_per_ano;}
 
 			// String parameters
 			else if (strcmp(tkn_w, "sp_mode") == 0) {sp_mode = sp_mode_from_string(tkn_v);}
@@ -493,6 +497,8 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&weakening_min,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&weakening_max,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&export_kappa,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&bottom_temperature_change_rate,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	
 
 	MPI_Bcast(&export_lithology,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 

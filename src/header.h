@@ -52,6 +52,7 @@ PetscInt checkered = 0; // 1=True, 0=False
 PetscInt initial_dynamic_range = 0; // 1=True, 0=False
 PetscInt periodic_boundary = 0; // 1=True, 0=False
 PetscInt high_kappa_in_asthenosphere = 0; // 1=True, 0=False
+PetscReal bottom_temperature_change_rate = 0.0;
 // Will be added to param.txt
 PetscBool sp_surface_tracking = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
 PetscBool sp_surface_processes = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE

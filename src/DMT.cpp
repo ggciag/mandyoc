@@ -24,10 +24,12 @@ PetscErrorCode Thermal_init_2d(Vec F,DM thermal_da);
 PetscErrorCode Thermal_init_3d(Vec F,DM thermal_da);
 
 PetscErrorCode Heat_flow_at_the_base();
+PetscErrorCode Bottom_linear_temperature_change();
 
 extern double Lx, Ly, depth;
 
 extern double dz_const;
+extern double dt_calor_sec;
 
 extern PetscReal *NT;
 extern PetscReal *NT_x;
@@ -101,6 +103,8 @@ extern PetscScalar basal_heat;
 extern double kappa;
 extern double RHOM;
 extern double c_heat_capacity;
+
+extern PetscReal bottom_temperature_change_rate;
 
 extern  PetscBool export_kappa;
 
@@ -383,6 +387,7 @@ PetscErrorCode solve_thermal(int dimensions)
 		VecAXPY(Temper,1.0,Temper_0); ///applying Teloc_0 in Teloc at the b.c.
 
 		if (basal_heat>0) Heat_flow_at_the_base();
+		if (bottom_temperature_change_rate!=0.0) Bottom_linear_temperature_change();
 	}
 
 	PetscTime(&Tempo2);
@@ -416,6 +421,40 @@ PetscErrorCode Heat_flow_at_the_base(){
 		for (i=sx; i<sx+mmx; i++) {
 			if (k==0){
 				TT[k][i]=TT[k+1][i]+delta_T_basal;
+			}
+		}
+	}
+
+	ierr = DMDAVecRestoreArray(da_Thermal,local_Temper,&TT);CHKERRQ(ierr);
+	ierr = DMLocalToGlobalBegin(da_Thermal,local_Temper,INSERT_VALUES,Temper);CHKERRQ(ierr);
+	ierr = DMLocalToGlobalEnd(da_Thermal,local_Temper,INSERT_VALUES,Temper);CHKERRQ(ierr);
+
+	PetscFunctionReturn(0);
+
+}
+
+PetscErrorCode Bottom_linear_temperature_change(){
+
+	PetscErrorCode ierr;
+	PetscScalar  **TT;
+
+	PetscFunctionBeginUser;
+
+	ierr = DMGlobalToLocalBegin(da_Thermal,Temper,INSERT_VALUES,local_Temper);
+	ierr = DMGlobalToLocalEnd(  da_Thermal,Temper,INSERT_VALUES,local_Temper);
+
+	ierr = DMDAVecGetArray(da_Thermal,local_Temper,&TT);CHKERRQ(ierr);
+
+	PetscInt       sx,sz,mmx,mmz;
+
+	ierr = DMDAGetCorners(da_Thermal,&sx,&sz,NULL,&mmx,&mmz,NULL);CHKERRQ(ierr);
+
+	int k,i;
+
+	for (k=sz; k<sz+mmz; k++) {
+		for (i=sx; i<sx+mmx; i++) {
+			if (k==0) {
+				TT[k][i]+= bottom_temperature_change_rate*dt_calor_sec; //change the temperature of the bottom of the domain at a constant rate
 			}
 		}
 	}
