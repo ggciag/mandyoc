@@ -889,8 +889,12 @@ PetscErrorCode sp_evaluate_surface_processes_2d_theunissen(PetscReal dt){
     Vec global_surface;
     Vec seq_surface;
     VecScatter ctx;
-    PetscReal *seq_array;
-    PetscReal *array;
+
+    PetscReal *seq_array = NULL;
+    PetscReal *seq_array_copy = NULL;
+    PetscReal *seq_array_aux = NULL;
+    PetscReal *array = NULL;
+
     PetscReal Ld=35000.0; // (m) characteristic length scale   
 
     // Data to process rank 0
