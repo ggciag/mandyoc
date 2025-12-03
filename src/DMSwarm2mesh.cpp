@@ -402,7 +402,7 @@ PetscErrorCode Swarm2Mesh_2d(){
 				k = (int)((cz+depth)/dz_const);
 
 				qq[k][i] += geoq_fac[p];
-				qq_kappa[k][i] += conductivity[layer_array[p]];
+				qq_kappa[k][i] += 1/conductivity[layer_array[p]]; //<--- harmonic conductivity
 				qq_cont[k][i] += 1.0;
 			}
 		}
@@ -422,8 +422,8 @@ PetscErrorCode Swarm2Mesh_2d(){
 
 		VecPointwiseDivide(geoq,geoq,geoq_cont);
 		VecPointwiseDivide(geoq_kappa,geoq_kappa,geoq_cont);
-		if (visc_harmonic_mean==1) VecReciprocal(geoq); //<--- harmonic
-		if (visc_harmonic_mean==1) VecReciprocal(geoq_kappa); //<--- harmonic
+		if (visc_harmonic_mean==1) VecReciprocal(geoq); //<--- harmonic viscosity
+		VecReciprocal(geoq_kappa); //<--- harmonic conductivity
 
 	}
 
