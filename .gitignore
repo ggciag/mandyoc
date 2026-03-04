@@ -8,6 +8,7 @@ docs/_build
 
 # Ignore output when run the test
 tests/**/output
+tests/test_summary.txt
 
 # Ignore output when run the examples
 examples/*/density_*

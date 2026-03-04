@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# exit when any command fails
-set -e
-
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # scenarios to test
@@ -15,10 +12,13 @@ declare -a scenarios=(
     "two_layers_with_variable_conductivity"
 )
 
+# Delete old test summary
+rm -rf "${SCRIPT_DIR}/test_summary.txt"
+
 # Run scenarios
 for scenario in "${scenarios[@]}"
 do
-    echo -e "\n==> Running scenario: ${scenario} <===\n"
+    echo -e "\n==> Running simulation: ${scenario} <==\n"
 
     # Remove old output
     rm -rf "${SCRIPT_DIR}/data/${scenario}/output"
@@ -31,6 +31,7 @@ do
         MANDYOC=${MANDYOC} bash run.sh
 done
 
-# Run tests
+echo -e "\n==> Verifying results <==\n"
+
 cd "${SCRIPT_DIR}" && \
-    pytest -v testing_results.py
+    pytest -v testing_results.py --tb=line -rf | tee test_summary.txt
