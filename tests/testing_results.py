@@ -22,6 +22,11 @@ MAIN_FIELDS = [
     "viscosity",
 ]
 
+MAGMATISM_FIELDS = [
+    "Phi",
+    "dPhi",
+    "X_depletion",
+]
 
 # Definition of each scenario
 SCENARIOS = {
@@ -37,6 +42,10 @@ SCENARIOS = {
     "continental_rift": {
         "steps": [0, 1],
         "fields": MAIN_FIELDS,
+    },
+    "continental_rift_with_magmatism": {
+        "steps": [450],
+        "fields": MAIN_FIELDS + MAGMATISM_FIELDS,
     },
     "punch": {
         "steps": [0],

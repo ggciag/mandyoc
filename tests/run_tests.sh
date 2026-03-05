@@ -7,6 +7,7 @@ declare -a scenarios=(
     "vanKeken1997_case1a"
     "Crameri2012_case2"
     "continental_rift"
+    "continental_rift_with_magmatism"
     "punch"
     "Schmalholz_2011"
     "two_layers_with_variable_conductivity"
