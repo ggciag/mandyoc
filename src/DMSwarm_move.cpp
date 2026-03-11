@@ -123,17 +123,33 @@ PetscInt get_k(PetscReal cz){
 }
 
 PetscReal get_rx(PetscReal cx, PetscInt i){
-	PetscReal rx = (cx-i*dx_const)/dx_const;
-	if (rx<0 || rx>1) {printf("weird rx=%f\n",rx); exit(1);}
+    PetscReal rx = (cx - i*dx_const) / dx_const;
 
-	return rx;
+	// tolerate tiny floating-point deviations around the boundaries.
+    if (rx < -1e-12 || rx > 1.0 + 1e-12) {
+        printf("weird rx=%.16e cx=%.16e i=%d\n", rx, cx, i);
+        exit(1);
+    }
+
+    if (rx < 0.0) rx = 0.0;
+    if (rx > 1.0) rx = 1.0;
+
+    return rx;
 }
 
 PetscReal get_rz(PetscReal cz, PetscInt k){
-	PetscReal rz = (cz-(-depth+k*dz_const))/dz_const;
-	if (rz<0 || rz>1) {printf("weird rz=%f\n",rz); exit(1);}
+    PetscReal rz = (cz - (-depth + k*dz_const)) / dz_const;
 
-	return rz;
+	// tolerate tiny floating-point deviations around the boundaries.
+    if (rz < -1e-12 || rz > 1.0 + 1e-12) {
+        printf("weird rz=%.16e cz=%.16e k=%d\n", rz, cz, k);
+        exit(1);
+    }
+
+    if (rz < 0.0) rz = 0.0;
+    if (rz > 1.0) rz = 1.0;
+
+    return rz;
 }
 
 PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
