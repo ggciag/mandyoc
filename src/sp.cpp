@@ -1041,10 +1041,12 @@ PetscErrorCode sp_evaluate_surface_processes_2d_theunissen(PetscReal dt){
     // Modified to free memory correctly according to gemini
     if (!rank) {
         ierr = VecRestoreArray(seq_surface, &seq_array); CHKERRQ(ierr);
-        ierr = VecDestroy(&seq_surface); CHKERRQ(ierr);
+        // ierr = VecDestroy(&seq_surface); CHKERRQ(ierr);   \\Should not be here, only rank 0 are freeing memory
     } else {
         ierr = PetscFree(seq_array); CHKERRQ(ierr);
     }
+
+    ierr = VecDestroy(&seq_surface); CHKERRQ(ierr);
 
     PetscFunctionReturn(0);
 }
