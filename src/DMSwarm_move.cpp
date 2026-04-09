@@ -421,7 +421,7 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 				float dphi = (tp-Ts)/(L + facX);
 				if (dphi<0.0) dphi=0.0;
 
-				dPhi_array[p]=dphi;
+				dPhi_array[p]+=dphi;
 				Phi_array[p]+=dphi;
 
 				X_array[p] = 1.0/(1.0-Phi_array[p]);
@@ -650,7 +650,7 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 				float dphi = (tp-Ts)/(L + facX);
 				if (dphi<0.0) dphi=0.0;
 
-				dPhi_array[p]=dphi;
+				dPhi_array[p]+=dphi;
 				Phi_array[p]+=dphi;
 
 				X_array[p] = 1.0/(1.0-Phi_array[p]);
