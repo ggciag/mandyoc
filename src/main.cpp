@@ -341,11 +341,14 @@ int main(int argc,char **args)
 
 		if (tcont%print_step==0){
 
-			if (sp_surface_tracking && magmatism_flag==PETSC_TRUE && magmatism_extraction_flag==PETSC_TRUE){
-				// The extraction of the magmatism was chosen to occur every print_step (here),
+			if (sp_surface_processes && magmatism_flag==PETSC_TRUE){
+				// The extraction of the magmatism was chosen to occur every print_step,
 				// when the dPhi_array is erased in funtion write_geoq_
 				if (dimensions==2){ //!!!Must be implemented in 3D
-					ierr = calc_magmatic_extraction();
+					PetscReal magmatism_volume;
+					VecSum(dPhi,&magmatism_volume);
+					magmatism_volume*=dx_const*dz_const;
+					PetscPrintf(PETSC_COMM_WORLD,"Volume of magmatism created: %lg m2\n",magmatism_volume);
 				}
 			}
 
