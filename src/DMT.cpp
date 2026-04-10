@@ -1,6 +1,7 @@
 #include <petscksp.h>
 #include <petscdmda.h>
 
+#include <petscdmswarm.h>
 #include <petsctime.h>
 
 PetscErrorCode montaKeThermal_general_2d(PetscReal *Ke, PetscReal *Me, PetscReal *Fe);
@@ -37,6 +38,8 @@ extern PetscReal *NT_z;
 extern long GaussQuad;
 
 extern long T_NE;
+
+extern DM dms;
 
 extern PetscReal *TKe, *TCe, *TFe, *TCe_fut, *TMe, *Ttotal, *Ttotal_b;
 
@@ -556,7 +559,7 @@ PetscErrorCode write_pressure(int cont, PetscInt binary_out)
 
 PetscErrorCode write_geoq_(int cont, PetscInt binary_out)
 {
-
+	PetscErrorCode ierr=0;
 	char variable_name[100];
 
 	PetscFunctionBeginUser;
@@ -582,6 +585,11 @@ PetscErrorCode write_geoq_(int cont, PetscInt binary_out)
 	}
 
 	if (magmatism_flag==PETSC_TRUE){
+
+		PetscInt nlocal,bs,p;
+
+		ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
+
 		sprintf(variable_name,"X_depletion");
 		write_all_(cont,X_depletion,variable_name,binary_out);
 
@@ -590,6 +598,14 @@ PetscErrorCode write_geoq_(int cont, PetscInt binary_out)
 
 		sprintf(variable_name,"dPhi");
 		write_all_(cont,dPhi,variable_name,binary_out);
+
+		PetscReal *dPhi_array;
+
+		ierr = DMSwarmGetField(dms,"dPhi",&bs,NULL,(void**)&dPhi_array);CHKERRQ(ierr);
+		for (p=0; p<nlocal; p++) {
+			dPhi_array[p] = 0.0;
+		}
+		ierr = DMSwarmRestoreField(dms,"dPhi",&bs,NULL,(void**)&dPhi_array);CHKERRQ(ierr);
 	}
 
 	PetscFunctionReturn(0);
