@@ -131,7 +131,7 @@ PetscErrorCode magmatic_extrusive(PetscReal magma_volume,PetscReal x_center)
 
         PetscReal diff_h;
         PetscReal dx_sed = seq_array[2*1]-seq_array[2*0];
-        
+
         PetscReal Delta_x;
 
         //magmatic
@@ -148,7 +148,7 @@ PetscErrorCode magmatic_extrusive(PetscReal magma_volume,PetscReal x_center)
             seq_array[2*j+1] += diff_h;
         }
 
-        
+
     }
 
     ierr = MPI_Bcast(&seq_surface_size, 1, MPI_INT, 0, PETSC_COMM_WORLD); CHKERRQ(ierr);
