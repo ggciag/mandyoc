@@ -21,6 +21,7 @@ SOURCEC = $(SRC)/main.cpp \
 	$(SRC)/DMSwarm_3d.cpp \
 	$(SRC)/DMSwarm2mesh.cpp \
 	$(SRC)/DMSwarm_move.cpp \
+	$(SRC)/magmatic.cpp \
 	$(SRC)/thermal_Ke.cpp \
 	$(SRC)/reader.cpp \
 	$(SRC)/veloc_total.cpp \

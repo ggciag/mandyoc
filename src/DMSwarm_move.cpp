@@ -89,6 +89,9 @@ extern int tcont;
 extern double c_heat_capacity;
 extern PetscBool magmatism_flag;
 
+extern PetscReal x_magma_high;
+extern PetscReal z_magma_high;
+
 PetscReal linear_interpolation(PetscReal rx, PetscReal rz,PetscScalar V0, PetscScalar V1, PetscScalar V2, PetscScalar V3){
 	PetscReal rfac,vx;
 	rfac = (1.0-rx)*(1.0-rz);
@@ -233,6 +236,10 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 	PetscReal *dPhi_array;
 
 	if (magmatism_flag==PETSC_TRUE){
+
+		x_magma_high = 0.0;
+		z_magma_high = -depth;
+
 		ierr = DMSwarmGetField(dms,"X",&bs,NULL,(void**)&X_array);CHKERRQ(ierr);
 		ierr = DMSwarmGetField(dms,"Phi",&bs,NULL,(void**)&Phi_array);CHKERRQ(ierr);
 		ierr = DMSwarmGetField(dms,"dPhi",&bs,NULL,(void**)&dPhi_array);CHKERRQ(ierr);
@@ -439,6 +446,14 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 
 				dPhi_array[p]+=dphi;
 				Phi_array[p]+=dphi;
+
+				// Used to determine the location of the extraction of the magmatism to the surface
+				if (dphi>0){
+					if (z_magma_high<cz){
+						z_magma_high=cz;
+						x_magma_high=cx;
+					}
+				}
 
 				X_array[p] = 1.0/(1.0-Phi_array[p]);
 

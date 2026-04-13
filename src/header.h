@@ -255,6 +255,11 @@ Vec local_dPhi;
 Vec Phi;
 Vec local_Phi;
 
+PetscReal x_magma_high;
+PetscReal z_magma_high;
+
+PetscInt magmatic_layer = 0;
+
 PetscReal *N_x_Gauss;
 PetscReal *N_y_Gauss;
 PetscReal *N_z_Gauss;
