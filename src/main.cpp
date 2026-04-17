@@ -87,7 +87,7 @@ int main(int argc,char **args)
 	PetscPrintf(PETSC_COMM_WORLD,"=   MANDYOC: MANtle DYnamics simulatOr Code.\n");
 	PetscPrintf(PETSC_COMM_WORLD,"===================================================================================\n");
 
-	#ifndef GIT_VERSION
+	#ifdef GIT_VERSION
 	ierr = PetscPrintf(PETSC_COMM_WORLD, "*** Git version: %s ***\n\n", GIT_VERSION);CHKERRQ(ierr);
 	#endif
 
@@ -282,18 +282,18 @@ int main(int argc,char **args)
 		if (dimensions == 2 && sp_surface_processes) {
 			ierr = sp_update_active_sediment_layer(tempo);
 		}
-		
+
 		if (dimensions == 2 && variable_baselevel == 1){
 			ierr = sp_update_base_level(tempo);
 			PetscPrintf(PETSC_COMM_WORLD,"base level = %.3g m\n", sea_level);
 			CHKERRQ(ierr);
 		}
-		
+
 		if (dimensions == 2 && ((sp_mode == SP_SEDIMENTATION_RATE_LIMITED)||(sp_mode == SP_THEUNISSEN_SEDIMENTATION))) {
 			ierr = sp_update_sedimentation_rate(tempo);
 			PetscPrintf(PETSC_COMM_WORLD,"sedimentation rate = %.3g m^2/yr, active sediment layer = %d\n", sedimentation_rate, active_sediment_layer);
 		}
-		
+
 		ierr = build_thermal(dimensions);CHKERRQ(ierr);
 
 		ierr = solve_thermal(dimensions);CHKERRQ(ierr);
