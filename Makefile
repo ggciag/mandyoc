@@ -31,6 +31,7 @@ INSTALL_PATH = $(PREFIX)/bin
 BUILDDIR = bin
 MANDYOC = $(BUILDDIR)/mandyoc
 
+GIT_VERSION := $(shell git describe --long  --always --dirty)
 
 .PHONY: help all install clear test
 
@@ -60,7 +61,7 @@ clear:
 clean:: clear
 
 %.o: %.cpp
-	${PCC} -Wall -fdiagnostics-color -c $< -o $@ ${INCFLAGS}
+	${PCC} -DGIT_VERSION="\"${GIT_VERSION}\"" -Wall -fdiagnostics-color -c $< -o $@ ${INCFLAGS}
 
 $(BUILDDIR):
 	mkdir $@
