@@ -260,6 +260,8 @@ PetscReal z_magma_high;
 
 PetscInt magmatic_layer = 0;
 
+PetscReal previous_magmatic_volume = 0.0;
+
 PetscReal *N_x_Gauss;
 PetscReal *N_y_Gauss;
 PetscReal *N_z_Gauss;

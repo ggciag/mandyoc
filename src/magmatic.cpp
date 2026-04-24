@@ -18,8 +18,7 @@ extern DM da_Veloc;
 extern DM dms_s;
 extern PetscInt dms_s_ppe;
 
-extern Vec dPhi;
-extern Vec local_dPhi;
+extern Vec Phi;
 
 extern double dx_const;
 extern double dz_const;
@@ -29,13 +28,22 @@ extern PetscReal z_magma_high;
 
 extern PetscInt magmatic_layer;
 
+extern PetscReal previous_magmatic_volume;
+
 PetscErrorCode calc_magmatic_extraction(){
 
     PetscErrorCode ierr;
 
+    PetscReal total_magmatism;
     PetscReal magmatism_volume;
-    VecSum(dPhi,&magmatism_volume);
-    magmatism_volume*=dx_const*dz_const;
+
+    VecSum(Phi,&total_magmatism);
+    total_magmatism*=dx_const*dz_const;
+
+    magmatism_volume = total_magmatism - previous_magmatic_volume;
+
+    previous_magmatic_volume = total_magmatism;
+
     PetscPrintf(PETSC_COMM_WORLD,"Volume of magmatism created: %lg m2\n",magmatism_volume);
 
 

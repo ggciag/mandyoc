@@ -444,7 +444,7 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 				float dphi = (tp-Ts)/(L + facX);
 				if (dphi<0.0) dphi=0.0;
 
-				dPhi_array[p]+=dphi;
+				dPhi_array[p]=dphi;
 				Phi_array[p]+=dphi;
 
 				// Used to determine the location of the extraction of the magmatism to the surface
@@ -681,7 +681,7 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 				float dphi = (tp-Ts)/(L + facX);
 				if (dphi<0.0) dphi=0.0;
 
-				dPhi_array[p]+=dphi;
+				dPhi_array[p]=dphi;
 				Phi_array[p]+=dphi;
 
 				X_array[p] = 1.0/(1.0-Phi_array[p]);
