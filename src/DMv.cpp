@@ -209,6 +209,8 @@ PetscErrorCode create_veloc(int dimensions, PetscInt mx, PetscInt my, PetscInt m
 							mx+1, my+1, mz+1, Px, Py, Pz, dof, stencil_width, NULL, NULL, NULL, &da_Veloc); CHKERRQ(ierr);
 	}
 
+	ierr = DMDAGetInfo(da_Veloc, NULL, &Px, &Py, &Pz, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL); CHKERRQ(ierr);
+
 	ierr = DMSetFromOptions(da_Veloc);CHKERRQ(ierr);
 
 	ierr = DMSetUp(da_Veloc);CHKERRQ(ierr);

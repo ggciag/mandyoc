@@ -25,7 +25,8 @@ SOURCEC = $(SRC)/main.cpp \
 	$(SRC)/thermal_Ke.cpp \
 	$(SRC)/reader.cpp \
 	$(SRC)/veloc_total.cpp \
-	$(SRC)/sp.cpp
+	$(SRC)/sp.cpp \
+	$(SRC)/output.cpp
 OBJECTS = $(SOURCEC:%.cpp=%.o)
 PREFIX = $(HOME)/.local
 INSTALL_PATH = $(PREFIX)/bin

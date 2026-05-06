@@ -443,3 +443,33 @@ PetscInt cont_bl_level=0;
 PetscReal continental_slope = 2; // in degrees, but it will be converted to its tangent
 PetscReal strain_sed = 0.6; // 0-1, 0:no strain accumulated in sediment layer, 1:full strain softening in sediment layer
 PetscReal aggradation_rate = 0.0001; // m/y , make it as a flag or something variable over the time.
+
+
+//
+PetscErrorCode save_snapshot(
+    int step,
+    double time,
+    double dt,
+    long nx,
+    long nz,
+    double lx,
+    double lz,
+    PetscInt Px,
+    PetscInt Pz,
+    Vec velocity,
+    Vec temperature,
+    Vec pressure,
+    Vec viscosity,
+    Vec density,
+    Vec heat,
+    Vec strain,
+    Vec strain_rate,
+    Vec thermal_diffusivity,
+    Vec X_depletion,
+    Vec Phi,
+    Vec dPhi,
+    DM dms,
+    DM dms_s,
+    PetscBool magmatism_flag,
+    PetscBool sp_surface_tracking
+);

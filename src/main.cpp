@@ -381,7 +381,42 @@ int main(int argc,char **args)
 
 		dt_calor_sec = Calc_dt_calor(rank);
 
+		if (tcont == 1 || tcont%10==0) {
+			PetscPrintf(PETSC_COMM_WORLD,"\nWriting snapshot...");
+			PetscLogDouble t_ss_start, t_ss_end;
+			PetscTime(&t_ss_start);
+			save_snapshot(
+				tcont,
+				tempo,
+				dt_calor,
+				Nx,
+				Nz,
+				Lx,
+				depth,
+				Px,
+				Pz,
+				Veloc_fut,
+				Temper,
+				Pressure_aux,
+				geoq,
+				geoq_rho,
+				geoq_H,
+				geoq_strain,
+				geoq_strain_rate,
+				geoq_kappa,
+				X_depletion,
+				Phi,
+				dPhi,
+				dms,
+				dms_s,
+				magmatism_flag,
+				sp_surface_tracking
+			);
+			PetscTime(&t_ss_end);
+			PetscPrintf(PETSC_COMM_WORLD,"Done. (%lf s)\n", t_ss_end-t_ss_start);
+		}
 	}
+
 	PetscPrintf(PETSC_COMM_WORLD, "write\n");
 
 
