@@ -437,7 +437,18 @@ PetscErrorCode load_snapshot_metadata(
 PetscErrorCode load_snapshot_fields(
     const char *filename,
     Vec velocity,
-    Vec temperature
+    Vec temperature,
+    Vec pressure,
+    Vec viscosity,
+    Vec density,
+    Vec heat,
+    Vec strain,
+    Vec strain_rate,
+    Vec thermal_diffusivity,
+    Vec X_depletion,
+    Vec Phi,
+    Vec dPhi,
+    PetscBool magmatism_flag
 )
 {
     PetscErrorCode ierr;
@@ -455,6 +466,19 @@ PetscErrorCode load_snapshot_fields(
 
     LOAD_VEC(velocity, "velocity");
     LOAD_VEC(temperature, "temperature");
+    LOAD_VEC(pressure, "pressure");
+    LOAD_VEC(viscosity, "viscosity");
+    LOAD_VEC(density, "density");
+    LOAD_VEC(heat, "heat");
+    LOAD_VEC(strain, "strain");
+    LOAD_VEC(strain_rate, "strain_rate");
+    LOAD_VEC(thermal_diffusivity, "thermal_diffusivity");
+
+    if (magmatism_flag) {
+        LOAD_VEC(X_depletion, "X_depletion");
+        LOAD_VEC(Phi, "Phi");
+        LOAD_VEC(dPhi, "dPhi");
+    }
 
     ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
 

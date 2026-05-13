@@ -221,7 +221,18 @@ int main(int argc,char **args)
 		ierr = load_snapshot_fields(
 			snapshot_file,
 			Veloc_fut,
-			Temper
+			Temper,
+			Pressure_aux,
+			geoq,
+			geoq_rho,
+			geoq_H,
+			geoq_strain,
+			geoq_strain_rate,
+			geoq_kappa,
+			X_depletion,
+			Phi,
+			dPhi,
+			magmatism_flag
 		); CHKERRQ(ierr);
 	}
 

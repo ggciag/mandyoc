@@ -505,7 +505,18 @@ PetscErrorCode load_snapshot_metadata(
 PetscErrorCode load_snapshot_fields(
     const char *filename,
     Vec velocity,
-    Vec temperature
+    Vec temperature,
+    Vec pressure,
+    Vec viscosity,
+    Vec density,
+    Vec heat,
+    Vec strain,
+    Vec strain_rate,
+    Vec thermal_diffusivity,
+    Vec X_depletion,
+    Vec Phi,
+    Vec dPhi,
+    PetscBool magmatism_flag
 );
 
 const PetscInt *dm_lx = NULL;
