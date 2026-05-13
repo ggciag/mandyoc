@@ -301,42 +301,24 @@ PetscErrorCode save_snapshot(
     // -- fields
     ierr = PetscViewerHDF5PushGroup(viewer, "/fields"); CHKERRQ(ierr);
 
-    ierr = PetscObjectSetName((PetscObject)velocity, "velocity"); CHKERRQ(ierr);
-    ierr = VecView(velocity, viewer); CHKERRQ(ierr);
+    #define SAVE_VEC(v,name) \
+        ierr = PetscObjectSetName((PetscObject)v, name); CHKERRQ(ierr); \
+        ierr = VecView(v, viewer); CHKERRQ(ierr);
 
-    ierr = PetscObjectSetName((PetscObject)temperature, "temperature"); CHKERRQ(ierr);
-    ierr = VecView(temperature, viewer); CHKERRQ(ierr);
-
-    ierr = PetscObjectSetName((PetscObject)pressure, "pressure"); CHKERRQ(ierr);
-    ierr = VecView(pressure, viewer); CHKERRQ(ierr);
-
-    ierr = PetscObjectSetName((PetscObject)viscosity, "viscosity"); CHKERRQ(ierr);
-    ierr = VecView(viscosity, viewer); CHKERRQ(ierr);
-
-    ierr = PetscObjectSetName((PetscObject)density, "density"); CHKERRQ(ierr);
-    ierr = VecView(density, viewer); CHKERRQ(ierr);
-
-    ierr = PetscObjectSetName((PetscObject)heat, "heat"); CHKERRQ(ierr);
-    ierr = VecView(heat, viewer); CHKERRQ(ierr);
-
-    ierr = PetscObjectSetName((PetscObject)strain, "strain"); CHKERRQ(ierr);
-    ierr = VecView(strain, viewer); CHKERRQ(ierr);
-
-    ierr = PetscObjectSetName((PetscObject)strain_rate, "strain_rate"); CHKERRQ(ierr);
-    ierr = VecView(strain_rate, viewer); CHKERRQ(ierr);
-
-    ierr = PetscObjectSetName((PetscObject)thermal_diffusivity, "thermal_diffusivity"); CHKERRQ(ierr);
-    ierr = VecView(thermal_diffusivity, viewer); CHKERRQ(ierr);
+    SAVE_VEC(velocity, "velocity");
+    SAVE_VEC(temperature, "temperature");
+    SAVE_VEC(pressure, "pressure");
+    SAVE_VEC(viscosity, "viscosity");
+    SAVE_VEC(density, "density");
+    SAVE_VEC(heat, "heat");
+    SAVE_VEC(strain, "strain");
+    SAVE_VEC(strain_rate, "strain_rate");
+    SAVE_VEC(thermal_diffusivity, "thermal_diffusivity");
 
     if (magmatism_flag) {
-        ierr = PetscObjectSetName((PetscObject)X_depletion, "X_depletion"); CHKERRQ(ierr);
-        ierr = VecView(X_depletion, viewer); CHKERRQ(ierr);
-
-        ierr = PetscObjectSetName((PetscObject)Phi, "Phi"); CHKERRQ(ierr);
-        ierr = VecView(Phi, viewer); CHKERRQ(ierr);
-
-        ierr = PetscObjectSetName((PetscObject)dPhi, "dPhi"); CHKERRQ(ierr);
-        ierr = VecView(dPhi, viewer); CHKERRQ(ierr);
+        SAVE_VEC(X_depletion, "X_depletion");
+        SAVE_VEC(Phi, "Phi");
+        SAVE_VEC(dPhi, "dPhi");
     }
 
     ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr); CHKERRQ(ierr);
