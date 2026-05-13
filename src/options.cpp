@@ -19,6 +19,10 @@ PetscInt *seed_layer_aux;
 PetscReal *strain_seed_layer_aux;
 
 
+extern PetscBool restart;
+extern char snapshot_file[PETSC_MAX_PATH_LEN];
+
+
 PetscErrorCode parse_options(int rank)
 {
 	PetscErrorCode ierr;
@@ -70,6 +74,9 @@ PetscErrorCode parse_options(int rank)
 
 	h_air = -1.0;
 	ierr = PetscOptionsGetReal(NULL, NULL, "-h_air", &h_air, NULL); CHKERRQ(ierr);
+
+	// restart
+	ierr = PetscOptionsGetString(NULL, NULL, "-restart", snapshot_file, sizeof(snapshot_file), &restart); CHKERRQ(ierr);
 
     PetscFunctionReturn(0);
 }

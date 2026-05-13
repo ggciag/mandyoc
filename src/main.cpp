@@ -24,14 +24,14 @@ static char help[] = "\n\nMANDYOC: MANtle DYnamics simulatOr Code\n\n"\
 #include "header.h"
 
 // Petsc prototypes
-PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt mz, PetscInt Px, PetscInt Py, PetscInt Pz);
+PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt mz, PetscInt Px, PetscInt Py, PetscInt Pz, const PetscInt *dm_lx, const PetscInt *dm_lz);
 PetscErrorCode build_thermal(int dimensions);
 PetscErrorCode solve_thermal(int dimensions);
 PetscErrorCode destroy_thermal_();
 PetscErrorCode write_all_(int cont,Vec u, char *variable_name, PetscInt binary_out);
 PetscErrorCode write_pressure(int cont, PetscInt binary_out);
 PetscErrorCode write_geoq_(int cont, PetscInt binary_out);
-PetscErrorCode create_veloc(int dimensions, PetscInt mx, PetscInt my, PetscInt mz, PetscInt Px, PetscInt Py, PetscInt Pz);
+PetscErrorCode create_veloc(int dimensions, PetscInt mx, PetscInt my, PetscInt mz, PetscInt Px, PetscInt Py, PetscInt Pz, const PetscInt *dm_lx, const PetscInt *dm_lz);
 PetscErrorCode createSwarm_2d();
 PetscErrorCode createSwarm_3d();
 PetscErrorCode moveSwarm(int dimensions, PetscReal dt);
@@ -111,6 +111,29 @@ int main(int argc,char **args)
 	// Read ASCII files
 	ierr = reader(rank, "param.txt"); CHKERRQ(ierr);
 
+	// Restart
+	if (restart && dimensions == 2) {
+		load_snapshot_metadata(
+			snapshot_file,
+			&tcont, &tempo, &dt_calor,
+			&Nx, &Nz, &Lx, &depth,
+			&Px, &Pz,
+			dm_lx, dm_lz
+		);
+
+		PetscPrintf(PETSC_COMM_WORLD,
+			"\nRestarting from snapshot: %s\n"
+			" step = %d\n time = %g\n dt = %g\n"
+			" nx = %ld nz = %ld\n"
+			" lx = %lf lz = %lf\n"
+			" Px = %d Pz = %d\n\n",
+			snapshot_file,
+			tcont, tempo, dt_calor,
+			Nx, Nz,
+			Lx, depth,
+			Px, Pz);
+	}
+
 	// Check if the number of interfaces in "param.txt" is higher than then number read from command line
 	if (seed_layer_set && seed_layer_size > (n_interfaces + 1)) {
 		PetscPrintf(PETSC_COMM_WORLD, "Error: The number of layers specified in command line \"-seed\" command is higher than the number in \"param.txt\".\n");
@@ -164,12 +187,16 @@ int main(int argc,char **args)
 
 	//PetscPrintf(PETSC_COMM_WORLD, "dx=%lf dz=%lf\n",dx_const,dz_const);
 
-	ierr = create_thermal(dimensions, Nx-1, Ny-1, Nz-1, Px, Py, Pz);CHKERRQ(ierr);
+	ierr = create_thermal(dimensions, Nx-1, Ny-1, Nz-1, Px, Py, Pz, dm_lx, dm_lz);CHKERRQ(ierr);
+
+	if (!restart) {
+		ierr = get_processor_partitioning(da_Thermal, &Px, &Py, &Pz); CHKERRQ(ierr);
+	}
 
 	sprintf(variable_name,"temperature");
 	ierr = write_all_(-1,Temper, variable_name, binary_output);
 
-	ierr = create_veloc(dimensions, Nx-1, Ny-1, Nz-1, Px, Py, Pz);CHKERRQ(ierr);
+	ierr = create_veloc(dimensions, Nx-1, Ny-1, Nz-1, Px, Py, Pz, dm_lx, dm_lz);CHKERRQ(ierr);
 
 	if (geoq_on){
 		PetscPrintf(PETSC_COMM_WORLD,"\nSwarm (creating)\n");
@@ -188,6 +215,24 @@ int main(int argc,char **args)
 
 		PetscPrintf(PETSC_COMM_WORLD,"Surface Processes Swarm: done\n");
 	}
+
+	// restore
+	if (restart) {
+		ierr = load_snapshot_fields(
+			snapshot_file,
+			Veloc_fut,
+			Temper
+		); CHKERRQ(ierr);
+	}
+
+	PetscViewer _v;
+	PetscViewerASCIIOpen(PETSC_COMM_WORLD, "debug_velocity_from_snapshot.data", &_v);
+	VecView(Veloc_fut, _v);
+	PetscViewerDestroy(&_v);
+
+	PetscViewerASCIIOpen(PETSC_COMM_WORLD, "debug_temperature_from_snapshot.data", &_v);
+	VecView(Temper, _v);
+	PetscViewerDestroy(&_v);
 
 //	PetscPrintf(PETSC_COMM_SELF,"********** <rank:%d> <particles_per_ele:%d>\n", rank, particles_per_ele); -> conversar com Victor sobre
 //	PetscPrintf(PETSC_COMM_SELF,"********** <rank:%d> <layers:%d>\n", rank, layers); -> conversar com Victor sobre
@@ -348,6 +393,8 @@ int main(int argc,char **args)
 					ierr = calc_magmatic_extraction();
 				}
 			}
+			PetscLogDouble t_w_start, t_w_end;
+			PetscTime(&t_w_start);
 
 			PetscPrintf(PETSC_COMM_WORLD,"\nWriting output files:\n");
 			sprintf(variable_name,"temperature");
@@ -377,6 +424,8 @@ int main(int argc,char **args)
 					ierr = sp_view_2d(dms_s, prefix); CHKERRQ(ierr);
 				}
 			}
+			PetscTime(&t_w_end);
+			PetscPrintf(PETSC_COMM_WORLD,"Total writing time: %lf s\n", t_w_end-t_w_start);
 		}
 
 		dt_calor_sec = Calc_dt_calor(rank);
@@ -395,6 +444,8 @@ int main(int argc,char **args)
 				depth,
 				Px,
 				Pz,
+				is_lx,
+				is_lz,
 				Veloc_fut,
 				Temper,
 				Pressure_aux,
@@ -413,7 +464,7 @@ int main(int argc,char **args)
 				sp_surface_tracking
 			);
 			PetscTime(&t_ss_end);
-			PetscPrintf(PETSC_COMM_WORLD,"Done. (%lf s)\n", t_ss_end-t_ss_start);
+			PetscPrintf(PETSC_COMM_WORLD,"done. (%lf s)\n", t_ss_end-t_ss_start);
 		}
 	}
 

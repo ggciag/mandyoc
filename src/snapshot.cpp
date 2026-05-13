@@ -1,6 +1,79 @@
 #include <petscviewerhdf5.h>
 #include <petscvec.h>
 #include <petscdmswarm.h>
+#include <petscdmda.h>
+#include <petscis.h>
+
+
+PetscErrorCode get_processor_partitioning(
+    DM da,
+    PetscInt *Px,
+    PetscInt *Py,
+    PetscInt *Pz
+)
+{
+    PetscErrorCode ierr;
+    PetscInt dim, M, N, P;
+    PetscInt m, n, p;
+
+    const PetscInt *lx, *ly, *lz;
+
+    PetscFunctionBegin;
+
+    // try direct retrieval first
+    ierr = DMDAGetInfo(da, &dim, &M, &N, &P, &m, &n, &p, NULL, NULL, NULL, NULL, NULL, NULL); CHKERRQ(ierr);
+
+    if (dim == 2) {
+        if (m > 0 && n > 0) {
+            *Px = m;
+            *Pz = n;
+            *Py = PETSC_DECIDE;
+            PetscFunctionReturn(0);
+        }
+    } else {
+        if (m > 0 && n > 0 && p > 0) {
+            *Px = m;
+            *Py = n;
+            *Pz = p;
+            PetscFunctionReturn(0);
+        }
+    }
+
+    // manually compute partitioning from ownership ranges
+    ierr = DMDAGetOwnershipRanges(da, &lx, &ly, &lz); CHKERRQ(ierr);
+
+    PetscInt sum, i, j, k;
+
+    // count Px
+    sum = 0;
+    for (i = 0; sum < M; i++) {
+        sum += lx[i];
+    }
+
+    // count Py
+    sum = 0;
+    for (j = 0; sum < N; j++) {
+        sum += ly[i];
+    }
+
+    // count Pz
+    sum = 0;
+    for (k = 0; sum < P; k++) {
+        sum += lz[i];
+    }
+
+    if (dim == 2) {
+        *Px = i;
+        *Py = PETSC_DECIDE;
+        *Pz = j;
+    } else {
+        *Px = i;
+        *Py = j;
+        *Pz = k;
+    }
+
+    PetscFunctionReturn(0);
+}
 
 PetscErrorCode save_swarm_field(
     DM dms,
@@ -152,6 +225,8 @@ PetscErrorCode save_snapshot(
     double lz,
     PetscInt Px,
     PetscInt Pz,
+    IS is_lx,
+    IS is_lz,
     Vec velocity,
     Vec temperature,
     Vec pressure,
@@ -208,7 +283,17 @@ PetscErrorCode save_snapshot(
     ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "Px", PETSC_INT, &Px); CHKERRQ(ierr);
     ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "Pz", PETSC_INT, &Pz); CHKERRQ(ierr);
     ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
-    //
+
+    // -- dm ownership
+    ierr = PetscViewerHDF5PushGroup(viewer, "dm_ownership"); CHKERRQ(ierr);
+
+    ierr = PetscObjectSetName((PetscObject)is_lx, "lx"); CHKERRQ(ierr);
+    ierr = ISView(is_lx, viewer); CHKERRQ(ierr);
+
+    ierr = PetscObjectSetName((PetscObject)is_lz, "lz"); CHKERRQ(ierr);
+    ierr = ISView(is_lz, viewer); CHKERRQ(ierr);
+
+    ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
 
     ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
     // (metadata)
@@ -267,6 +352,132 @@ PetscErrorCode save_snapshot(
 
     ierr = PetscViewerPopFormat(viewer); CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);
+
+    PetscFunctionReturn(0);
+}
+
+PetscErrorCode load_snapshot_metadata(
+    const char *filename,
+    int *step,
+    double *time,
+    double *dt,
+    long *nx,
+    long *nz,
+    double *lx,
+    double *lz,
+    PetscInt *Px,
+    PetscInt *Pz,
+    const PetscInt *dm_lx,
+    const PetscInt *dm_lz
+)
+{
+    PetscErrorCode ierr;
+    PetscViewer viewer;
+    PetscViewerFormat format = PETSC_VIEWER_HDF5_PETSC;
+
+    PetscInt step_aux;
+    PetscReal time_aux, dt_aux;
+    PetscInt nx_aux;
+    PetscInt nz_aux;
+    PetscReal lx_aux;
+    PetscReal lz_aux;
+    PetscInt Px_aux;
+    PetscInt Pz_aux;
+
+    PetscFunctionBeginUser;
+
+    ierr = PetscViewerHDF5Open(PETSC_COMM_WORLD, filename, FILE_MODE_READ, &viewer); CHKERRQ(ierr);
+    ierr = PetscViewerPushFormat(viewer, format); CHKERRQ(ierr);
+
+    // -- simulation metadata
+    ierr = PetscViewerHDF5PushGroup(viewer, "/metadata/simulation"); CHKERRQ(ierr);
+
+    ierr = PetscViewerHDF5ReadAttribute(viewer, NULL, "step", PETSC_INT, NULL, &step_aux); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5ReadAttribute(viewer, NULL, "time", PETSC_REAL, NULL, &time_aux); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5ReadAttribute(viewer, NULL, "dt", PETSC_REAL, NULL, &dt_aux);   CHKERRQ(ierr);
+
+    ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
+
+    // -- Mesh metadata
+    ierr = PetscViewerHDF5PushGroup(viewer, "/metadata/mesh"); CHKERRQ(ierr);
+
+    ierr = PetscViewerHDF5ReadAttribute(viewer, NULL, "nx", PETSC_INT, NULL, &nx_aux); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5ReadAttribute(viewer, NULL, "nz", PETSC_INT, NULL, &nz_aux); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5ReadAttribute(viewer, NULL, "lx", PETSC_REAL, NULL, &lx_aux); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5ReadAttribute(viewer, NULL, "lz", PETSC_REAL, NULL, &lz_aux); CHKERRQ(ierr);
+
+    ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
+
+    // -- processor layout
+    ierr = PetscViewerHDF5PushGroup(viewer, "/metadata/processor_layout"); CHKERRQ(ierr);
+
+    ierr = PetscViewerHDF5ReadAttribute(viewer, NULL, "Px", PETSC_INT, NULL, &Px_aux); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5ReadAttribute(viewer, NULL, "Pz", PETSC_INT, NULL, &Pz_aux); CHKERRQ(ierr);
+
+    ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
+
+
+    // -- dm ownership
+    IS is_lx, is_lz;
+
+    ierr = PetscViewerHDF5PushGroup(viewer, "/metadata/dm_ownership"); CHKERRQ(ierr);
+
+    ISCreate(PETSC_COMM_SELF, &is_lx);
+    PetscObjectSetName((PetscObject)is_lx, "lx");
+    ISLoad(is_lx, viewer);
+
+    ISCreate(PETSC_COMM_SELF, &is_lz);
+    PetscObjectSetName((PetscObject)is_lz, "lz");
+    ISLoad(is_lz, viewer);
+
+    ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
+
+    ISGetIndices(is_lx, &dm_lx);
+    ISGetIndices(is_lz, &dm_lz);
+
+    ierr = PetscViewerPopFormat(viewer); CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer); CHKERRQ(ierr);
+
+    *step = (int)step_aux;
+    *time = (double)time_aux;
+    *dt = (double)dt_aux;
+    *nx = (long)nx_aux;
+    *nz = (long)nz_aux;
+    *lx = (double)lx_aux;
+    *lz = (double)lz_aux;
+    *Px = (PetscInt)Px_aux;
+    *Pz = (PetscInt)Pz_aux;
+
+    PetscFunctionReturn(0);
+}
+
+
+PetscErrorCode load_snapshot_fields(
+    const char *filename,
+    Vec velocity,
+    Vec temperature
+)
+{
+    PetscErrorCode ierr;
+    PetscViewer viewer;
+    PetscViewerFormat format = PETSC_VIEWER_HDF5_PETSC;
+
+    ierr = PetscViewerHDF5Open(PETSC_COMM_WORLD, filename, FILE_MODE_READ, &viewer); CHKERRQ(ierr);
+    ierr = PetscViewerPushFormat(viewer, format); CHKERRQ(ierr);
+
+    ierr = PetscViewerHDF5PushGroup(viewer, "/fields"); CHKERRQ(ierr);
+
+    #define LOAD_VEC(v,name) \
+        ierr = PetscObjectSetName((PetscObject)v, name); CHKERRQ(ierr); \
+        ierr = VecLoad(v, viewer); CHKERRQ(ierr);
+
+    LOAD_VEC(velocity, "velocity");
+    LOAD_VEC(temperature, "temperature");
+
+    ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
+
+    ierr = PetscViewerPopFormat(viewer); CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer); CHKERRQ(ierr);
 
     PetscFunctionReturn(0);
 }

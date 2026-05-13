@@ -167,7 +167,11 @@ extern int n_interfaces;
 
 extern PetscInt binary_output;
 
-PetscErrorCode create_veloc(int dimensions, PetscInt mx, PetscInt my, PetscInt mz, PetscInt Px, PetscInt Py, PetscInt Pz)
+extern IS is_lx;
+extern IS is_lz;
+
+
+PetscErrorCode create_veloc(int dimensions, PetscInt mx, PetscInt my, PetscInt mz, PetscInt Px, PetscInt Py, PetscInt Pz, const PetscInt *dm_lx, const PetscInt *dm_lz)
 {
 	PetscInt       dof,stencil_width;
 	DMBoundaryType boundary_type;
@@ -195,7 +199,7 @@ PetscErrorCode create_veloc(int dimensions, PetscInt mx, PetscInt my, PetscInt m
 	if (dimensions == 2) {
 		dof = 2;
 		ierr = DMDACreate2d(PETSC_COMM_WORLD, boundary_type, DM_BOUNDARY_NONE, DMDA_STENCIL_BOX,
-							mx+1, mz+1, Px, Pz, dof, stencil_width, NULL, NULL, &da_Veloc); CHKERRQ(ierr);
+							mx+1, mz+1, Px, Pz, dof, stencil_width, dm_lx, dm_lz, &da_Veloc); CHKERRQ(ierr);
 	} else {
 		if (boundary_type == DM_BOUNDARY_PERIODIC) {
 			//

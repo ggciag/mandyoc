@@ -119,7 +119,18 @@ extern  PetscBool export_kappa;
 
 extern PetscBool magmatism_flag;
 
-PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt mz, PetscInt Px, PetscInt Py, PetscInt Pz)
+extern PetscBool restart;
+extern IS is_lx;
+extern IS is_lz;
+
+PetscErrorCode get_processor_partitioning(
+    DM da,
+    PetscInt *Px,
+    PetscInt *Py,
+    PetscInt *Pz
+);
+
+PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt mz, PetscInt Px, PetscInt Py, PetscInt Pz, const PetscInt *dm_lx, const PetscInt *dm_lz)
 {
 
 	PetscInt       dof,stencil_width;
@@ -148,7 +159,7 @@ PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt
 
 	if (dimensions == 2) {
 		ierr = DMDACreate2d(PETSC_COMM_WORLD, boundary_type, DM_BOUNDARY_NONE, DMDA_STENCIL_BOX,
-							mx+1, mz+1, Px, Pz, dof, stencil_width, NULL, NULL, &da_Thermal); CHKERRQ(ierr);
+							mx+1, mz+1, Px, Pz, dof, stencil_width, dm_lx, dm_lz, &da_Thermal); CHKERRQ(ierr);
 	} else {
 		if (boundary_type == DM_BOUNDARY_PERIODIC) {
 			//
@@ -344,6 +355,13 @@ PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt
 
 	PetscTime(&Tempo2p);
 	PetscPrintf(PETSC_COMM_WORLD, "temperature (creation): %lf s\n",Tempo2p-Tempo1p);
+
+	if (!restart) {
+		ierr = get_processor_partitioning(da_Thermal, &Px, &Py, &Pz); CHKERRQ(ierr);
+		ierr = DMDAGetOwnershipRanges(da_Thermal, &dm_lx, &dm_lz, NULL); CHKERRQ(ierr);
+		ierr = ISCreateGeneral(PETSC_COMM_WORLD, Px, dm_lx, PETSC_COPY_VALUES, &is_lx); CHKERRQ(ierr);
+		ierr = ISCreateGeneral(PETSC_COMM_WORLD, Pz, dm_lz, PETSC_COPY_VALUES, &is_lz); CHKERRQ(ierr);
+	}
 
 	PetscFunctionReturn(0);
 }

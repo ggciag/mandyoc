@@ -446,6 +446,13 @@ PetscReal aggradation_rate = 0.0001; // m/y , make it as a flag or something var
 
 
 //
+PetscErrorCode get_processor_partitioning(
+    DM da,
+    PetscInt *Px,
+    PetscInt *Py,
+    PetscInt *Pz
+);
+
 PetscErrorCode save_snapshot(
     int step,
     double time,
@@ -456,6 +463,8 @@ PetscErrorCode save_snapshot(
     double lz,
     PetscInt Px,
     PetscInt Pz,
+    IS is_lx,
+    IS is_lz,
     Vec velocity,
     Vec temperature,
     Vec pressure,
@@ -473,3 +482,33 @@ PetscErrorCode save_snapshot(
     PetscBool magmatism_flag,
     PetscBool sp_surface_tracking
 );
+
+PetscBool restart;
+char snapshot_file[PETSC_MAX_PATH_LEN];
+
+PetscErrorCode load_snapshot_metadata(
+    const char *filename,
+    int *step,
+    double *time,
+    double *dt,
+    long *nx,
+    long *nz,
+    double *lx,
+    double *lz,
+    PetscInt *Px,
+    PetscInt *Pz,
+    const PetscInt *dm_lx,
+    const PetscInt *dm_lz
+
+);
+
+PetscErrorCode load_snapshot_fields(
+    const char *filename,
+    Vec velocity,
+    Vec temperature
+);
+
+const PetscInt *dm_lx = NULL;
+const PetscInt *dm_lz = NULL;
+IS is_lx;
+IS is_lz;

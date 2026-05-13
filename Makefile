@@ -26,7 +26,7 @@ SOURCEC = $(SRC)/main.cpp \
 	$(SRC)/reader.cpp \
 	$(SRC)/veloc_total.cpp \
 	$(SRC)/sp.cpp \
-	$(SRC)/output.cpp
+	$(SRC)/snapshot.cpp
 OBJECTS = $(SOURCEC:%.cpp=%.o)
 PREFIX = $(HOME)/.local
 INSTALL_PATH = $(PREFIX)/bin
