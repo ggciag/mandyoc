@@ -92,6 +92,8 @@ extern PetscBool export_lithology;
 
 extern PetscBool magmatism_flag;
 
+PetscErrorCode load_swarm_local_sizes(const char *filename, PetscInt *nlocal);
+
 
 PetscErrorCode _DMLocatePoints_DMDARegular_IS_2d(DM dm,Vec pos,IS *iscell)
 {
@@ -344,7 +346,7 @@ PetscErrorCode ViewLithology_2d(DM dms,const char prefix[]){
 	PetscFunctionReturn(0);
 }
 
-PetscErrorCode createSwarm_2d()
+PetscErrorCode createSwarm_2d(const char *snapshot_file, PetscBool restart)
 {
 	PetscErrorCode ierr=0;
 
@@ -410,27 +412,26 @@ PetscErrorCode createSwarm_2d()
 
 	ierr = DMSwarmFinalizeFieldRegister(dms);CHKERRQ(ierr);
 
-	{
-		PetscInt si,sk,milocal,mklocal;
-		PetscReal *LA_coors;
-		Vec coors;
-		PetscInt cnt;
+	PetscInt si,sk,milocal,mklocal;
+	PetscReal *LA_coors;
+	Vec coors;
+	PetscInt cnt;
 
-		ierr = DMDAGetCorners(da_Veloc,&si,&sk,NULL,&milocal,&mklocal,NULL);CHKERRQ(ierr);
+	ierr = DMDAGetCorners(da_Veloc,&si,&sk,NULL,&milocal,&mklocal,NULL);CHKERRQ(ierr);
 
+	if (particles_per_ele > 50) {
+		particles_add_remove = milocal*mklocal * (PetscInt)(particles_per_ele/50);
+	} else {
+		particles_add_remove = milocal*mklocal;
+	}
 
+	if (restart == PETSC_FALSE) {
 		ierr = DMGetCoordinates(da_Veloc,&coors);CHKERRQ(ierr);
 
 		ierr = VecGetArray(coors,&LA_coors);CHKERRQ(ierr);
 
 		ierr = DMSwarmSetLocalSizes(dms,milocal*mklocal*(particles_per_ele),4);CHKERRQ(ierr);
 		ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
-
-		if (particles_per_ele > 50) {
-			particles_add_remove = milocal*mklocal * (PetscInt)(particles_per_ele/50);
-		} else {
-			particles_add_remove = milocal*mklocal;
-		}
 
 		ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 
@@ -589,6 +590,10 @@ PetscErrorCode createSwarm_2d()
 
 		}
 
+	} else {
+		PetscInt nlocal_restart;
+		ierr = load_swarm_local_sizes(snapshot_file, &nlocal_restart); CHKERRQ(ierr);
+		ierr = DMSwarmSetLocalSizes(dms, nlocal_restart, 4); CHKERRQ(ierr);
 	}
 
 	ierr = DMView(dms,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
