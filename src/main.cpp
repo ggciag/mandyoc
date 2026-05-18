@@ -446,7 +446,7 @@ int main(int argc,char **args)
 
 		dt_calor_sec = Calc_dt_calor(rank);
 
-		if (tcont == 21 || tcont%10==0) {
+		if (tcont%10==0) {
 			PetscPrintf(PETSC_COMM_WORLD,"\nWriting snapshot...");
 			PetscLogDouble t_ss_start, t_ss_end;
 			PetscTime(&t_ss_start);
