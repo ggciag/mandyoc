@@ -5,6 +5,81 @@
 #include <petscis.h>
 
 
+PetscErrorCode update_snapshot_log(
+    const char *new_snapshot,
+    PetscInt max_snapshots
+)
+{
+    PetscMPIInt rank;
+    PetscErrorCode ierr;
+
+    FILE *fp;
+
+    char *entries[1024];
+    PetscInt count = 0;
+    PetscInt i;
+
+    char line[PETSC_MAX_PATH_LEN];
+
+    PetscFunctionBeginUser;
+
+    MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
+
+    if (rank != 0) {
+        PetscFunctionReturn(0);
+    }
+
+    fp = fopen("snapshots.log", "r");
+
+    if (fp) {
+        while (fgets(line, sizeof(line), fp)) {
+            line[strcspn(line, "\n")] = '\0';
+
+            entries[count] = strdup(line);
+
+            count++;
+        }
+
+        fclose(fp);
+    }
+
+    entries[count] = strdup(new_snapshot);
+    count++;
+
+    while (count > max_snapshots) {
+
+        remove(entries[0]);
+
+        free(entries[0]);
+
+        for (i = 1; i < count; i++) {
+            entries[i-1] = entries[i];
+        }
+
+        count--;
+    }
+
+    fp = fopen("snapshots.log.tmp", "w");
+
+    if (!fp) {
+        SETERRQ(PETSC_COMM_SELF, PETSC_ERR_FILE_WRITE, "Cannot open snapshots.log.tmp");
+    }
+
+    for (i = 0; i < count; i++) {
+        fprintf(fp, "%s\n", entries[i]);
+
+        free(entries[i]);
+    }
+
+    fclose(fp);
+
+    remove("snapshots.log");
+
+    rename("snapshots.log.tmp", "snapshots.log");
+
+    PetscFunctionReturn(0);
+}
+
 PetscErrorCode get_processor_partitioning(
     DM da,
     PetscInt *Px,
@@ -242,7 +317,8 @@ PetscErrorCode save_snapshot(
     DM dms,
     DM dms_s,
     PetscBool magmatism_flag,
-    PetscBool sp_surface_tracking
+    PetscBool sp_surface_tracking,
+    PetscInt max_snapshots
 )
 {
     PetscErrorCode ierr;
@@ -346,7 +422,7 @@ PetscErrorCode save_snapshot(
     // to do: add litho; active state for bc velocity, sed layers, sed rate, basal level
 
     ierr = PetscViewerPopFormat(viewer); CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);
+    ierr = PetscViewerDestroy(&viewer); CHKERRQ(ierr);
 
     if (rank == 0) {
         int r = rename(tmp_filename, filename);
@@ -354,6 +430,8 @@ PetscErrorCode save_snapshot(
             SETERRQ(PETSC_COMM_SELF, PETSC_ERR_FILE_WRITE, "Failed to rename snapshot temp file");
         }
     }
+
+    ierr = update_snapshot_log(filename, max_snapshots); CHKERRQ(ierr);
 
     PetscFunctionReturn(0);
 }

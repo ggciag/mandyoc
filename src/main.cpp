@@ -481,7 +481,8 @@ int main(int argc,char **args)
 				dms,
 				dms_s,
 				magmatism_flag,
-				sp_surface_tracking
+				sp_surface_tracking,
+				snapshot_files
 			);
 			PetscTime(&t_ss_end);
 			PetscPrintf(PETSC_COMM_WORLD,"done. (%lf s)\n", t_ss_end-t_ss_start);

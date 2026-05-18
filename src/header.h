@@ -480,7 +480,8 @@ PetscErrorCode save_snapshot(
     DM dms,
     DM dms_s,
     PetscBool magmatism_flag,
-    PetscBool sp_surface_tracking
+    PetscBool sp_surface_tracking,
+    PetscInt max_snapshots
 );
 
 PetscBool restart;
