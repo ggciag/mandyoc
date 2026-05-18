@@ -523,3 +523,9 @@ const PetscInt *dm_lx = NULL;
 const PetscInt *dm_lz = NULL;
 IS is_lx;
 IS is_lz;
+
+PetscErrorCode load_particles_from_snapshot(
+    const char *filename,
+    DM dms,
+    PetscBool magmatism_flag
+);

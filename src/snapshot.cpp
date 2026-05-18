@@ -255,6 +255,8 @@ PetscErrorCode save_snapshot(
 
     ierr = PetscSNPrintf(filename, PETSC_MAX_PATH_LEN-1, "snapshot_%d.h5", step); CHKERRQ(ierr);
 
+    // to do: check if file exists
+
     ierr = PetscViewerHDF5Open(PETSC_COMM_WORLD, filename, FILE_MODE_WRITE, &viewer); CHKERRQ(ierr);
     ierr = PetscViewerPushFormat(viewer, format); CHKERRQ(ierr);
 
@@ -331,6 +333,8 @@ PetscErrorCode save_snapshot(
         ierr = save_surface_particles_to_snapshot(dms_s, viewer); CHKERRQ(ierr);
     }
     //
+
+    // to do: add litho; active state for bc velocity, sed layers, sed rate, basal level
 
     ierr = PetscViewerPopFormat(viewer); CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);
@@ -483,6 +487,145 @@ PetscErrorCode load_snapshot_fields(
     ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
 
     ierr = PetscViewerPopFormat(viewer); CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer); CHKERRQ(ierr);
+
+    PetscFunctionReturn(0);
+}
+
+PetscErrorCode load_swarm_local_sizes(const char *filename, PetscInt *nlocal)
+{
+    PetscViewer viewer;
+    Vec vec;
+    const PetscScalar *array;
+    PetscMPIInt rank;
+    PetscErrorCode ierr;
+
+    PetscFunctionBeginUser;
+
+    MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
+
+    ierr = PetscViewerHDF5Open(PETSC_COMM_WORLD, filename, FILE_MODE_READ, &viewer); CHKERRQ(ierr);
+
+    ierr = PetscViewerHDF5PushGroup(viewer, "/particle_fields"); CHKERRQ(ierr);
+
+    ierr = VecCreate(PETSC_COMM_WORLD, &vec); CHKERRQ(ierr);
+
+    ierr = PetscObjectSetName((PetscObject)vec, "npoints_local"); CHKERRQ(ierr);
+
+    ierr = VecLoad(vec, viewer); CHKERRQ(ierr);
+
+    ierr = VecGetArrayRead(vec, &array); CHKERRQ(ierr);
+
+    *nlocal = (PetscInt)array[0];
+
+    ierr = VecRestoreArrayRead(vec, &array); CHKERRQ(ierr);
+
+    ierr = VecDestroy(&vec); CHKERRQ(ierr);
+
+    ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
+
+    ierr = PetscViewerDestroy(&viewer); CHKERRQ(ierr);
+
+    PetscFunctionReturn(0);
+}
+
+PetscErrorCode load_swarm_int_field(DM dms, PetscViewer viewer, const char *fieldname)
+{
+    Vec vec;
+    PetscInt *field_array;
+    const PetscScalar *vec_array;
+    PetscInt nlocal, i;
+    PetscErrorCode ierr;
+
+    PetscFunctionBeginUser;
+
+    ierr = DMSwarmGetLocalSize(dms, &nlocal); CHKERRQ(ierr);
+
+    ierr = DMSwarmGetField(dms, fieldname, NULL, NULL, (void**)&field_array); CHKERRQ(ierr);
+
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, nlocal, PETSC_DECIDE, &vec); CHKERRQ(ierr);
+
+    ierr = PetscObjectSetName((PetscObject)vec, fieldname); CHKERRQ(ierr);
+
+    ierr = VecLoad(vec, viewer); CHKERRQ(ierr);
+
+    ierr = VecGetArrayRead(vec, &vec_array); CHKERRQ(ierr);
+
+    for (i = 0; i < nlocal; i++) {
+        field_array[i] = (PetscInt)vec_array[i];
+    }
+
+    ierr = VecRestoreArrayRead(vec, &vec_array); CHKERRQ(ierr);
+
+    ierr = VecDestroy(&vec); CHKERRQ(ierr);
+
+    ierr = DMSwarmRestoreField(dms, fieldname, NULL, NULL, (void**)&field_array); CHKERRQ(ierr);
+
+    PetscFunctionReturn(0);
+}
+
+PetscErrorCode load_swarm_field(DM dms, PetscViewer viewer, const char *fieldname)
+{
+    Vec vec;
+    PetscScalar *field_array;
+    const PetscScalar *vec_array;
+
+    PetscInt nlocal, bs;
+    PetscErrorCode ierr;
+
+    PetscFunctionBeginUser;
+
+    ierr = DMSwarmGetLocalSize(dms, &nlocal);CHKERRQ(ierr);
+
+    ierr = DMSwarmGetField(dms, fieldname, &bs, NULL, (void**)&field_array); CHKERRQ(ierr);
+
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, nlocal*bs, PETSC_DECIDE, &vec); CHKERRQ(ierr);
+
+    ierr = PetscObjectSetName((PetscObject)vec, fieldname); CHKERRQ(ierr);
+
+    ierr = VecLoad(vec, viewer);CHKERRQ(ierr);
+
+    ierr = VecGetArrayRead(vec, &vec_array);CHKERRQ(ierr);
+
+    PetscMemcpy(field_array, vec_array, nlocal * bs * sizeof(PetscScalar));
+
+    ierr = VecRestoreArrayRead(vec, &vec_array);CHKERRQ(ierr);
+
+    ierr = VecDestroy(&vec);CHKERRQ(ierr);
+
+    ierr = DMSwarmRestoreField(dms, fieldname, &bs, NULL, (void**)&field_array); CHKERRQ(ierr);
+
+    PetscFunctionReturn(0);
+}
+
+PetscErrorCode load_particles_from_snapshot(const char *filename, DM dms, PetscBool magmatism_flag)
+{
+    PetscViewer viewer;
+    PetscErrorCode ierr;
+
+    PetscFunctionBeginUser;
+
+    ierr = PetscViewerHDF5Open(PETSC_COMM_WORLD, filename, FILE_MODE_READ, &viewer); CHKERRQ(ierr);
+
+    ierr = PetscViewerHDF5PushGroup(viewer, "/particle_fields"); CHKERRQ(ierr);
+
+    ierr = load_swarm_int_field(dms, viewer, "itag"); CHKERRQ(ierr);
+    ierr = load_swarm_int_field(dms, viewer, "layer"); CHKERRQ(ierr);
+    ierr = load_swarm_int_field(dms, viewer, "cont"); CHKERRQ(ierr);
+
+    ierr = load_swarm_field(dms, viewer, DMSwarmPICField_coor); CHKERRQ(ierr);
+    ierr = load_swarm_field(dms, viewer, "geoq_fac"); CHKERRQ(ierr);
+    ierr = load_swarm_field(dms, viewer, "strain_fac"); CHKERRQ(ierr);
+    ierr = load_swarm_field(dms, viewer, "strain_rate_fac"); CHKERRQ(ierr);
+
+    if (magmatism_flag) {
+        ierr = load_swarm_field(dms, viewer, "X"); CHKERRQ(ierr);
+        ierr = load_swarm_field(dms, viewer, "Phi"); CHKERRQ(ierr);
+        ierr = load_swarm_field(dms, viewer, "dPhi"); CHKERRQ(ierr);
+    }
+
+    ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
+
     ierr = PetscViewerDestroy(&viewer); CHKERRQ(ierr);
 
     PetscFunctionReturn(0);

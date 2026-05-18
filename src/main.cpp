@@ -32,7 +32,7 @@ PetscErrorCode write_all_(int cont,Vec u, char *variable_name, PetscInt binary_o
 PetscErrorCode write_pressure(int cont, PetscInt binary_out);
 PetscErrorCode write_geoq_(int cont, PetscInt binary_out);
 PetscErrorCode create_veloc(int dimensions, PetscInt mx, PetscInt my, PetscInt mz, PetscInt Px, PetscInt Py, PetscInt Pz, const PetscInt *dm_lx, const PetscInt *dm_lz);
-PetscErrorCode createSwarm_2d();
+PetscErrorCode createSwarm_2d(const char *snapshot_file, PetscBool restart);
 PetscErrorCode createSwarm_3d();
 PetscErrorCode moveSwarm(int dimensions, PetscReal dt);
 PetscErrorCode Swarm_add_remove_2d();
@@ -201,11 +201,15 @@ int main(int argc,char **args)
 	if (geoq_on){
 		PetscPrintf(PETSC_COMM_WORLD,"\nSwarm (creating)\n");
 		if (dimensions == 2) {
-			ierr = createSwarm_2d(); CHKERRQ(ierr);
+			ierr = createSwarm_2d(snapshot_file, restart); CHKERRQ(ierr);
 		} else {
 			ierr = createSwarm_3d(); CHKERRQ(ierr);
 		}
 		PetscPrintf(PETSC_COMM_WORLD,"Swarm: done\n");
+	}
+
+	if (dimensions == 2 && restart) {
+		ierr = load_particles_from_snapshot(snapshot_file, dms, magmatism_flag); CHKERRQ(ierr);
 	}
 
 	if (dimensions == 2 && (sp_surface_tracking)) {
@@ -236,14 +240,6 @@ int main(int argc,char **args)
 		); CHKERRQ(ierr);
 	}
 
-	PetscViewer _v;
-	PetscViewerASCIIOpen(PETSC_COMM_WORLD, "debug_velocity_from_snapshot.data", &_v);
-	VecView(Veloc_fut, _v);
-	PetscViewerDestroy(&_v);
-
-	PetscViewerASCIIOpen(PETSC_COMM_WORLD, "debug_temperature_from_snapshot.data", &_v);
-	VecView(Temper, _v);
-	PetscViewerDestroy(&_v);
 
 //	PetscPrintf(PETSC_COMM_SELF,"********** <rank:%d> <particles_per_ele:%d>\n", rank, particles_per_ele); -> conversar com Victor sobre
 //	PetscPrintf(PETSC_COMM_SELF,"********** <rank:%d> <layers:%d>\n", rank, layers); -> conversar com Victor sobre
@@ -316,7 +312,16 @@ int main(int argc,char **args)
 		PetscPrintf(PETSC_COMM_WORLD, "\n\n*** Using custom initial print_step = %d until %.3g Myr\n\n", print_step, initial_print_max_time);
 	}
 
-	for (tempo = dt_calor,tcont=1;tempo<=timeMAX && tcont<=stepMAX;tempo+=dt_calor, tcont++){
+	if (restart == PETSC_TRUE) {
+		tcont+=1;
+		tempo+= dt_calor;
+		VecCopy(Veloc_fut,Veloc);
+	} else {
+		tcont=1;
+		tempo = dt_calor;
+	}
+
+	for (;tempo<=timeMAX && tcont<=stepMAX;tempo+=dt_calor, tcont++){
 		if ((tempo > initial_print_max_time || fabs(tempo-initial_print_max_time) < 0.0001) && initial_print_step > 0) {
 			initial_print_step = 0;
 			print_step = print_step_aux;
@@ -441,7 +446,7 @@ int main(int argc,char **args)
 
 		dt_calor_sec = Calc_dt_calor(rank);
 
-		if (tcont == 1 || tcont%10==0) {
+		if (tcont == 21 || tcont%10==0) {
 			PetscPrintf(PETSC_COMM_WORLD,"\nWriting snapshot...");
 			PetscLogDouble t_ss_start, t_ss_end;
 			PetscTime(&t_ss_start);
