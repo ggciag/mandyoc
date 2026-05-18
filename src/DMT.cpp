@@ -356,12 +356,10 @@ PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt
 	PetscTime(&Tempo2p);
 	PetscPrintf(PETSC_COMM_WORLD, "temperature (creation): %lf s\n",Tempo2p-Tempo1p);
 
-	if (!restart) {
-		ierr = get_processor_partitioning(da_Thermal, &Px, &Py, &Pz); CHKERRQ(ierr);
-		ierr = DMDAGetOwnershipRanges(da_Thermal, &dm_lx, &dm_lz, NULL); CHKERRQ(ierr);
-		ierr = ISCreateGeneral(PETSC_COMM_WORLD, Px, dm_lx, PETSC_COPY_VALUES, &is_lx); CHKERRQ(ierr);
-		ierr = ISCreateGeneral(PETSC_COMM_WORLD, Pz, dm_lz, PETSC_COPY_VALUES, &is_lz); CHKERRQ(ierr);
-	}
+	ierr = get_processor_partitioning(da_Thermal, &Px, &Py, &Pz); CHKERRQ(ierr);
+	ierr = DMDAGetOwnershipRanges(da_Thermal, &dm_lx, &dm_lz, NULL); CHKERRQ(ierr);
+	ierr = ISCreateGeneral(PETSC_COMM_WORLD, Px, dm_lx, PETSC_COPY_VALUES, &is_lx); CHKERRQ(ierr);
+	ierr = ISCreateGeneral(PETSC_COMM_WORLD, Pz, dm_lz, PETSC_COPY_VALUES, &is_lz); CHKERRQ(ierr);
 
 	PetscFunctionReturn(0);
 }
