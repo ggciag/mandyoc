@@ -529,3 +529,6 @@ PetscErrorCode load_particles_from_snapshot(
     DM dms,
     PetscBool magmatism_flag
 );
+
+PetscReal snapshot_interval;
+PetscInt snapshot_files = 3;

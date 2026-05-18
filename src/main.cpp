@@ -72,6 +72,7 @@ int main(int argc,char **args)
 	PetscErrorCode ierr;
 	char prefix[PETSC_MAX_PATH_LEN];
 	char prefix_litho[PETSC_MAX_PATH_LEN];
+	PetscReal next_snapshot_time;
 
 	PetscFunctionBeginUser;
 
@@ -133,6 +134,9 @@ int main(int argc,char **args)
 			Lx, depth,
 			Px, Pz);
 	}
+
+	next_snapshot_time = floor(tempo / snapshot_interval + 1.0) * snapshot_interval;
+	PetscPrintf(PETSC_COMM_WORLD, "Next snapshot time: %lg Myr\n\n", next_snapshot_time/1e6);
 
 	// Check if the number of interfaces in "param.txt" is higher than then number read from command line
 	if (seed_layer_set && seed_layer_size > (n_interfaces + 1)) {
@@ -446,7 +450,7 @@ int main(int argc,char **args)
 
 		dt_calor_sec = Calc_dt_calor(rank);
 
-		if (tcont%10==0) {
+		if (tempo >= next_snapshot_time) {
 			PetscPrintf(PETSC_COMM_WORLD,"\nWriting snapshot...");
 			PetscLogDouble t_ss_start, t_ss_end;
 			PetscTime(&t_ss_start);
@@ -481,6 +485,8 @@ int main(int argc,char **args)
 			);
 			PetscTime(&t_ss_end);
 			PetscPrintf(PETSC_COMM_WORLD,"done. (%lf s)\n", t_ss_end-t_ss_start);
+
+			next_snapshot_time += snapshot_interval;
 		}
 	}
 

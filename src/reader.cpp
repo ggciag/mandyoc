@@ -194,6 +194,9 @@ extern PetscReal strain_rate0_scaled;
 
 extern PetscReal air_threshold_density;
 
+extern PetscReal snapshot_interval;
+extern PetscInt snapshot_files;
+
 // Reads input ASCII files
 PetscErrorCode reader(int rank, const char fName[]){
 	int nline;
@@ -342,6 +345,10 @@ PetscErrorCode reader(int rank, const char fName[]){
 
 			else if (strcmp(tkn_w, "nondimensionalization") == 0) {non_dim = check_a_b(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "variable_base_level") == 0) {variable_baselevel = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
+
+			else if (strcmp(tkn_w, "snapshot_interval") == 0) {snapshot_interval = atof(tkn_v);}
+			else if (strcmp(tkn_w, "snapshot_files") == 0) {snapshot_files = atoi(tkn_v);}
+
 			/*else if (strcmp(tkn_w, "h0_scaled") == 0) {h0_scaled = atof(tkn_v);}
 			else if (strcmp(tkn_w, "visc0_scaled") == 0) {visc0_scaled = atof(tkn_v);}
 			else if (strcmp(tkn_w, "g0_scaled") == 0) {g0_scaled = atof(tkn_v);}
@@ -525,6 +532,9 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&continental_slope,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&strain_sed,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&aggradation_rate,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+
+	MPI_Bcast(&snapshot_interval,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&snapshot_files,1,MPI_INT,0,PETSC_COMM_WORLD);
 
 	if (pressure_in_rheol == 0 && h_air < 0.0) {
 		PetscPrintf(PETSC_COMM_WORLD, "Specify the thickness of the air layer with the flag -h_air\n");

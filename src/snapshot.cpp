@@ -246,18 +246,27 @@ PetscErrorCode save_snapshot(
 )
 {
     PetscErrorCode ierr;
+    PetscMPIInt rank;
     PetscViewerFormat format = PETSC_VIEWER_HDF5_PETSC;
     PetscViewer viewer;
 
     PetscFunctionBeginUser;
 
-    char filename[PETSC_MAX_PATH_LEN];
+    MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
 
-    ierr = PetscSNPrintf(filename, PETSC_MAX_PATH_LEN-1, "snapshot_%d.h5", step); CHKERRQ(ierr);
+    char filename[PETSC_MAX_PATH_LEN];
+    char tmp_filename[PETSC_MAX_PATH_LEN];
+
+    ierr = PetscSNPrintf(filename, PETSC_MAX_PATH_LEN-1, "snapshot_step%06d_t%.1fMyr.h5", step, time/1.0e6); CHKERRQ(ierr);
+    ierr = PetscSNPrintf(tmp_filename, PETSC_MAX_PATH_LEN-1, "%s.tmp", filename); CHKERRQ(ierr);
+
+    if (rank == 0) {
+        remove(tmp_filename);
+    }
 
     // to do: check if file exists
 
-    ierr = PetscViewerHDF5Open(PETSC_COMM_WORLD, filename, FILE_MODE_WRITE, &viewer); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5Open(PETSC_COMM_WORLD, tmp_filename, FILE_MODE_WRITE, &viewer); CHKERRQ(ierr);
     ierr = PetscViewerPushFormat(viewer, format); CHKERRQ(ierr);
 
     // -- Simulation metadata
@@ -338,6 +347,13 @@ PetscErrorCode save_snapshot(
 
     ierr = PetscViewerPopFormat(viewer); CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);
+
+    if (rank == 0) {
+        int r = rename(tmp_filename, filename);
+        if (r != 0) {
+            SETERRQ(PETSC_COMM_SELF, PETSC_ERR_FILE_WRITE, "Failed to rename snapshot temp file");
+        }
+    }
 
     PetscFunctionReturn(0);
 }
