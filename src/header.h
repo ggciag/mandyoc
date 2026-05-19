@@ -498,8 +498,8 @@ PetscErrorCode load_snapshot_metadata(
     double *lz,
     PetscInt *Px,
     PetscInt *Pz,
-    const PetscInt *dm_lx,
-    const PetscInt *dm_lz
+    PetscInt **dm_lx,
+    PetscInt **dm_lz
 
 );
 
@@ -520,8 +520,8 @@ PetscErrorCode load_snapshot_fields(
     PetscBool magmatism_flag
 );
 
-const PetscInt *dm_lx = NULL;
-const PetscInt *dm_lz = NULL;
+PetscInt *dm_lx = NULL;
+PetscInt *dm_lz = NULL;
 IS is_lx;
 IS is_lz;
 

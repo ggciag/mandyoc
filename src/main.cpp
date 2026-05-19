@@ -119,7 +119,7 @@ int main(int argc,char **args)
 			&tcont, &tempo, &dt_calor,
 			&Nx, &Nz, &Lx, &depth,
 			&Px, &Pz,
-			dm_lx, dm_lz
+			&dm_lx, &dm_lz
 		);
 
 		PetscPrintf(PETSC_COMM_WORLD,

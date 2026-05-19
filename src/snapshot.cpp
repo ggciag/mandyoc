@@ -373,13 +373,38 @@ PetscErrorCode save_snapshot(
 
     // -- dm ownership
     ierr = PetscViewerHDF5PushGroup(viewer, "dm_ownership"); CHKERRQ(ierr);
+    {
+        Vec vec_lx;
+        Vec vec_lz;
 
-    ierr = PetscObjectSetName((PetscObject)is_lx, "lx"); CHKERRQ(ierr);
-    ierr = ISView(is_lx, viewer); CHKERRQ(ierr);
+        const PetscInt *lx_idx;
+        const PetscInt *lz_idx;
 
-    ierr = PetscObjectSetName((PetscObject)is_lz, "lz"); CHKERRQ(ierr);
-    ierr = ISView(is_lz, viewer); CHKERRQ(ierr);
+        PetscInt n_lx;
+        PetscInt n_lz;
 
+        ierr = ISGetLocalSize(is_lx, &n_lx); CHKERRQ(ierr);
+        ierr = ISGetLocalSize(is_lz, &n_lz); CHKERRQ(ierr);
+
+        ierr = ISGetIndices(is_lx, &lx_idx); CHKERRQ(ierr);
+        ierr = ISGetIndices(is_lz, &lz_idx); CHKERRQ(ierr);
+
+        ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, 1, n_lx, (PetscScalar*)lx_idx, &vec_lx); CHKERRQ(ierr);
+
+        ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, 1, n_lz, (PetscScalar*)lz_idx, &vec_lz); CHKERRQ(ierr);
+
+        ierr = PetscObjectSetName((PetscObject)vec_lx, "lx"); CHKERRQ(ierr);
+        ierr = VecView(vec_lx, viewer); CHKERRQ(ierr);
+
+        ierr = PetscObjectSetName((PetscObject)vec_lz, "lz"); CHKERRQ(ierr);
+        ierr = VecView(vec_lz, viewer); CHKERRQ(ierr);
+
+        ierr = VecDestroy(&vec_lx); CHKERRQ(ierr);
+        ierr = VecDestroy(&vec_lz); CHKERRQ(ierr);
+
+        ierr = ISRestoreIndices(is_lx, &lx_idx); CHKERRQ(ierr);
+        ierr = ISRestoreIndices(is_lz, &lz_idx); CHKERRQ(ierr);
+    }
     ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
 
     ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
@@ -447,8 +472,8 @@ PetscErrorCode load_snapshot_metadata(
     double *lz,
     PetscInt *Px,
     PetscInt *Pz,
-    const PetscInt *dm_lx,
-    const PetscInt *dm_lz
+    PetscInt **dm_lx,
+    PetscInt **dm_lz
 )
 {
     PetscErrorCode ierr;
@@ -498,22 +523,52 @@ PetscErrorCode load_snapshot_metadata(
 
 
     // -- dm ownership
-    IS is_lx, is_lz;
-
     ierr = PetscViewerHDF5PushGroup(viewer, "/metadata/dm_ownership"); CHKERRQ(ierr);
 
-    ISCreate(PETSC_COMM_SELF, &is_lx);
-    PetscObjectSetName((PetscObject)is_lx, "lx");
-    ISLoad(is_lx, viewer);
+    Vec vec_lx;
+    Vec vec_lz;
 
-    ISCreate(PETSC_COMM_SELF, &is_lz);
-    PetscObjectSetName((PetscObject)is_lz, "lz");
-    ISLoad(is_lz, viewer);
+    const PetscScalar *array;
+
+    PetscInt n_lx;
+    PetscInt n_lz;
+    PetscInt i;
+
+    ierr = VecCreate(PETSC_COMM_SELF, &vec_lx); CHKERRQ(ierr);
+    ierr = PetscObjectSetName((PetscObject)vec_lx, "lx"); CHKERRQ(ierr);
+    ierr = VecLoad(vec_lx, viewer); CHKERRQ(ierr);
+
+    ierr = VecCreate(PETSC_COMM_SELF, &vec_lz); CHKERRQ(ierr);
+    ierr = PetscObjectSetName((PetscObject)vec_lz, "lz"); CHKERRQ(ierr);
+    ierr = VecLoad(vec_lz, viewer); CHKERRQ(ierr);
+
+    ierr = VecGetSize(vec_lx, &n_lx); CHKERRQ(ierr);
+    ierr = VecGetSize(vec_lz, &n_lz); CHKERRQ(ierr);
+
+    PetscInt *dm_lx_aux;
+    PetscInt *dm_lz_aux;
+
+    PetscMalloc1(n_lx, &dm_lx_aux);
+    PetscMalloc1(n_lz, &dm_lz_aux);
+
+    ierr = VecGetArrayRead(vec_lx, &array); CHKERRQ(ierr);
+    for (i = 0; i < n_lx; i++) {
+        dm_lx_aux[i] = (PetscInt)array[i];
+    }
+    ierr = VecRestoreArrayRead(vec_lx, &array); CHKERRQ(ierr);
+    ierr = VecDestroy(&vec_lx); CHKERRQ(ierr);
+
+    ierr = VecGetArrayRead(vec_lz, &array); CHKERRQ(ierr);
+    for (i = 0; i < n_lz; i++) {
+        dm_lz_aux[i] = (PetscInt)array[i];
+    }
+    ierr = VecRestoreArrayRead(vec_lz, &array); CHKERRQ(ierr);
+    ierr = VecDestroy(&vec_lz); CHKERRQ(ierr);
+
+    *dm_lx = dm_lx_aux;
+    *dm_lz = dm_lz_aux;
 
     ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
-
-    ISGetIndices(is_lx, &dm_lx);
-    ISGetIndices(is_lz, &dm_lz);
 
     ierr = PetscViewerPopFormat(viewer); CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer); CHKERRQ(ierr);
@@ -530,7 +585,6 @@ PetscErrorCode load_snapshot_metadata(
 
     PetscFunctionReturn(0);
 }
-
 
 PetscErrorCode load_snapshot_fields(
     const char *filename,
