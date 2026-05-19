@@ -345,6 +345,8 @@ PetscErrorCode save_snapshot(
     ierr = PetscViewerHDF5Open(PETSC_COMM_WORLD, tmp_filename, FILE_MODE_WRITE, &viewer); CHKERRQ(ierr);
     ierr = PetscViewerPushFormat(viewer, format); CHKERRQ(ierr);
 
+    if (rank == 0) {
+
     // -- Simulation metadata
     ierr = PetscViewerHDF5PushGroup(viewer, "/metadata"); CHKERRQ(ierr);
 
@@ -371,6 +373,7 @@ PetscErrorCode save_snapshot(
     ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "Pz", PETSC_INT, &Pz); CHKERRQ(ierr);
     ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
 
+    }
     // -- dm ownership
     ierr = PetscViewerHDF5PushGroup(viewer, "dm_ownership"); CHKERRQ(ierr);
     {
