@@ -676,11 +676,12 @@ PetscErrorCode load_snapshot_fields(
 
 PetscErrorCode load_swarm_local_sizes(const char *filename, PetscInt *nlocal)
 {
+    PetscErrorCode ierr;
+    PetscMPIInt rank;
     PetscViewer viewer;
     Vec vec;
     const PetscScalar *array;
-    PetscMPIInt rank;
-    PetscErrorCode ierr;
+    PetscInt low, high;
 
     PetscFunctionBeginUser;
 
@@ -696,9 +697,15 @@ PetscErrorCode load_swarm_local_sizes(const char *filename, PetscInt *nlocal)
 
     ierr = VecLoad(vec, viewer); CHKERRQ(ierr);
 
+    ierr = VecGetOwnershipRange(vec, &low, &high); CHKERRQ(ierr);
+
     ierr = VecGetArrayRead(vec, &array); CHKERRQ(ierr);
 
-    *nlocal = (PetscInt)array[0];
+    if (high > low) {
+        *nlocal = (PetscInt)array[0];
+    } else {
+        *nlocal = 0;
+    }
 
     ierr = VecRestoreArrayRead(vec, &array); CHKERRQ(ierr);
 
