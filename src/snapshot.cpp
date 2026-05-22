@@ -352,6 +352,7 @@ PetscErrorCode save_snapshot(
 
     ierr = PetscViewerHDF5Open(PETSC_COMM_WORLD, tmp_filename, FILE_MODE_WRITE, &viewer); CHKERRQ(ierr);
     ierr = PetscViewerPushFormat(viewer, format); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5SetCollective(viewer, PETSC_TRUE); CHKERRQ(ierr);
 
     // -- Simulation metadata
     ierr = PetscViewerHDF5PushGroup(viewer, "/metadata"); CHKERRQ(ierr);
@@ -483,12 +484,16 @@ PetscErrorCode save_snapshot(
     ierr = PetscViewerPopFormat(viewer); CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer); CHKERRQ(ierr);
 
+    MPI_Barrier(PETSC_COMM_WORLD);
+
     if (rank == 0) {
         int r = rename(tmp_filename, filename);
         if (r != 0) {
             SETERRQ(PETSC_COMM_SELF, PETSC_ERR_FILE_WRITE, "Failed to rename snapshot temp file");
         }
     }
+
+    MPI_Barrier(PETSC_COMM_WORLD);
 
     ierr = update_snapshot_log(filename, max_snapshots); CHKERRQ(ierr);
 
