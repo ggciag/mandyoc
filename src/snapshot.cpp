@@ -308,6 +308,13 @@ PetscErrorCode save_snapshot(
     double lz,
     PetscInt Px,
     PetscInt Pz,
+    PetscInt cont_sediment_layer,
+    PetscInt active_sediment_layer,
+    PetscInt cont_sedimentation_rate,
+    PetscReal sedimentation_rate,
+    PetscInt cont_bl_level,
+    PetscInt variable_baselevel,
+    PetscInt cont_var_bcv,
     IS is_lx,
     IS is_lz,
     Vec velocity,
@@ -362,6 +369,13 @@ PetscErrorCode save_snapshot(
     ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "step", PETSC_INT, &step); CHKERRQ(ierr);
     ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "time", PETSC_REAL, &time); CHKERRQ(ierr);
     ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "dt", PETSC_REAL, &dt); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "cont_sediment_layer", PETSC_INT, &cont_sediment_layer); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "active_sediment_layer", PETSC_INT, &active_sediment_layer); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "cont_sedimentation_rate", PETSC_INT, &cont_sedimentation_rate); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "sedimentation_rate", PETSC_REAL, &sedimentation_rate); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "cont_bl_level", PETSC_INT, &cont_bl_level); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "variable_baselevel", PETSC_INT, &variable_baselevel); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "cont_var_bcv", PETSC_INT, &cont_var_bcv); CHKERRQ(ierr);
     ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
     //
 
@@ -511,6 +525,13 @@ PetscErrorCode load_snapshot_metadata(
     double *lz,
     PetscInt *Px,
     PetscInt *Pz,
+    PetscInt *cont_sediment_layer,
+    PetscInt *active_sediment_layer,
+    PetscInt *cont_sedimentation_rate,
+    PetscReal *sedimentation_rate,
+    PetscInt *cont_bl_level,
+    PetscInt *variable_baselevel,
+    PetscInt *cont_var_bcv,
     PetscInt **dm_lx,
     PetscInt **dm_lz
 )
@@ -527,6 +548,13 @@ PetscErrorCode load_snapshot_metadata(
     PetscReal lz_aux;
     PetscInt Px_aux;
     PetscInt Pz_aux;
+    PetscInt cont_sediment_layer_aux;
+    PetscInt active_sediment_layer_aux;
+    PetscInt cont_sedimentation_rate_aux;
+    PetscReal sedimentation_rate_aux;
+    PetscInt cont_bl_level_aux;
+    PetscInt variable_baselevel_aux;
+    PetscInt cont_var_bcv_aux;
 
     PetscFunctionBeginUser;
 
@@ -539,7 +567,13 @@ PetscErrorCode load_snapshot_metadata(
     ierr = PetscViewerHDF5ReadAttribute(viewer, NULL, "step", PETSC_INT, NULL, &step_aux); CHKERRQ(ierr);
     ierr = PetscViewerHDF5ReadAttribute(viewer, NULL, "time", PETSC_REAL, NULL, &time_aux); CHKERRQ(ierr);
     ierr = PetscViewerHDF5ReadAttribute(viewer, NULL, "dt", PETSC_REAL, NULL, &dt_aux);   CHKERRQ(ierr);
-
+    ierr = PetscViewerHDF5ReadAttribute(viewer, NULL, "cont_sediment_layer", PETSC_INT, NULL, &cont_sediment_layer_aux); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5ReadAttribute(viewer, NULL, "active_sediment_layer", PETSC_INT, NULL, &active_sediment_layer_aux); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5ReadAttribute(viewer, NULL, "cont_sedimentation_rate", PETSC_INT, NULL, &cont_sedimentation_rate_aux); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5ReadAttribute(viewer, NULL, "sedimentation_rate", PETSC_REAL, NULL, &sedimentation_rate_aux); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5ReadAttribute(viewer, NULL, "cont_bl_level", PETSC_INT, NULL, &cont_bl_level_aux); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5ReadAttribute(viewer, NULL, "variable_baselevel", PETSC_INT, NULL, &variable_baselevel_aux); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5ReadAttribute(viewer, NULL, "cont_var_bcv", PETSC_INT, NULL, &cont_var_bcv_aux); CHKERRQ(ierr);
     ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
 
     // -- Mesh metadata
@@ -621,6 +655,13 @@ PetscErrorCode load_snapshot_metadata(
     *lz = (double)lz_aux;
     *Px = (PetscInt)Px_aux;
     *Pz = (PetscInt)Pz_aux;
+    *cont_sediment_layer = (PetscInt)cont_sediment_layer_aux;
+    *active_sediment_layer = (PetscInt)active_sediment_layer_aux;
+    *cont_sedimentation_rate = (PetscInt)cont_sedimentation_rate_aux;
+    *sedimentation_rate = (PetscReal)sedimentation_rate_aux;
+    *cont_bl_level = (PetscInt)cont_bl_level_aux;
+    *variable_baselevel = (PetscInt)variable_baselevel_aux;
+    *cont_var_bcv = (PetscInt)cont_var_bcv_aux;
 
     PetscFunctionReturn(0);
 }

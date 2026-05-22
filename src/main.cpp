@@ -119,6 +119,10 @@ int main(int argc,char **args)
 			&tcont, &tempo, &dt_calor,
 			&Nx, &Nz, &Lx, &depth,
 			&Px, &Pz,
+			&cont_sediment_layer, &active_sediment_layer,
+			&cont_sedimentation_rate, &sedimentation_rate,
+			&cont_bl_level, &variable_baselevel,
+			&cont_var_bcv,
 			&dm_lx, &dm_lz
 		);
 
@@ -127,12 +131,20 @@ int main(int argc,char **args)
 			" step = %d\n time = %g\n dt = %g\n"
 			" nx = %ld nz = %ld\n"
 			" lx = %lf lz = %lf\n"
-			" Px = %d Pz = %d\n\n",
+			" Px = %d Pz = %d\n"
+			" cont_sediment_layer = %d active_sediment_layer = %d\n"
+			" cont_sedimentation_rate = %d sedimentation_rate = %lf\n"
+			" cont_bl_level = %d variable_baselevel = %d\n"
+			" cont_var_bcv = %d\n\n",
 			snapshot_file,
 			tcont, tempo, dt_calor,
 			Nx, Nz,
 			Lx, depth,
-			Px, Pz);
+			Px, Pz,
+			cont_sediment_layer, active_sediment_layer,
+			cont_sedimentation_rate, sedimentation_rate,
+			cont_bl_level, variable_baselevel,
+			cont_var_bcv);
 	}
 
 	next_snapshot_time = floor(tempo / snapshot_interval + 1.0) * snapshot_interval;
@@ -464,6 +476,13 @@ int main(int argc,char **args)
 				depth,
 				Px,
 				Pz,
+				cont_sediment_layer,
+				active_sediment_layer,
+				cont_sedimentation_rate,
+				sedimentation_rate,
+				cont_bl_level,
+				variable_baselevel,
+				cont_var_bcv,
 				is_lx,
 				is_lz,
 				Veloc_fut,
