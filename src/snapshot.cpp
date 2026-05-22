@@ -345,8 +345,6 @@ PetscErrorCode save_snapshot(
     ierr = PetscViewerHDF5Open(PETSC_COMM_WORLD, tmp_filename, FILE_MODE_WRITE, &viewer); CHKERRQ(ierr);
     ierr = PetscViewerPushFormat(viewer, format); CHKERRQ(ierr);
 
-    if (rank == 0) {
-
     // -- Simulation metadata
     ierr = PetscViewerHDF5PushGroup(viewer, "/metadata"); CHKERRQ(ierr);
 
@@ -373,8 +371,6 @@ PetscErrorCode save_snapshot(
     ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "Pz", PETSC_INT, &Pz); CHKERRQ(ierr);
     ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
 
-    }
-    // -- dm ownership
     ierr = PetscViewerHDF5PushGroup(viewer, "dm_ownership"); CHKERRQ(ierr);
     {
         Vec vec_lx;
@@ -386,23 +382,50 @@ PetscErrorCode save_snapshot(
         PetscInt n_lx;
         PetscInt n_lz;
 
+        PetscInt i;
+        PetscInt local_size;
+        PetscScalar *array;
+
         ierr = ISGetLocalSize(is_lx, &n_lx); CHKERRQ(ierr);
         ierr = ISGetLocalSize(is_lz, &n_lz); CHKERRQ(ierr);
 
         ierr = ISGetIndices(is_lx, &lx_idx); CHKERRQ(ierr);
         ierr = ISGetIndices(is_lz, &lz_idx); CHKERRQ(ierr);
 
-        ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, 1, n_lx, (PetscScalar*)lx_idx, &vec_lx); CHKERRQ(ierr);
+        local_size = (rank == 0) ? n_lx : 0;
+        ierr = VecCreateMPI(PETSC_COMM_WORLD, local_size, n_lx, &vec_lx); CHKERRQ(ierr);
 
-        ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, 1, n_lz, (PetscScalar*)lz_idx, &vec_lz); CHKERRQ(ierr);
+        if (rank == 0) {
+            ierr = VecGetArray(vec_lx, &array); CHKERRQ(ierr);
+
+            for (i = 0; i < n_lx; i++) {
+                array[i] = (PetscScalar)lx_idx[i];
+            }
+
+            ierr = VecRestoreArray(vec_lx, &array); CHKERRQ(ierr);
+        }
 
         ierr = PetscObjectSetName((PetscObject)vec_lx, "lx"); CHKERRQ(ierr);
         ierr = VecView(vec_lx, viewer); CHKERRQ(ierr);
 
-        ierr = PetscObjectSetName((PetscObject)vec_lz, "lz"); CHKERRQ(ierr);
+        ierr = VecDestroy(&vec_lx); CHKERRQ(ierr);
+
+        local_size = (rank == 0) ? n_lz : 0;
+        ierr = VecCreateMPI(PETSC_COMM_WORLD, local_size, n_lz, &vec_lz); CHKERRQ(ierr);
+
+        if (rank == 0) {
+            ierr = VecGetArray(vec_lz, &array); CHKERRQ(ierr);
+
+            for (i = 0; i < n_lz; i++) {
+                array[i] = (PetscScalar)lz_idx[i];
+            }
+
+            ierr = VecRestoreArray(vec_lz, &array); CHKERRQ(ierr);
+        }
+
+        ierr = PetscObjectSetName((PetscObject)vec_lz,"lz"); CHKERRQ(ierr);
         ierr = VecView(vec_lz, viewer); CHKERRQ(ierr);
 
-        ierr = VecDestroy(&vec_lx); CHKERRQ(ierr);
         ierr = VecDestroy(&vec_lz); CHKERRQ(ierr);
 
         ierr = ISRestoreIndices(is_lx, &lx_idx); CHKERRQ(ierr);
