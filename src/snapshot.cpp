@@ -128,13 +128,13 @@ PetscErrorCode get_processor_partitioning(
     // count Py
     sum = 0;
     for (j = 0; sum < N; j++) {
-        sum += ly[i];
+        sum += ly[j];
     }
 
     // count Pz
     sum = 0;
     for (k = 0; sum < P; k++) {
-        sum += lz[i];
+        sum += lz[k];
     }
 
     if (dim == 2) {
