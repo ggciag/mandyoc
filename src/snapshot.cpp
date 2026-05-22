@@ -213,12 +213,14 @@ PetscErrorCode save_swarm_int_field(
 
 PetscErrorCode save_particles_to_snapshot(DM dms, PetscViewer viewer, PetscBool magmatism_flag)
 {
+    PetscErrorCode ierr;
+    PetscMPIInt rank, size;
     Vec all_local;
     PetscScalar *all_nlocal_array_aux;
     PetscInt *all_nlocal_array;
     PetscInt i, npoints_local;
-    PetscMPIInt rank, size;
-    PetscErrorCode ierr;
+    PetscInt local_size;
+    PetscScalar *array;
 
     PetscFunctionBeginUser;
 
@@ -230,22 +232,28 @@ PetscErrorCode save_particles_to_snapshot(DM dms, PetscViewer viewer, PetscBool 
 
     // -- particles metadata
     ierr = DMSwarmGetLocalSize(dms, &npoints_local); CHKERRQ(ierr);
-    PetscMalloc1(size, &all_nlocal_array);
-    PetscMalloc1(size, &all_nlocal_array_aux);
+
+    PetscMalloc1(size, &all_nlocal_array); CHKERRQ(ierr);
     MPI_Allgather(&npoints_local, 1, MPIU_INT, all_nlocal_array, 1, MPIU_INT, PETSC_COMM_WORLD);
 
-    for (i = 0; i < size; i++) {
-        all_nlocal_array_aux[i] = (PetscScalar)all_nlocal_array[i];
+    local_size = (rank == 0) ? size : 0;
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, local_size, size, &all_local); CHKERRQ(ierr);
+
+    if (rank == 0) {
+        ierr = VecGetArray(all_local, &array); CHKERRQ(ierr);
+
+        for (i = 0; i < size; i++) {
+            array[i] = (PetscScalar)all_nlocal_array[i];
+        }
+
+        ierr = VecRestoreArray(all_local, &array); CHKERRQ(ierr);
     }
 
-    ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, 1, size, all_nlocal_array_aux, &all_local); CHKERRQ(ierr);
     ierr = PetscObjectSetName((PetscObject)all_local, "npoints_local"); CHKERRQ(ierr);
-
     ierr = VecView(all_local, viewer); CHKERRQ(ierr);
 
     ierr = VecDestroy(&all_local); CHKERRQ(ierr);
     ierr = PetscFree(all_nlocal_array); CHKERRQ(ierr);
-    ierr = PetscFree(all_nlocal_array_aux); CHKERRQ(ierr);
 
     // -- fields
     ierr = save_swarm_int_field(dms, viewer, "itag"); CHKERRQ(ierr);
