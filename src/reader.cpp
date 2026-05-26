@@ -197,6 +197,8 @@ extern PetscReal air_threshold_density;
 extern PetscReal snapshot_interval;
 extern PetscInt snapshot_files;
 
+extern PetscBool output_hdf5;
+
 // Reads input ASCII files
 PetscErrorCode reader(int rank, const char fName[]){
 	int nline;
@@ -348,6 +350,8 @@ PetscErrorCode reader(int rank, const char fName[]){
 
 			else if (strcmp(tkn_w, "snapshot_interval") == 0) {snapshot_interval = atof(tkn_v);}
 			else if (strcmp(tkn_w, "snapshot_files") == 0) {snapshot_files = atoi(tkn_v);}
+
+			else if (strcmp(tkn_w, "output_hdf5") == 0) {output_hdf5 = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 
 			/*else if (strcmp(tkn_w, "h0_scaled") == 0) {h0_scaled = atof(tkn_v);}
 			else if (strcmp(tkn_w, "visc0_scaled") == 0) {visc0_scaled = atof(tkn_v);}
@@ -535,6 +539,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 
 	MPI_Bcast(&snapshot_interval,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&snapshot_files,1,MPI_INT,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&output_hdf5,1,MPI_INT,0,PETSC_COMM_WORLD);
 
 	if (pressure_in_rheol == 0 && h_air < 0.0) {
 		PetscPrintf(PETSC_COMM_WORLD, "Specify the thickness of the air layer with the flag -h_air\n");

@@ -5,6 +5,11 @@
 #include <petscis.h>
 
 
+typedef struct {
+    PetscBool is_snapshot;
+    PetscInt  max_snapshots;
+} SnapshotOptions;
+
 PetscErrorCode update_snapshot_log(
     const char *new_snapshot,
     PetscInt max_snapshots
@@ -211,7 +216,7 @@ PetscErrorCode save_swarm_int_field(
     PetscFunctionReturn(0);
 }
 
-PetscErrorCode save_particles_to_snapshot(DM dms, PetscViewer viewer, PetscBool magmatism_flag)
+PetscErrorCode save_particles_to_snapshot(DM dms, PetscViewer viewer, PetscBool magmatism_flag, PetscBool is_snapshot)
 {
     PetscErrorCode ierr;
     PetscMPIInt rank, size;
@@ -297,6 +302,236 @@ PetscErrorCode save_surface_particles_to_snapshot(
     PetscFunctionReturn(0);
 }
 
+PetscErrorCode write_hdf5(
+    int step,
+    double time,
+    double dt,
+    long nx,
+    long nz,
+    double lx,
+    double lz,
+    PetscInt Px,
+    PetscInt Pz,
+    PetscInt cont_sediment_layer,
+    PetscInt active_sediment_layer,
+    PetscInt cont_sedimentation_rate,
+    PetscReal sedimentation_rate,
+    PetscInt cont_bl_level,
+    PetscInt variable_baselevel,
+    PetscInt cont_var_bcv,
+    IS is_lx,
+    IS is_lz,
+    Vec velocity,
+    Vec temperature,
+    Vec pressure,
+    Vec viscosity,
+    Vec density,
+    Vec heat,
+    Vec strain,
+    Vec strain_rate,
+    Vec thermal_diffusivity,
+    Vec X_depletion,
+    Vec Phi,
+    Vec dPhi,
+    DM dms,
+    DM dms_s,
+    PetscBool magmatism_flag,
+    PetscBool sp_surface_tracking,
+    const SnapshotOptions *opts
+)
+{
+    PetscErrorCode ierr;
+    PetscMPIInt rank;
+    PetscViewerFormat format = PETSC_VIEWER_HDF5_PETSC;
+    PetscViewer viewer;
+
+    PetscFunctionBeginUser;
+
+    MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
+
+    char filename[PETSC_MAX_PATH_LEN];
+    char tmp_filename[PETSC_MAX_PATH_LEN];
+
+    if (opts->is_snapshot) {
+        ierr = PetscSNPrintf(filename, PETSC_MAX_PATH_LEN-1, "snapshot_step%06d_t%.1fMyr.h5", step, time/1.0e6); CHKERRQ(ierr);
+    } else {
+        ierr = PetscSNPrintf(filename, PETSC_MAX_PATH_LEN-1, "output_step%06d_t%.1fMyr.h5", step, time/1.0e6); CHKERRQ(ierr);
+    }
+    ierr = PetscSNPrintf(tmp_filename, PETSC_MAX_PATH_LEN-1, "%s.tmp", filename); CHKERRQ(ierr);
+
+    if (rank == 0) {
+        remove(tmp_filename);
+    }
+
+    // to do: check if file exists
+
+    MPI_Barrier(PETSC_COMM_WORLD);
+
+    ierr = PetscViewerHDF5Open(PETSC_COMM_WORLD, tmp_filename, FILE_MODE_WRITE, &viewer); CHKERRQ(ierr);
+    ierr = PetscViewerPushFormat(viewer, format); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5SetCollective(viewer, PETSC_TRUE); CHKERRQ(ierr);
+
+    // -- Simulation metadata
+    ierr = PetscViewerHDF5PushGroup(viewer, "/metadata"); CHKERRQ(ierr);
+
+    // -- state
+    ierr = PetscViewerHDF5PushGroup(viewer, "simulation"); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "step", PETSC_INT, &step); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "time", PETSC_REAL, &time); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "dt", PETSC_REAL, &dt); CHKERRQ(ierr);
+    if (opts->is_snapshot) {
+        ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "cont_sediment_layer", PETSC_INT, &cont_sediment_layer); CHKERRQ(ierr);
+        ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "active_sediment_layer", PETSC_INT, &active_sediment_layer); CHKERRQ(ierr);
+        ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "cont_sedimentation_rate", PETSC_INT, &cont_sedimentation_rate); CHKERRQ(ierr);
+        ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "sedimentation_rate", PETSC_REAL, &sedimentation_rate); CHKERRQ(ierr);
+        ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "cont_bl_level", PETSC_INT, &cont_bl_level); CHKERRQ(ierr);
+        ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "variable_baselevel", PETSC_INT, &variable_baselevel); CHKERRQ(ierr);
+        ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "cont_var_bcv", PETSC_INT, &cont_var_bcv); CHKERRQ(ierr);
+    }
+    ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
+    //
+
+    // -- mesh
+    ierr = PetscViewerHDF5PushGroup(viewer, "mesh"); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "nx", PETSC_INT, &nx); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "nz", PETSC_INT, &nz); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "lx", PETSC_REAL, &lx); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "lz", PETSC_REAL, &lz); CHKERRQ(ierr);
+    ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
+    //
+
+    // -- processor layout
+    if (opts->is_snapshot) {
+        ierr = PetscViewerHDF5PushGroup(viewer, "processor_layout"); CHKERRQ(ierr);
+        ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "Px", PETSC_INT, &Px); CHKERRQ(ierr);
+        ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "Pz", PETSC_INT, &Pz); CHKERRQ(ierr);
+        ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
+
+        ierr = PetscViewerHDF5PushGroup(viewer, "dm_ownership"); CHKERRQ(ierr);
+        {
+            Vec vec_lx;
+            Vec vec_lz;
+
+            const PetscInt *lx_idx;
+            const PetscInt *lz_idx;
+
+            PetscInt n_lx;
+            PetscInt n_lz;
+
+            PetscInt i;
+            PetscInt local_size;
+            PetscScalar *array;
+
+            ierr = ISGetLocalSize(is_lx, &n_lx); CHKERRQ(ierr);
+            ierr = ISGetLocalSize(is_lz, &n_lz); CHKERRQ(ierr);
+
+            ierr = ISGetIndices(is_lx, &lx_idx); CHKERRQ(ierr);
+            ierr = ISGetIndices(is_lz, &lz_idx); CHKERRQ(ierr);
+
+            local_size = (rank == 0) ? n_lx : 0;
+            ierr = VecCreateMPI(PETSC_COMM_WORLD, local_size, n_lx, &vec_lx); CHKERRQ(ierr);
+
+            if (rank == 0) {
+                ierr = VecGetArray(vec_lx, &array); CHKERRQ(ierr);
+
+                for (i = 0; i < n_lx; i++) {
+                    array[i] = (PetscScalar)lx_idx[i];
+                }
+
+                ierr = VecRestoreArray(vec_lx, &array); CHKERRQ(ierr);
+            }
+
+            ierr = PetscObjectSetName((PetscObject)vec_lx, "lx"); CHKERRQ(ierr);
+            ierr = VecView(vec_lx, viewer); CHKERRQ(ierr);
+
+            ierr = VecDestroy(&vec_lx); CHKERRQ(ierr);
+
+            local_size = (rank == 0) ? n_lz : 0;
+            ierr = VecCreateMPI(PETSC_COMM_WORLD, local_size, n_lz, &vec_lz); CHKERRQ(ierr);
+
+            if (rank == 0) {
+                ierr = VecGetArray(vec_lz, &array); CHKERRQ(ierr);
+
+                for (i = 0; i < n_lz; i++) {
+                    array[i] = (PetscScalar)lz_idx[i];
+                }
+
+                ierr = VecRestoreArray(vec_lz, &array); CHKERRQ(ierr);
+            }
+
+            ierr = PetscObjectSetName((PetscObject)vec_lz,"lz"); CHKERRQ(ierr);
+            ierr = VecView(vec_lz, viewer); CHKERRQ(ierr);
+
+            ierr = VecDestroy(&vec_lz); CHKERRQ(ierr);
+
+            ierr = ISRestoreIndices(is_lx, &lx_idx); CHKERRQ(ierr);
+            ierr = ISRestoreIndices(is_lz, &lz_idx); CHKERRQ(ierr);
+        }
+        ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
+    }
+
+    ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
+    // (metadata)
+
+    // -- fields
+    ierr = PetscViewerHDF5PushGroup(viewer, "/fields"); CHKERRQ(ierr);
+
+    #define SAVE_VEC(v,name) \
+        ierr = PetscObjectSetName((PetscObject)v, name); CHKERRQ(ierr); \
+        ierr = VecView(v, viewer); CHKERRQ(ierr);
+
+    SAVE_VEC(velocity, "velocity");
+    SAVE_VEC(temperature, "temperature");
+    SAVE_VEC(pressure, "pressure");
+    SAVE_VEC(viscosity, "viscosity");
+    SAVE_VEC(density, "density");
+    SAVE_VEC(heat, "heat");
+    SAVE_VEC(strain, "strain");
+    SAVE_VEC(strain_rate, "strain_rate");
+    SAVE_VEC(thermal_diffusivity, "thermal_diffusivity");
+
+    if (magmatism_flag) {
+        SAVE_VEC(X_depletion, "X_depletion");
+        SAVE_VEC(Phi, "Phi");
+        SAVE_VEC(dPhi, "dPhi");
+    }
+
+    ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr); CHKERRQ(ierr);
+    //
+
+    // todo: pass opts->is_snapshot to skip particles
+    // create litho
+
+    // -- particles
+    ierr = save_particles_to_snapshot(dms, viewer, magmatism_flag, opts->is_snapshot); CHKERRQ(ierr);
+
+    if (sp_surface_tracking) {
+        ierr = save_surface_particles_to_snapshot(dms_s, viewer); CHKERRQ(ierr);
+    }
+    //
+
+    ierr = PetscViewerPopFormat(viewer); CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer); CHKERRQ(ierr);
+
+
+    MPI_Barrier(PETSC_COMM_WORLD);
+
+    if (rank == 0) {
+        int r = rename(tmp_filename, filename);
+        if (r != 0) {
+            SETERRQ(PETSC_COMM_SELF, PETSC_ERR_FILE_WRITE, "Failed to rename snapshot temp file");
+        }
+    }
+
+    MPI_Barrier(PETSC_COMM_WORLD);
+
+
+    if (opts->is_snapshot) {
+        ierr = update_snapshot_log(filename, opts->max_snapshots); CHKERRQ(ierr);
+    }
+
+    PetscFunctionReturn(0);
+}
 
 PetscErrorCode save_snapshot(
     int step,
@@ -336,182 +571,122 @@ PetscErrorCode save_snapshot(
     PetscInt max_snapshots
 )
 {
-    PetscErrorCode ierr;
-    PetscMPIInt rank;
-    PetscViewerFormat format = PETSC_VIEWER_HDF5_PETSC;
-    PetscViewer viewer;
+    SnapshotOptions opts;
 
-    PetscFunctionBeginUser;
+    opts.is_snapshot = PETSC_TRUE;
+    opts.max_snapshots = max_snapshots;
 
-    MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
+    return write_hdf5(
+        step,
+        time,
+        dt,
+        nx,
+        nz,
+        lx,
+        lz,
+        Px,
+        Pz,
+        cont_sediment_layer,
+        active_sediment_layer,
+        cont_sedimentation_rate,
+        sedimentation_rate,
+        cont_bl_level,
+        variable_baselevel,
+        cont_var_bcv,
+        is_lx,
+        is_lz,
+        velocity,
+        temperature,
+        pressure,
+        viscosity,
+        density,
+        heat,
+        strain,
+        strain_rate,
+        thermal_diffusivity,
+        X_depletion,
+        Phi,
+        dPhi,
+        dms,
+        dms_s,
+        magmatism_flag,
+        sp_surface_tracking,
+        &opts
+    );
+}
 
-    char filename[PETSC_MAX_PATH_LEN];
-    char tmp_filename[PETSC_MAX_PATH_LEN];
+PetscErrorCode save_hdf5(
+    int step,
+    double time,
+    double dt,
+    long nx,
+    long nz,
+    double lx,
+    double lz,
+    PetscInt Px,
+    PetscInt Pz,
+    IS is_lx,
+    IS is_lz,
+    Vec velocity,
+    Vec temperature,
+    Vec pressure,
+    Vec viscosity,
+    Vec density,
+    Vec heat,
+    Vec strain,
+    Vec strain_rate,
+    Vec thermal_diffusivity,
+    Vec X_depletion,
+    Vec Phi,
+    Vec dPhi,
+    DM dms,
+    DM dms_s,
+    PetscBool magmatism_flag,
+    PetscBool sp_surface_tracking
+)
+{
+    SnapshotOptions opts;
 
-    ierr = PetscSNPrintf(filename, PETSC_MAX_PATH_LEN-1, "snapshot_step%06d_t%.1fMyr.h5", step, time/1.0e6); CHKERRQ(ierr);
-    ierr = PetscSNPrintf(tmp_filename, PETSC_MAX_PATH_LEN-1, "%s.tmp", filename); CHKERRQ(ierr);
+    opts.is_snapshot = PETSC_FALSE;
+    opts.max_snapshots = 0;
 
-    if (rank == 0) {
-        remove(tmp_filename);
-    }
-
-    // to do: check if file exists
-
-    ierr = PetscViewerHDF5Open(PETSC_COMM_WORLD, tmp_filename, FILE_MODE_WRITE, &viewer); CHKERRQ(ierr);
-    ierr = PetscViewerPushFormat(viewer, format); CHKERRQ(ierr);
-    ierr = PetscViewerHDF5SetCollective(viewer, PETSC_TRUE); CHKERRQ(ierr);
-
-    // -- Simulation metadata
-    ierr = PetscViewerHDF5PushGroup(viewer, "/metadata"); CHKERRQ(ierr);
-
-    // -- state
-    ierr = PetscViewerHDF5PushGroup(viewer, "simulation"); CHKERRQ(ierr);
-    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "step", PETSC_INT, &step); CHKERRQ(ierr);
-    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "time", PETSC_REAL, &time); CHKERRQ(ierr);
-    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "dt", PETSC_REAL, &dt); CHKERRQ(ierr);
-    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "cont_sediment_layer", PETSC_INT, &cont_sediment_layer); CHKERRQ(ierr);
-    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "active_sediment_layer", PETSC_INT, &active_sediment_layer); CHKERRQ(ierr);
-    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "cont_sedimentation_rate", PETSC_INT, &cont_sedimentation_rate); CHKERRQ(ierr);
-    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "sedimentation_rate", PETSC_REAL, &sedimentation_rate); CHKERRQ(ierr);
-    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "cont_bl_level", PETSC_INT, &cont_bl_level); CHKERRQ(ierr);
-    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "variable_baselevel", PETSC_INT, &variable_baselevel); CHKERRQ(ierr);
-    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "cont_var_bcv", PETSC_INT, &cont_var_bcv); CHKERRQ(ierr);
-    ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
-    //
-
-    // -- mesh
-    ierr = PetscViewerHDF5PushGroup(viewer, "mesh"); CHKERRQ(ierr);
-    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "nx", PETSC_INT, &nx); CHKERRQ(ierr);
-    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "nz", PETSC_INT, &nz); CHKERRQ(ierr);
-    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "lx", PETSC_REAL, &lx); CHKERRQ(ierr);
-    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "lz", PETSC_REAL, &lz); CHKERRQ(ierr);
-    ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
-    //
-
-    // -- processor layout
-    ierr = PetscViewerHDF5PushGroup(viewer, "processor_layout"); CHKERRQ(ierr);
-    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "Px", PETSC_INT, &Px); CHKERRQ(ierr);
-    ierr = PetscViewerHDF5WriteAttribute(viewer, NULL, "Pz", PETSC_INT, &Pz); CHKERRQ(ierr);
-    ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
-
-    ierr = PetscViewerHDF5PushGroup(viewer, "dm_ownership"); CHKERRQ(ierr);
-    {
-        Vec vec_lx;
-        Vec vec_lz;
-
-        const PetscInt *lx_idx;
-        const PetscInt *lz_idx;
-
-        PetscInt n_lx;
-        PetscInt n_lz;
-
-        PetscInt i;
-        PetscInt local_size;
-        PetscScalar *array;
-
-        ierr = ISGetLocalSize(is_lx, &n_lx); CHKERRQ(ierr);
-        ierr = ISGetLocalSize(is_lz, &n_lz); CHKERRQ(ierr);
-
-        ierr = ISGetIndices(is_lx, &lx_idx); CHKERRQ(ierr);
-        ierr = ISGetIndices(is_lz, &lz_idx); CHKERRQ(ierr);
-
-        local_size = (rank == 0) ? n_lx : 0;
-        ierr = VecCreateMPI(PETSC_COMM_WORLD, local_size, n_lx, &vec_lx); CHKERRQ(ierr);
-
-        if (rank == 0) {
-            ierr = VecGetArray(vec_lx, &array); CHKERRQ(ierr);
-
-            for (i = 0; i < n_lx; i++) {
-                array[i] = (PetscScalar)lx_idx[i];
-            }
-
-            ierr = VecRestoreArray(vec_lx, &array); CHKERRQ(ierr);
-        }
-
-        ierr = PetscObjectSetName((PetscObject)vec_lx, "lx"); CHKERRQ(ierr);
-        ierr = VecView(vec_lx, viewer); CHKERRQ(ierr);
-
-        ierr = VecDestroy(&vec_lx); CHKERRQ(ierr);
-
-        local_size = (rank == 0) ? n_lz : 0;
-        ierr = VecCreateMPI(PETSC_COMM_WORLD, local_size, n_lz, &vec_lz); CHKERRQ(ierr);
-
-        if (rank == 0) {
-            ierr = VecGetArray(vec_lz, &array); CHKERRQ(ierr);
-
-            for (i = 0; i < n_lz; i++) {
-                array[i] = (PetscScalar)lz_idx[i];
-            }
-
-            ierr = VecRestoreArray(vec_lz, &array); CHKERRQ(ierr);
-        }
-
-        ierr = PetscObjectSetName((PetscObject)vec_lz,"lz"); CHKERRQ(ierr);
-        ierr = VecView(vec_lz, viewer); CHKERRQ(ierr);
-
-        ierr = VecDestroy(&vec_lz); CHKERRQ(ierr);
-
-        ierr = ISRestoreIndices(is_lx, &lx_idx); CHKERRQ(ierr);
-        ierr = ISRestoreIndices(is_lz, &lz_idx); CHKERRQ(ierr);
-    }
-    ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
-
-    ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
-    // (metadata)
-
-    // -- fields
-    ierr = PetscViewerHDF5PushGroup(viewer, "/fields"); CHKERRQ(ierr);
-
-    #define SAVE_VEC(v,name) \
-        ierr = PetscObjectSetName((PetscObject)v, name); CHKERRQ(ierr); \
-        ierr = VecView(v, viewer); CHKERRQ(ierr);
-
-    SAVE_VEC(velocity, "velocity");
-    SAVE_VEC(temperature, "temperature");
-    SAVE_VEC(pressure, "pressure");
-    SAVE_VEC(viscosity, "viscosity");
-    SAVE_VEC(density, "density");
-    SAVE_VEC(heat, "heat");
-    SAVE_VEC(strain, "strain");
-    SAVE_VEC(strain_rate, "strain_rate");
-    SAVE_VEC(thermal_diffusivity, "thermal_diffusivity");
-
-    if (magmatism_flag) {
-        SAVE_VEC(X_depletion, "X_depletion");
-        SAVE_VEC(Phi, "Phi");
-        SAVE_VEC(dPhi, "dPhi");
-    }
-
-    ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr); CHKERRQ(ierr);
-    //
-
-    // -- particles
-    ierr = save_particles_to_snapshot(dms, viewer, magmatism_flag); CHKERRQ(ierr);
-
-    if (sp_surface_tracking) {
-        ierr = save_surface_particles_to_snapshot(dms_s, viewer); CHKERRQ(ierr);
-    }
-    //
-
-    // to do: add litho; active state for bc velocity, sed layers, sed rate, basal level
-
-    ierr = PetscViewerPopFormat(viewer); CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer); CHKERRQ(ierr);
-
-    MPI_Barrier(PETSC_COMM_WORLD);
-
-    if (rank == 0) {
-        int r = rename(tmp_filename, filename);
-        if (r != 0) {
-            SETERRQ(PETSC_COMM_SELF, PETSC_ERR_FILE_WRITE, "Failed to rename snapshot temp file");
-        }
-    }
-
-    MPI_Barrier(PETSC_COMM_WORLD);
-
-    ierr = update_snapshot_log(filename, max_snapshots); CHKERRQ(ierr);
-
-    PetscFunctionReturn(0);
+    return write_hdf5(
+        step,
+        time,
+        dt,
+        nx,
+        nz,
+        lx,
+        lz,
+        Px,
+        Pz,
+        0,
+        0,
+        0,
+        0.0,
+        0,
+        0,
+        0,
+        is_lx,
+        is_lz,
+        velocity,
+        temperature,
+        pressure,
+        viscosity,
+        density,
+        heat,
+        strain,
+        strain_rate,
+        thermal_diffusivity,
+        X_depletion,
+        Phi,
+        dPhi,
+        dms,
+        dms_s,
+        magmatism_flag,
+        sp_surface_tracking,
+        &opts
+    );
 }
 
 PetscErrorCode load_snapshot_metadata(

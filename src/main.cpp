@@ -318,6 +318,43 @@ int main(int argc,char **args)
 		ierr = sp_view_2d(dms_s, prefix); CHKERRQ(ierr);
 	}
 
+	PetscLogDouble t_h5_start, t_h5_end;
+	if (output_hdf5) {
+		PetscPrintf(PETSC_COMM_WORLD,"\nWriting hdf5 output...");
+		PetscTime(&t_h5_start);
+		save_hdf5(
+			tcont,
+			tempo,
+			dt_calor,
+			Nx,
+			Nz,
+			Lx,
+			depth,
+			Px,
+			Pz,
+			is_lx,
+			is_lz,
+			Veloc_fut,
+			Temper,
+			Pressure_aux,
+			geoq,
+			geoq_rho,
+			geoq_H,
+			geoq_strain,
+			geoq_strain_rate,
+			geoq_kappa,
+			X_depletion,
+			Phi,
+			dPhi,
+			dms,
+			dms_s,
+			magmatism_flag,
+			sp_surface_tracking
+		);
+		PetscTime(&t_h5_end);
+		PetscPrintf(PETSC_COMM_WORLD,"done. (%lf s)\n", t_h5_end-t_h5_start);
+	}
+
 	VecCopy(Veloc_fut,Veloc);
 	dt_calor_sec = Calc_dt_calor(rank);
 
@@ -458,6 +495,42 @@ int main(int argc,char **args)
 			}
 			PetscTime(&t_w_end);
 			PetscPrintf(PETSC_COMM_WORLD,"Total writing time: %lf s\n", t_w_end-t_w_start);
+
+			if (output_hdf5) {
+				PetscPrintf(PETSC_COMM_WORLD,"\nWriting hdf5 output...");
+				PetscTime(&t_h5_start);
+				save_hdf5(
+					tcont,
+					tempo,
+					dt_calor,
+					Nx,
+					Nz,
+					Lx,
+					depth,
+					Px,
+					Pz,
+					is_lx,
+					is_lz,
+					Veloc_fut,
+					Temper,
+					Pressure_aux,
+					geoq,
+					geoq_rho,
+					geoq_H,
+					geoq_strain,
+					geoq_strain_rate,
+					geoq_kappa,
+					X_depletion,
+					Phi,
+					dPhi,
+					dms,
+					dms_s,
+					magmatism_flag,
+					sp_surface_tracking
+				);
+				PetscTime(&t_h5_end);
+				PetscPrintf(PETSC_COMM_WORLD,"done. (%lf s)\n", t_h5_end-t_h5_start);
+			}
 		}
 
 		dt_calor_sec = Calc_dt_calor(rank);

@@ -453,6 +453,38 @@ PetscErrorCode get_processor_partitioning(
     PetscInt *Pz
 );
 
+PetscBool output_hdf5 = PETSC_FALSE;
+
+PetscErrorCode save_hdf5(
+    int step,
+    double time,
+    double dt,
+    long nx,
+    long nz,
+    double lx,
+    double lz,
+    PetscInt Px,
+    PetscInt Pz,
+    IS is_lx,
+    IS is_lz,
+    Vec velocity,
+    Vec temperature,
+    Vec pressure,
+    Vec viscosity,
+    Vec density,
+    Vec heat,
+    Vec strain,
+    Vec strain_rate,
+    Vec thermal_diffusivity,
+    Vec X_depletion,
+    Vec Phi,
+    Vec dPhi,
+    DM dms,
+    DM dms_s,
+    PetscBool magmatism_flag,
+    PetscBool sp_surface_tracking
+);
+
 PetscErrorCode save_snapshot(
     int step,
     double time,
