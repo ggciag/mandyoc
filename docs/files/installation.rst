@@ -15,7 +15,7 @@ Dependencies
 
 To build *Mandyoc*, the following requirements are needed:
 
-* PETSc_ (currently tested on version v3.15.5)
+* PETSc_ (currently tested on version v3.15.5; support until v3.24)
 * gcc
 * make
 * git (recommended, but not strictly needed)
@@ -63,6 +63,10 @@ The first step is to **download** PETSc (v3.15.5) release from `PETSc website`_
 or **clone** the repository into your machine.
 *Mandyoc* might work with latest release of PETSc, but this is not guaranteed
 since new versions might introduce breaking changes.
+
+.. note::
+
+	*Mandyoc* currently supports Petsc version up to v3.24.5. Do not use version >v3.25.
 
 Clone the repository to your desired location::
 
