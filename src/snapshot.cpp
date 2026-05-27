@@ -10,13 +10,17 @@ typedef struct {
     PetscInt  max_snapshots;
 } SnapshotOptions;
 
+typedef enum {
+    PARTICLE_OUTPUT_FULL,
+    PARTICLE_OUTPUT_FILTERED
+} ParticleOutputMode;
+
 PetscErrorCode update_snapshot_log(
     const char *new_snapshot,
     PetscInt max_snapshots
 )
 {
     PetscMPIInt rank;
-    PetscErrorCode ierr;
 
     FILE *fp;
 
@@ -155,23 +159,147 @@ PetscErrorCode get_processor_partitioning(
     PetscFunctionReturn(0);
 }
 
-PetscErrorCode save_swarm_field(
+PetscErrorCode select_particles(
     DM dms,
-    PetscViewer viewer,
-    const char *fieldname
+    PetscBool plot_sediment,
+    int n_interfaces,
+    ParticleOutputMode mode,
+    PetscInt **selected,
+    PetscInt *nselected
 )
 {
-    Vec vec;
     PetscErrorCode ierr;
+
+    PetscInt npoints;
+    PetscInt *itag;
+    PetscInt *layer;
+
+    PetscInt *idx;
+    PetscInt count = 0;
+    PetscInt p;
 
     PetscFunctionBeginUser;
 
-    ierr = DMSwarmCreateGlobalVectorFromField(dms, fieldname, &vec); CHKERRQ(ierr);
+    ierr = DMSwarmGetLocalSize(dms, &npoints); CHKERRQ(ierr);
+    ierr = DMSwarmGetField(dms, "itag", NULL, NULL, (void**)&itag); CHKERRQ(ierr);
+    ierr = DMSwarmGetField(dms, "layer", NULL, NULL, (void**)&layer); CHKERRQ(ierr);
+
+    ierr = PetscMalloc1(npoints, &idx); CHKERRQ(ierr);
+
+    if (mode == PARTICLE_OUTPUT_FULL) {
+        for (p = 0; p < npoints; p++) {
+            idx[count] = p;
+            count++;
+        }
+    } else if (mode == PARTICLE_OUTPUT_FILTERED) {
+        for (p = 0; p < npoints; p++) {
+            if (itag[p] > 9999 || (plot_sediment && layer[p] == n_interfaces - 1)) {
+                idx[count] = p;
+                count++;
+            }
+        }
+    }
+
+    ierr = DMSwarmRestoreField(dms, "itag", NULL, NULL, (void**)&itag); CHKERRQ(ierr);
+    ierr = DMSwarmRestoreField(dms, "layer", NULL, NULL, (void**)&layer); CHKERRQ(ierr);
+
+    *selected = idx;
+    *nselected = count;
+
+    PetscFunctionReturn(0);
+}
+
+PetscErrorCode save_particle_counts(
+    DM dms,
+    PetscViewer viewer
+)
+{
+    PetscErrorCode ierr;
+    PetscMPIInt rank, size;
+
+    PetscInt nlocal;
+    PetscInt *counts;
+    PetscScalar *array;
+    Vec vec;
+    PetscInt i;
+    PetscInt local_size;
+
+    PetscFunctionBeginUser;
+
+    MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
+    MPI_Comm_size(PETSC_COMM_WORLD, &size);
+
+    ierr = DMSwarmGetLocalSize(dms,&nlocal); CHKERRQ(ierr);
+
+    ierr = PetscMalloc1(size, &counts); CHKERRQ(ierr);
+    MPI_Allgather(&nlocal, 1, MPIU_INT, counts, 1, MPIU_INT, PETSC_COMM_WORLD);
+
+    local_size = (rank == 0) ? size : 0;
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, local_size, size, &vec); CHKERRQ(ierr);
+
+    if (rank == 0) {
+        ierr = VecGetArray(vec, &array); CHKERRQ(ierr);
+
+        for (i = 0; i < size; i++) {
+            array[i] = (PetscScalar)counts[i];
+        }
+
+        ierr = VecRestoreArray(vec, &array); CHKERRQ(ierr);
+    }
+
+    ierr = PetscObjectSetName((PetscObject)vec, "npoints_local"); CHKERRQ(ierr);
+    ierr = VecView(vec, viewer); CHKERRQ(ierr);
+
+    ierr = VecDestroy(&vec); CHKERRQ(ierr);
+    ierr = PetscFree(counts); CHKERRQ(ierr);
+
+    PetscFunctionReturn(0);
+}
+
+PetscErrorCode save_swarm_field(
+    DM dms,
+    PetscViewer viewer,
+    const char *fieldname,
+    PetscInt *selected,
+    PetscInt nselected
+)
+{
+    PetscErrorCode ierr;
+
+    PetscScalar *buffer;
+    PetscScalar *field_array;
+    PetscScalar *vec_array;
+    Vec vec;
+
+    PetscInt bs;
+    PetscInt i, j;
+
+    PetscFunctionBeginUser;
+
+    ierr = DMSwarmGetField(dms, fieldname, &bs, NULL, (void**)&field_array); CHKERRQ(ierr);
+
+    ierr = PetscMalloc1(nselected * bs, &buffer); CHKERRQ(ierr);
+
+    for (i = 0; i < nselected; i++) {
+        PetscInt p = selected[i];
+
+        for (j = 0; j < bs; j++) {
+            buffer[i*bs + j] = field_array[p*bs + j];
+        }
+    }
+
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, nselected * bs, PETSC_DECIDE, &vec); CHKERRQ(ierr);
+
+    ierr = VecGetArray(vec, &vec_array); CHKERRQ(ierr);
+    ierr = PetscMemcpy(vec_array, buffer, nselected * bs * sizeof(PetscScalar)); CHKERRQ(ierr);
+    ierr = VecRestoreArray(vec, &vec_array); CHKERRQ(ierr);
 
     ierr = PetscObjectSetName((PetscObject)vec, fieldname); CHKERRQ(ierr);
     ierr = VecView(vec, viewer); CHKERRQ(ierr);
 
-    ierr = DMSwarmDestroyGlobalVectorFromField(dms, fieldname, &vec); CHKERRQ(ierr);
+    ierr = VecDestroy(&vec); CHKERRQ(ierr);
+    ierr = PetscFree(buffer); CHKERRQ(ierr);
+    ierr = DMSwarmRestoreField(dms, fieldname, &bs, NULL, (void**)&field_array); CHKERRQ(ierr);
 
     PetscFunctionReturn(0);
 }
@@ -179,105 +307,100 @@ PetscErrorCode save_swarm_field(
 PetscErrorCode save_swarm_int_field(
     DM dms,
     PetscViewer viewer,
-    const char *fieldname
+    const char *fieldname,
+    PetscInt *selected,
+    PetscInt nselected
 )
 {
-    Vec vec;
-    const PetscInt *iarray;
-    PetscScalar *varray;
-    PetscInt nlocal, i;
     PetscErrorCode ierr;
+
+    PetscScalar *buffer;
+    PetscInt *field_array;
+    PetscScalar *vec_array;
+    Vec vec;
+
+    PetscInt i;
+
+    // const PetscInt *iarray;
+    // PetscScalar *varray;
+    // PetscInt nlocal, i;
 
     PetscFunctionBeginUser;
 
-    ierr = DMSwarmGetLocalSize(dms, &nlocal); CHKERRQ(ierr);
+    ierr = DMSwarmGetField(dms, fieldname, NULL, NULL, (void**)&field_array); CHKERRQ(ierr);
 
-    ierr = DMSwarmGetField(dms, fieldname, NULL, NULL, (void**)&iarray); CHKERRQ(ierr);
+    ierr = PetscMalloc1(nselected, &buffer); CHKERRQ(ierr);
 
-    // Create standard Vec (PETSc scalar)
-    ierr = VecCreateMPI(PETSC_COMM_WORLD, nlocal, PETSC_DECIDE, &vec); CHKERRQ(ierr);
-
-    ierr = VecGetArray(vec, &varray); CHKERRQ(ierr);
-
-    // Convert int to scalar
-    for (i = 0; i < nlocal; i++) {
-        varray[i] = (PetscScalar)iarray[i];
+    for (i = 0; i < nselected; i++) {
+        buffer[i] = (PetscScalar)field_array[selected[i]];
     }
 
-    ierr = VecRestoreArray(vec, &varray); CHKERRQ(ierr);
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, nselected, PETSC_DECIDE, &vec); CHKERRQ(ierr);
+
+    ierr = VecGetArray(vec, &vec_array); CHKERRQ(ierr);
+    ierr = PetscMemcpy(vec_array, buffer, nselected * sizeof(PetscScalar)); CHKERRQ(ierr);
+    ierr = VecRestoreArray(vec, &vec_array); CHKERRQ(ierr);
 
     ierr = PetscObjectSetName((PetscObject)vec, fieldname); CHKERRQ(ierr);
     ierr = VecView(vec, viewer); CHKERRQ(ierr);
 
     ierr = VecDestroy(&vec); CHKERRQ(ierr);
-
-    ierr = DMSwarmRestoreField(dms, fieldname, NULL, NULL, (void**)&iarray); CHKERRQ(ierr);
+    ierr = PetscFree(buffer); CHKERRQ(ierr);
+    ierr = DMSwarmRestoreField(dms, fieldname, NULL, NULL, (void**)&field_array); CHKERRQ(ierr);
 
     PetscFunctionReturn(0);
 }
 
-PetscErrorCode save_particles_to_snapshot(DM dms, PetscViewer viewer, PetscBool magmatism_flag, PetscBool is_snapshot)
+PetscErrorCode save_particles_to_snapshot(
+    DM dms,
+    PetscViewer viewer,
+    PetscBool magmatism_flag,
+    PetscBool plot_sediment,
+    int n_interfaces,
+    ParticleOutputMode mode
+)
 {
     PetscErrorCode ierr;
     PetscMPIInt rank, size;
-    Vec all_local;
-    PetscScalar *all_nlocal_array_aux;
-    PetscInt *all_nlocal_array;
-    PetscInt i, npoints_local;
-    PetscInt local_size;
-    PetscScalar *array;
+
+    PetscInt *selected;
+    PetscInt nselected;
 
     PetscFunctionBeginUser;
 
     MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
     MPI_Comm_size(PETSC_COMM_WORLD, &size);
 
+    ierr = select_particles(dms, plot_sediment, n_interfaces, mode, &selected, &nselected); CHKERRQ(ierr);
+
     // -- write fields
     ierr = PetscViewerHDF5PushGroup(viewer, "/particle_fields"); CHKERRQ(ierr);
 
     // -- particles metadata
-    ierr = DMSwarmGetLocalSize(dms, &npoints_local); CHKERRQ(ierr);
-
-    PetscMalloc1(size, &all_nlocal_array); CHKERRQ(ierr);
-    MPI_Allgather(&npoints_local, 1, MPIU_INT, all_nlocal_array, 1, MPIU_INT, PETSC_COMM_WORLD);
-
-    local_size = (rank == 0) ? size : 0;
-    ierr = VecCreateMPI(PETSC_COMM_WORLD, local_size, size, &all_local); CHKERRQ(ierr);
-
-    if (rank == 0) {
-        ierr = VecGetArray(all_local, &array); CHKERRQ(ierr);
-
-        for (i = 0; i < size; i++) {
-            array[i] = (PetscScalar)all_nlocal_array[i];
-        }
-
-        ierr = VecRestoreArray(all_local, &array); CHKERRQ(ierr);
+    if (mode == PARTICLE_OUTPUT_FULL) {
+        ierr = save_particle_counts(dms, viewer); CHKERRQ(ierr);
     }
 
-    ierr = PetscObjectSetName((PetscObject)all_local, "npoints_local"); CHKERRQ(ierr);
-    ierr = VecView(all_local, viewer); CHKERRQ(ierr);
-
-    ierr = VecDestroy(&all_local); CHKERRQ(ierr);
-    ierr = PetscFree(all_nlocal_array); CHKERRQ(ierr);
-
     // -- fields
-    ierr = save_swarm_int_field(dms, viewer, "itag"); CHKERRQ(ierr);
-    ierr = save_swarm_int_field(dms, viewer, "layer"); CHKERRQ(ierr);
-    ierr = save_swarm_int_field(dms, viewer, "cont"); CHKERRQ(ierr);
+    ierr = save_swarm_int_field(dms, viewer, "itag", selected, nselected); CHKERRQ(ierr);
+    ierr = save_swarm_int_field(dms, viewer, "layer", selected, nselected); CHKERRQ(ierr);
+    ierr = save_swarm_int_field(dms, viewer, "cont", selected, nselected); CHKERRQ(ierr);
 
-    ierr = save_swarm_field(dms, viewer, DMSwarmPICField_coor); CHKERRQ(ierr);
-    ierr = save_swarm_field(dms, viewer, "geoq_fac"); CHKERRQ(ierr);
-    ierr = save_swarm_field(dms, viewer, "strain_fac"); CHKERRQ(ierr);
-    ierr = save_swarm_field(dms, viewer, "strain_rate_fac"); CHKERRQ(ierr);
+    ierr = save_swarm_field(dms, viewer, DMSwarmPICField_coor, selected, nselected); CHKERRQ(ierr);
+    ierr = save_swarm_field(dms, viewer, "geoq_fac", selected, nselected); CHKERRQ(ierr);
+    ierr = save_swarm_field(dms, viewer, "strain_fac", selected, nselected); CHKERRQ(ierr);
+    ierr = save_swarm_field(dms, viewer, "strain_rate_fac", selected, nselected); CHKERRQ(ierr);
 
     // -- optional fields
     if (magmatism_flag) {
-        ierr = save_swarm_field(dms, viewer, "X"); CHKERRQ(ierr);
-        ierr = save_swarm_field(dms, viewer, "Phi"); CHKERRQ(ierr);
-        ierr = save_swarm_field(dms, viewer, "dPhi"); CHKERRQ(ierr);
+        ierr = save_swarm_field(dms, viewer, "X", selected, nselected); CHKERRQ(ierr);
+        ierr = save_swarm_field(dms, viewer, "Phi", selected, nselected); CHKERRQ(ierr);
+        ierr = save_swarm_field(dms, viewer, "dPhi", selected, nselected); CHKERRQ(ierr);
     }
 
     ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
+
+    ierr = PetscFree(selected); CHKERRQ(ierr);
 
     PetscFunctionReturn(0);
 }
@@ -337,6 +460,9 @@ PetscErrorCode write_hdf5(
     DM dms_s,
     PetscBool magmatism_flag,
     PetscBool sp_surface_tracking,
+    PetscBool plot_sediment,
+    int n_interfaces,
+    ParticleOutputMode mode,
     const SnapshotOptions *opts
 )
 {
@@ -353,9 +479,9 @@ PetscErrorCode write_hdf5(
     char tmp_filename[PETSC_MAX_PATH_LEN];
 
     if (opts->is_snapshot) {
-        ierr = PetscSNPrintf(filename, PETSC_MAX_PATH_LEN-1, "snapshot_step%06d_t%.1fMyr.h5", step, time/1.0e6); CHKERRQ(ierr);
+        ierr = PetscSNPrintf(filename, PETSC_MAX_PATH_LEN-1, "snapshot_step_%06d_t_%.1fMyr.h5", step, time/1.0e6); CHKERRQ(ierr);
     } else {
-        ierr = PetscSNPrintf(filename, PETSC_MAX_PATH_LEN-1, "output_step%06d_t%.1fMyr.h5", step, time/1.0e6); CHKERRQ(ierr);
+        ierr = PetscSNPrintf(filename, PETSC_MAX_PATH_LEN-1, "output_step_%06d.h5", step); CHKERRQ(ierr);
     }
     ierr = PetscSNPrintf(tmp_filename, PETSC_MAX_PATH_LEN-1, "%s.tmp", filename); CHKERRQ(ierr);
 
@@ -503,7 +629,7 @@ PetscErrorCode write_hdf5(
     // create litho
 
     // -- particles
-    ierr = save_particles_to_snapshot(dms, viewer, magmatism_flag, opts->is_snapshot); CHKERRQ(ierr);
+    ierr = save_particles_to_snapshot(dms, viewer, magmatism_flag, plot_sediment, n_interfaces, mode); CHKERRQ(ierr);
 
     if (sp_surface_tracking) {
         ierr = save_surface_particles_to_snapshot(dms_s, viewer); CHKERRQ(ierr);
@@ -568,6 +694,8 @@ PetscErrorCode save_snapshot(
     DM dms_s,
     PetscBool magmatism_flag,
     PetscBool sp_surface_tracking,
+    PetscBool plot_sediment,
+    int n_interfaces,
     PetscInt max_snapshots
 )
 {
@@ -611,6 +739,9 @@ PetscErrorCode save_snapshot(
         dms_s,
         magmatism_flag,
         sp_surface_tracking,
+        PETSC_FALSE,
+        0,
+        PARTICLE_OUTPUT_FULL,
         &opts
     );
 }
@@ -642,7 +773,9 @@ PetscErrorCode save_hdf5(
     DM dms,
     DM dms_s,
     PetscBool magmatism_flag,
-    PetscBool sp_surface_tracking
+    PetscBool sp_surface_tracking,
+    PetscBool plot_sediment,
+    int n_interfaces
 )
 {
     SnapshotOptions opts;
@@ -685,6 +818,9 @@ PetscErrorCode save_hdf5(
         dms_s,
         magmatism_flag,
         sp_surface_tracking,
+        plot_sediment,
+        n_interfaces,
+        PARTICLE_OUTPUT_FILTERED,
         &opts
     );
 }

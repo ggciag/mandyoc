@@ -482,7 +482,9 @@ PetscErrorCode save_hdf5(
     DM dms,
     DM dms_s,
     PetscBool magmatism_flag,
-    PetscBool sp_surface_tracking
+    PetscBool sp_surface_tracking,
+    PetscBool plot_sediment,
+    int n_interfaces
 );
 
 PetscErrorCode save_snapshot(
@@ -520,6 +522,8 @@ PetscErrorCode save_snapshot(
     DM dms_s,
     PetscBool magmatism_flag,
     PetscBool sp_surface_tracking,
+    PetscBool plot_sediment,
+    int n_interfaces,
     PetscInt max_snapshots
 );
 

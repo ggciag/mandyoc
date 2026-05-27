@@ -303,19 +303,21 @@ int main(int argc,char **args)
 
 	PetscPrintf(PETSC_COMM_WORLD,"Solution of the pressure and velocity fields: done\n");
 
-	PetscPrintf(PETSC_COMM_WORLD,"\nWriting output files:\n");
-	ierr = write_veloc(tcont,binary_output);
-	ierr = write_veloc_cond(tcont,binary_output);
+	if (output_hdf5 == PETSC_FALSE) {
+		PetscPrintf(PETSC_COMM_WORLD,"\nWriting output files:\n");
+		ierr = write_veloc(tcont,binary_output);
+		ierr = write_veloc_cond(tcont,binary_output);
 
-	sprintf(variable_name,"temperature");
-	ierr = write_all_(tcont,Temper,variable_name, binary_output);
-	ierr = write_pressure(tcont,binary_output);
-	ierr = write_geoq_(tcont,binary_output);
-	ierr = write_tempo(tcont);
+		sprintf(variable_name,"temperature");
+		ierr = write_all_(tcont,Temper,variable_name, binary_output);
+		ierr = write_pressure(tcont,binary_output);
+		ierr = write_geoq_(tcont,binary_output);
+		ierr = write_tempo(tcont);
 
-	if (dimensions == 2 && sp_surface_tracking) {
-		ierr = PetscSNPrintf(prefix, PETSC_MAX_PATH_LEN-1,"surface_%d", tcont); CHKERRQ(ierr);
-		ierr = sp_view_2d(dms_s, prefix); CHKERRQ(ierr);
+		if (dimensions == 2 && sp_surface_tracking) {
+			ierr = PetscSNPrintf(prefix, PETSC_MAX_PATH_LEN-1,"surface_%d", tcont); CHKERRQ(ierr);
+			ierr = sp_view_2d(dms_s, prefix); CHKERRQ(ierr);
+		}
 	}
 
 	PetscLogDouble t_h5_start, t_h5_end;
@@ -349,7 +351,9 @@ int main(int argc,char **args)
 			dms,
 			dms_s,
 			magmatism_flag,
-			sp_surface_tracking
+			sp_surface_tracking,
+			plot_sediment,
+			n_interfaces
 		);
 		PetscTime(&t_h5_end);
 		PetscPrintf(PETSC_COMM_WORLD,"done. (%lf s)\n", t_h5_end-t_h5_start);
@@ -465,36 +469,38 @@ int main(int argc,char **args)
 			PetscLogDouble t_w_start, t_w_end;
 			PetscTime(&t_w_start);
 
-			PetscPrintf(PETSC_COMM_WORLD,"\nWriting output files:\n");
-			sprintf(variable_name,"temperature");
-			ierr = write_all_(tcont,Temper,variable_name,binary_output);
-			ierr = write_geoq_(tcont,binary_output);
-			ierr = write_veloc(tcont,binary_output);
-			ierr = write_pressure(tcont,binary_output);
-			ierr = write_tempo(tcont);
-			PetscSNPrintf(prefix,PETSC_MAX_PATH_LEN-1,"step_%d",tcont);
-			PetscSNPrintf(prefix_litho,PETSC_MAX_PATH_LEN-1,"litho_%d",tcont);
-			if (geoq_on){
-				if (print_step_files==1){
-					if (dimensions == 2) {
-						ierr = SwarmViewGP_2d(dms,prefix);CHKERRQ(ierr);
-					} else {
-						ierr = SwarmViewGP_3d(dms,prefix);CHKERRQ(ierr);
+			if (output_hdf5 == PETSC_FALSE) {
+				PetscPrintf(PETSC_COMM_WORLD,"\nWriting output files:\n");
+				sprintf(variable_name,"temperature");
+				ierr = write_all_(tcont,Temper,variable_name,binary_output);
+				ierr = write_geoq_(tcont,binary_output);
+				ierr = write_veloc(tcont,binary_output);
+				ierr = write_pressure(tcont,binary_output);
+				ierr = write_tempo(tcont);
+				PetscSNPrintf(prefix,PETSC_MAX_PATH_LEN-1,"step_%d",tcont);
+				PetscSNPrintf(prefix_litho,PETSC_MAX_PATH_LEN-1,"litho_%d",tcont);
+				if (geoq_on){
+					if (print_step_files==1){
+						if (dimensions == 2) {
+							ierr = SwarmViewGP_2d(dms,prefix);CHKERRQ(ierr);
+						} else {
+							ierr = SwarmViewGP_3d(dms,prefix);CHKERRQ(ierr);
+						}
 					}
-				}
-				if (export_lithology==PETSC_TRUE){ //!!! Must be implemented for 3D version
-					if (dimensions == 2) {
-						ierr = ViewLithology_2d(dms,prefix_litho);CHKERRQ(ierr);
+					if (export_lithology==PETSC_TRUE){ //!!! Must be implemented for 3D version
+						if (dimensions == 2) {
+							ierr = ViewLithology_2d(dms,prefix_litho);CHKERRQ(ierr);
+						}
 					}
-				}
 
-				if (dimensions == 2 && sp_surface_tracking) {
-					ierr = PetscSNPrintf(prefix, PETSC_MAX_PATH_LEN-1,"surface_%d", tcont); CHKERRQ(ierr);
-					ierr = sp_view_2d(dms_s, prefix); CHKERRQ(ierr);
+					if (dimensions == 2 && sp_surface_tracking) {
+						ierr = PetscSNPrintf(prefix, PETSC_MAX_PATH_LEN-1,"surface_%d", tcont); CHKERRQ(ierr);
+						ierr = sp_view_2d(dms_s, prefix); CHKERRQ(ierr);
+					}
 				}
+				PetscTime(&t_w_end);
+				PetscPrintf(PETSC_COMM_WORLD,"Total writing time: %lf s\n", t_w_end-t_w_start);
 			}
-			PetscTime(&t_w_end);
-			PetscPrintf(PETSC_COMM_WORLD,"Total writing time: %lf s\n", t_w_end-t_w_start);
 
 			if (output_hdf5) {
 				PetscPrintf(PETSC_COMM_WORLD,"\nWriting hdf5 output...");
@@ -526,7 +532,9 @@ int main(int argc,char **args)
 					dms,
 					dms_s,
 					magmatism_flag,
-					sp_surface_tracking
+					sp_surface_tracking,
+					plot_sediment,
+					n_interfaces
 				);
 				PetscTime(&t_h5_end);
 				PetscPrintf(PETSC_COMM_WORLD,"done. (%lf s)\n", t_h5_end-t_h5_start);
@@ -574,6 +582,8 @@ int main(int argc,char **args)
 				dms_s,
 				magmatism_flag,
 				sp_surface_tracking,
+				plot_sediment,
+				n_interfaces,
 				snapshot_files
 			);
 			PetscTime(&t_ss_end);
