@@ -92,6 +92,8 @@ extern PetscBool export_lithology;
 
 extern PetscBool magmatism_flag;
 
+extern PetscBool output_hdf5;
+
 PetscErrorCode load_swarm_local_sizes(const char *filename, PetscInt *nlocal);
 
 
@@ -598,12 +600,12 @@ PetscErrorCode createSwarm_2d(const char *snapshot_file, PetscBool restart)
 
 	ierr = DMView(dms,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
 
-	if (print_step_files==1){
+	if (print_step_files==1 && output_hdf5 == PETSC_FALSE){
 		ierr = SwarmViewGP_2d(dms,"step_0");CHKERRQ(ierr);
 	}
 
 
-	if (export_lithology==PETSC_TRUE){ //!!! Must be implemented for 3D version
+	if (export_lithology==PETSC_TRUE && output_hdf5 == PETSC_FALSE){ //!!! Must be implemented for 3D version
 		ierr = ViewLithology_2d(dms,"litho_0");CHKERRQ(ierr);
 	}
 
