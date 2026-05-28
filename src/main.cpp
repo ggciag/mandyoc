@@ -352,6 +352,7 @@ int main(int argc,char **args)
 			dms_s,
 			magmatism_flag,
 			sp_surface_tracking,
+			export_lithology,
 			plot_sediment,
 			n_interfaces
 		);
@@ -533,6 +534,7 @@ int main(int argc,char **args)
 					dms_s,
 					magmatism_flag,
 					sp_surface_tracking,
+					export_lithology,
 					plot_sediment,
 					n_interfaces
 				);
@@ -582,6 +584,7 @@ int main(int argc,char **args)
 				dms_s,
 				magmatism_flag,
 				sp_surface_tracking,
+				export_lithology,
 				plot_sediment,
 				n_interfaces,
 				snapshot_files

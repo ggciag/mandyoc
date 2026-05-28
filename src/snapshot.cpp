@@ -209,6 +209,55 @@ PetscErrorCode select_particles(
     PetscFunctionReturn(0);
 }
 
+PetscErrorCode save_swarm_litho(
+    DM dms,
+    PetscViewer viewer,
+    double dx_const,
+    double dz_const
+)
+{
+    PetscErrorCode ierr;
+
+    PetscInt npoints;
+    PetscInt bs;
+    PetscInt p;
+    PetscInt *layer;
+    PetscScalar *array;
+    PetscScalar *litho;
+    PetscScalar *vec_array;
+    Vec vec;
+
+    PetscFunctionBeginUser;
+
+    ierr = DMSwarmGetLocalSize(dms, &npoints); CHKERRQ(ierr);
+    ierr = DMSwarmGetField(dms, DMSwarmPICField_coor, &bs, NULL, (void**)&array); CHKERRQ(ierr);
+    ierr = DMSwarmGetField(dms, "layer", NULL, NULL, (void**)&layer); CHKERRQ(ierr);
+
+    ierr = PetscMalloc1(npoints * 3, &litho); CHKERRQ(ierr);
+
+    for (p = 0; p < npoints; p++) {
+        litho[p*3 + 0] = (PetscScalar)((PetscInt)(array[p*bs + 0] * 5.0 / dx_const));
+        litho[p*3 + 1] = (PetscScalar)((PetscInt)(array[p*bs + 1] * 5.0 / dz_const));
+        litho[p*3 + 2] = (PetscScalar)layer[p];
+    }
+
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, npoints * 3, PETSC_DECIDE, &vec); CHKERRQ(ierr);
+
+    ierr = VecGetArray(vec, &vec_array); CHKERRQ(ierr);
+    ierr = PetscMemcpy(vec_array, litho, npoints * 3 * sizeof(PetscScalar)); CHKERRQ(ierr);
+    ierr = VecRestoreArray(vec, &vec_array); CHKERRQ(ierr);
+
+    ierr = PetscObjectSetName((PetscObject)vec, "litho"); CHKERRQ(ierr);
+    ierr = VecView(vec, viewer); CHKERRQ(ierr);
+
+    ierr = VecDestroy(&vec); CHKERRQ(ierr);
+    ierr = PetscFree(litho); CHKERRQ(ierr);
+    ierr = DMSwarmRestoreField(dms, "layer", NULL, NULL, (void**)&layer); CHKERRQ(ierr);
+    ierr = DMSwarmRestoreField(dms, DMSwarmPICField_coor, &bs, NULL, (void**)&array); CHKERRQ(ierr);
+
+    PetscFunctionReturn(0);
+}
+
 PetscErrorCode save_particle_counts(
     DM dms,
     PetscViewer viewer
@@ -355,8 +404,12 @@ PetscErrorCode save_particles_to_snapshot(
     DM dms,
     PetscViewer viewer,
     PetscBool magmatism_flag,
+    PetscBool export_lithology,
     PetscBool plot_sediment,
+    PetscBool is_snapshot,
     int n_interfaces,
+    double dx_const,
+    double dz_const,
     ParticleOutputMode mode
 )
 {
@@ -396,6 +449,10 @@ PetscErrorCode save_particles_to_snapshot(
         ierr = save_swarm_field(dms, viewer, "X", selected, nselected); CHKERRQ(ierr);
         ierr = save_swarm_field(dms, viewer, "Phi", selected, nselected); CHKERRQ(ierr);
         ierr = save_swarm_field(dms, viewer, "dPhi", selected, nselected); CHKERRQ(ierr);
+    }
+
+    if (export_lithology && is_snapshot == PETSC_FALSE) {
+        ierr = save_swarm_litho(dms, viewer, dx_const, dz_const); CHKERRQ(ierr);
     }
 
     ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr);
@@ -460,6 +517,7 @@ PetscErrorCode write_hdf5(
     DM dms_s,
     PetscBool magmatism_flag,
     PetscBool sp_surface_tracking,
+    PetscBool export_lithology,
     PetscBool plot_sediment,
     int n_interfaces,
     ParticleOutputMode mode,
@@ -629,7 +687,7 @@ PetscErrorCode write_hdf5(
     // create litho
 
     // -- particles
-    ierr = save_particles_to_snapshot(dms, viewer, magmatism_flag, plot_sediment, n_interfaces, mode); CHKERRQ(ierr);
+    ierr = save_particles_to_snapshot(dms, viewer, magmatism_flag, export_lithology, plot_sediment, opts->is_snapshot, n_interfaces, lx/(nx-1), -lz/(nz-1), mode); CHKERRQ(ierr);
 
     if (sp_surface_tracking) {
         ierr = save_surface_particles_to_snapshot(dms_s, viewer); CHKERRQ(ierr);
@@ -694,6 +752,7 @@ PetscErrorCode save_snapshot(
     DM dms_s,
     PetscBool magmatism_flag,
     PetscBool sp_surface_tracking,
+    PetscBool export_lithology,
     PetscBool plot_sediment,
     int n_interfaces,
     PetscInt max_snapshots
@@ -739,6 +798,7 @@ PetscErrorCode save_snapshot(
         dms_s,
         magmatism_flag,
         sp_surface_tracking,
+        export_lithology,
         PETSC_FALSE,
         0,
         PARTICLE_OUTPUT_FULL,
@@ -774,6 +834,7 @@ PetscErrorCode save_hdf5(
     DM dms_s,
     PetscBool magmatism_flag,
     PetscBool sp_surface_tracking,
+    PetscBool export_lithology,
     PetscBool plot_sediment,
     int n_interfaces
 )
@@ -818,6 +879,7 @@ PetscErrorCode save_hdf5(
         dms_s,
         magmatism_flag,
         sp_surface_tracking,
+        export_lithology,
         plot_sediment,
         n_interfaces,
         PARTICLE_OUTPUT_FILTERED,
