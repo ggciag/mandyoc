@@ -370,10 +370,6 @@ PetscErrorCode save_swarm_int_field(
 
     PetscInt i;
 
-    // const PetscInt *iarray;
-    // PetscScalar *varray;
-    // PetscInt nlocal, i;
-
     PetscFunctionBeginUser;
 
     ierr = DMSwarmGetField(dms, fieldname, NULL, NULL, (void**)&field_array); CHKERRQ(ierr);
