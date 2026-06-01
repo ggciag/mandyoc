@@ -361,6 +361,7 @@ PetscErrorCode createSwarm_2d()
 	PetscReal *rarray;
 	PetscReal *strain_array;
 
+	int particles_to_export = 2; // set as a parameter in the future
 
 	PetscInt nz_part = (int)PetscSqrtReal(particles_per_ele*dz_const/dx_const);
 	PetscInt nx_part = (int)(particles_per_ele/nz_part);
@@ -374,6 +375,7 @@ PetscErrorCode createSwarm_2d()
 	}
 
 	particles_per_ele = nx_part*nz_part;
+	PetscInt particles_export_step = (int)(particles_per_ele/particles_to_export);
 
 
 	PetscPrintf(PETSC_COMM_WORLD,"particles per element in x:  %d\n",nx_part);
@@ -468,9 +470,12 @@ PetscErrorCode createSwarm_2d()
 		ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 		if (checkered==0){
 			for (p=0; p<nlocal; p++) {
-				iarray[p] = p%(particles_per_ele/2); // 2 -> future implementation: 2 to a new parameter
-				if (p%(particles_per_ele/2)==0){
-					iarray[p] = 10000 + p/(particles_per_ele/2) + 1000000*rank;
+				int local_p = p%particles_per_ele; // local particle index inside the element
+				iarray[p] = local_p; // set itag based on the local particle index inside the element
+				
+				// only export a particles based on the local particle index at the "particle step"
+				if (p%particles_export_step==0 && local_p < particles_per_ele){
+					iarray[p] = 10000 + p + 1000000*rank; // set itag to identify exported particles
 				}
 			}
 		}
