@@ -468,9 +468,9 @@ PetscErrorCode createSwarm_2d()
 		ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 		if (checkered==0){
 			for (p=0; p<nlocal; p++) {
-				iarray[p] = p%particles_per_ele;
-				if (p%particles_per_ele==0){
-					iarray[p] = 10000 + p/particles_per_ele + 1000000*rank;
+				iarray[p] = p%(particles_per_ele/2); // 2 -> future implementation: 2 to a new parameter
+				if (p%(particles_per_ele/2)==0){
+					iarray[p] = 10000 + p/(particles_per_ele/2) + 1000000*rank;
 				}
 			}
 		}
