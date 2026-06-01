@@ -361,7 +361,7 @@ PetscErrorCode createSwarm_2d()
 	PetscReal *rarray;
 	PetscReal *strain_array;
 
-	int particles_to_export = 2; // set as a parameter in the future
+	int particles_to_export = 10; // set as a parameter in the future
 
 	PetscInt nz_part = (int)PetscSqrtReal(particles_per_ele*dz_const/dx_const);
 	PetscInt nx_part = (int)(particles_per_ele/nz_part);
@@ -474,7 +474,7 @@ PetscErrorCode createSwarm_2d()
 				iarray[p] = local_p; // set itag based on the local particle index inside the element
 				
 				// only export a particles based on the local particle index at the "particle step"
-				if (p%particles_export_step==0 && local_p < particles_per_ele){
+				if (local_p % particles_export_step==0 && local_p < particles_per_ele){
 					iarray[p] = 10000 + p + 1000000*rank; // set itag to identify exported particles
 				}
 			}
