@@ -57,13 +57,15 @@ PetscErrorCode sp_create_surface_swarm_2d();
 PetscErrorCode sp_move_surface_swarm(PetscInt dimensions, PetscReal dt);
 PetscErrorCode sp_surface_swarm_interpolation();
 PetscErrorCode sp_evaluate_surface_processes(PetscInt dimensions, PetscReal dt);
-PetscErrorCode sp_update_surface_swarm_particles_properties();
+PetscErrorCode sp_update_surface_swarm_particles_properties(PetscInt active_layer);
 PetscErrorCode sp_update_active_sediment_layer(double time);
 PetscErrorCode sp_update_sedimentation_rate(double time);
 PetscErrorCode sp_update_base_level(double time);
 PetscErrorCode sp_destroy();
 PetscErrorCode sp_view_2d(DM dm, const char prefix[]);
 PetscErrorCode validate_sp_mode_combination(PetscBool sp_enabled, SP_Mode mode);
+
+PetscErrorCode calc_magmatic_extraction();
 
 int main(int argc,char **args)
 {
@@ -87,7 +89,7 @@ int main(int argc,char **args)
 	PetscPrintf(PETSC_COMM_WORLD,"=   MANDYOC: MANtle DYnamics simulatOr Code.\n");
 	PetscPrintf(PETSC_COMM_WORLD,"===================================================================================\n");
 
-	#ifndef GIT_VERSION
+	#ifdef GIT_VERSION
 	ierr = PetscPrintf(PETSC_COMM_WORLD, "*** Git version: %s ***\n\n", GIT_VERSION);CHKERRQ(ierr);
 	#endif
 
@@ -282,18 +284,18 @@ int main(int argc,char **args)
 		if (dimensions == 2 && sp_surface_processes) {
 			ierr = sp_update_active_sediment_layer(tempo);
 		}
-		
+
 		if (dimensions == 2 && variable_baselevel == 1){
 			ierr = sp_update_base_level(tempo);
 			PetscPrintf(PETSC_COMM_WORLD,"base level = %.3g m\n", sea_level);
 			CHKERRQ(ierr);
 		}
-		
+
 		if (dimensions == 2 && ((sp_mode == SP_SEDIMENTATION_RATE_LIMITED)||(sp_mode == SP_THEUNISSEN_SEDIMENTATION))) {
 			ierr = sp_update_sedimentation_rate(tempo);
 			PetscPrintf(PETSC_COMM_WORLD,"sedimentation rate = %.3g m^2/yr, active sediment layer = %d\n", sedimentation_rate, active_sediment_layer);
 		}
-		
+
 		ierr = build_thermal(dimensions);CHKERRQ(ierr);
 
 		ierr = solve_thermal(dimensions);CHKERRQ(ierr);
@@ -333,11 +335,20 @@ int main(int argc,char **args)
 
 			if (sp_surface_processes) {
 				ierr = sp_evaluate_surface_processes(dimensions, dt_calor_sec); CHKERRQ(ierr);
-				ierr = sp_update_surface_swarm_particles_properties(); CHKERRQ(ierr);
+				ierr = sp_update_surface_swarm_particles_properties(active_sediment_layer); CHKERRQ(ierr);
 			}
 		}
 
 		if (tcont%print_step==0){
+
+			if (sp_surface_tracking && magmatism_flag==PETSC_TRUE){
+				// The extraction of the magmatism was chosen to occur every print_step (here),
+				// when the dPhi_array is erased in funtion write_geoq_
+				if (dimensions==2){ //!!!Must be implemented in 3D
+					ierr = calc_magmatic_extraction();
+				}
+			}
+
 			PetscPrintf(PETSC_COMM_WORLD,"\nWriting output files:\n");
 			sprintf(variable_name,"temperature");
 			ierr = write_all_(tcont,Temper,variable_name,binary_output);

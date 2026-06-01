@@ -89,6 +89,9 @@ extern int tcont;
 extern double c_heat_capacity;
 extern PetscBool magmatism_flag;
 
+extern PetscReal x_magma_high;
+extern PetscReal z_magma_high;
+
 PetscReal linear_interpolation(PetscReal rx, PetscReal rz,PetscScalar V0, PetscScalar V1, PetscScalar V2, PetscScalar V3){
 	PetscReal rfac,vx;
 	rfac = (1.0-rx)*(1.0-rz);
@@ -123,17 +126,33 @@ PetscInt get_k(PetscReal cz){
 }
 
 PetscReal get_rx(PetscReal cx, PetscInt i){
-	PetscReal rx = (cx-i*dx_const)/dx_const;
-	if (rx<0 || rx>1) {printf("weird rx=%f\n",rx); exit(1);}
+    PetscReal rx = (cx - i*dx_const) / dx_const;
 
-	return rx;
+	// tolerate tiny floating-point deviations around the boundaries.
+    if (rx < -1e-12 || rx > 1.0 + 1e-12) {
+        printf("weird rx=%.16e cx=%.16e i=%d\n", rx, cx, i);
+        exit(1);
+    }
+
+    if (rx < 0.0) rx = 0.0;
+    if (rx > 1.0) rx = 1.0;
+
+    return rx;
 }
 
 PetscReal get_rz(PetscReal cz, PetscInt k){
-	PetscReal rz = (cz-(-depth+k*dz_const))/dz_const;
-	if (rz<0 || rz>1) {printf("weird rz=%f\n",rz); exit(1);}
+    PetscReal rz = (cz - (-depth + k*dz_const)) / dz_const;
 
-	return rz;
+	// tolerate tiny floating-point deviations around the boundaries.
+    if (rz < -1e-12 || rz > 1.0 + 1e-12) {
+        printf("weird rz=%.16e cz=%.16e k=%d\n", rz, cz, k);
+        exit(1);
+    }
+
+    if (rz < 0.0) rz = 0.0;
+    if (rz > 1.0) rz = 1.0;
+
+    return rz;
 }
 
 PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
@@ -217,6 +236,10 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 	PetscReal *dPhi_array;
 
 	if (magmatism_flag==PETSC_TRUE){
+
+		x_magma_high = 0.0;
+		z_magma_high = -depth;
+
 		ierr = DMSwarmGetField(dms,"X",&bs,NULL,(void**)&X_array);CHKERRQ(ierr);
 		ierr = DMSwarmGetField(dms,"Phi",&bs,NULL,(void**)&Phi_array);CHKERRQ(ierr);
 		ierr = DMSwarmGetField(dms,"dPhi",&bs,NULL,(void**)&dPhi_array);CHKERRQ(ierr);
@@ -423,6 +446,14 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 
 				dPhi_array[p]=dphi;
 				Phi_array[p]+=dphi;
+
+				// Used to determine the location of the extraction of the magmatism to the surface
+				if (dphi>0){
+					if (z_magma_high<cz){
+						z_magma_high=cz;
+						x_magma_high=cx;
+					}
+				}
 
 				X_array[p] = 1.0/(1.0-Phi_array[p]);
 

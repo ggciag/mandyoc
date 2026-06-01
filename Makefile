@@ -21,6 +21,7 @@ SOURCEC = $(SRC)/main.cpp \
 	$(SRC)/DMSwarm_3d.cpp \
 	$(SRC)/DMSwarm2mesh.cpp \
 	$(SRC)/DMSwarm_move.cpp \
+	$(SRC)/magmatic.cpp \
 	$(SRC)/thermal_Ke.cpp \
 	$(SRC)/reader.cpp \
 	$(SRC)/veloc_total.cpp \
@@ -31,6 +32,7 @@ INSTALL_PATH = $(PREFIX)/bin
 BUILDDIR = bin
 MANDYOC = $(BUILDDIR)/mandyoc
 
+GIT_VERSION := $(shell git describe --long  --always --dirty)
 
 .PHONY: help all install clear test
 
@@ -60,7 +62,7 @@ clear:
 clean:: clear
 
 %.o: %.cpp
-	${PCC} -Wall -fdiagnostics-color -c $< -o $@ ${INCFLAGS}
+	${PCC} -DGIT_VERSION="\"${GIT_VERSION}\"" -Wall -fdiagnostics-color -c $< -o $@ ${INCFLAGS}
 
 $(BUILDDIR):
 	mkdir $@

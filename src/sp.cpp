@@ -77,7 +77,7 @@ PetscErrorCode sp_evaluate_surface_processes_2d_diffusion(PetscReal dt);
 PetscErrorCode sp_evaluate_surface_processes_2d_sedimentation_only(PetscReal dt);
 PetscErrorCode sp_evaluate_surface_processes_2d_sedimentation_rate_limited(PetscReal dt);
 PetscErrorCode sp_evaluate_surface_processes_2d_theunissen(PetscReal dt);
-PetscErrorCode sp_update_surface_swarm_particles_properties();
+PetscErrorCode sp_update_surface_swarm_particles_properties(PetscInt active_layer);
 PetscErrorCode sp_update_active_sediment_layer(double time);
 PetscErrorCode sp_update_sedimentation_rate(double time);
 PetscErrorCode sp_update_base_level(double time);
@@ -1051,7 +1051,7 @@ PetscErrorCode sp_evaluate_surface_processes_2d_theunissen(PetscReal dt){
     PetscFunctionReturn(0);
 }
 
-PetscErrorCode sp_update_surface_swarm_particles_properties()
+PetscErrorCode sp_update_surface_swarm_particles_properties(PetscInt active_layer)
 {
     PetscMPIInt rank;
 	PetscErrorCode ierr;
@@ -1127,11 +1127,11 @@ PetscErrorCode sp_update_surface_swarm_particles_properties()
         // (A2L) air particle bellow the surface => assign land properties
         if (a2l == PETSC_TRUE && layer[p] == n_interfaces) {
             if (py < surface) {
-                layer[p] = active_sediment_layer;
-                geoq_fac[p] = inter_geoq[active_sediment_layer];
+                layer[p] = active_layer;
+                geoq_fac[p] = inter_geoq[active_layer];
                 strain_fac[p] = strain_sed;
 
-                PetscSynchronizedPrintf(PETSC_COMM_WORLD, "[%d] particle updated - a2l - sedimentation | px=%.3e py=%.3e surface=%.3e | sed_layer = %d | strain = %.2f\n", rank, px, py, surface, active_sediment_layer,strain_sed);
+                PetscSynchronizedPrintf(PETSC_COMM_WORLD, "[%d] particle updated - a2l - sedimentation | px=%.3e py=%.3e surface=%.3e | sed_layer = %d | strain = %.2f\n", rank, px, py, surface, active_layer,strain_sed);
             }
         }
 
