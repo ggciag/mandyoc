@@ -361,7 +361,7 @@ PetscErrorCode createSwarm_2d()
 	PetscReal *rarray;
 	PetscReal *strain_array;
 
-	int particles_to_export = 4; // set as a parameter in the future
+	int particles_to_export = 16; // set as a parameter in the future
 
 	PetscInt nz_part = (int)PetscSqrtReal(particles_per_ele*dz_const/dx_const);
 	PetscInt nx_part = (int)(particles_per_ele/nz_part);
@@ -375,13 +375,10 @@ PetscErrorCode createSwarm_2d()
 	}
 
 	particles_per_ele = nx_part*nz_part;
-	PetscInt particles_export_step = (int)(particles_per_ele/particles_to_export);
-	// fixing the array aliasing
-	if (particles_export_step % nz_part == 0) { step += 1; }; // to avoid exporting the same particles at each step when particles_per_ele is divisible by particles_to_export
 
 	PetscPrintf(PETSC_COMM_WORLD,"particles per element in x:  %d\n",nx_part);
 	PetscPrintf(PETSC_COMM_WORLD,"particles per element in z:  %d\n",nz_part);
-	PetscPrintf(PETSC_COMM_WORLD,"total particles per element: %d\n\n",particles_per_ele);
+	PetscPrintf(PETSC_COMM_WORLD,"total particles per element: %d\n",particles_per_ele);
 	PetscPrintf(PETSC_COMM_WORLD,"particles exported per element: %d\n\n",particles_to_export);
 
 	ierr = DMShellCreate(PETSC_COMM_WORLD,&dmcell);CHKERRQ(ierr);
@@ -471,14 +468,28 @@ PetscErrorCode createSwarm_2d()
 
 		ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
 		if (checkered==0){
+
+			int needed = 0; // counter to check how many particles are needed yet
+			int left = 0; // counter to check how many particles left to be selected
+
 			for (p=0; p<nlocal; p++) {
 				int local_p = p%particles_per_ele; // local particle index inside the element
 				iarray[p] = local_p; // set itag based on the local particle index inside the element
 				
-				// only export particles based on the local particle index at the "index step"
-				if (local_p % particles_export_step==0 && local_p < particles_per_ele){
-					iarray[p] = 10000 + p + 1000000*rank; // set itag to identify exported particles
+				// reset counters at the beginning of each element
+				if (local_p == 0){ 
+					needed = particles_to_export;
+					left = particles_per_ele;
 				}
+
+				double r = (double)rand_r(&seed) / RAND_MAX; // random numer based on rand_r ("seed")
+
+				// 
+				if (needed > 0 && r < ((double)needed / left)){
+					iarray[p] = 10000 + p + 1000000*rank; // set itag to identify exported particles
+					needed = needed - 1; // decrease needed counter
+				}
+				left = left - 1; // decrease left counter
 			}
 		}
 		else{
