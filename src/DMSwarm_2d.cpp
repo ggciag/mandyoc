@@ -92,6 +92,8 @@ extern PetscBool export_lithology;
 
 extern PetscBool magmatism_flag;
 
+extern int particles_to_export;
+
 
 PetscErrorCode _DMLocatePoints_DMDARegular_IS_2d(DM dm,Vec pos,IS *iscell)
 {
@@ -361,8 +363,6 @@ PetscErrorCode createSwarm_2d()
 	PetscReal *rarray;
 	PetscReal *strain_array;
 
-	int particles_to_export = 16; // set as a parameter in the future
-
 	PetscInt nz_part = (int)PetscSqrtReal(particles_per_ele*dz_const/dx_const);
 	PetscInt nx_part = (int)(particles_per_ele/nz_part);
 
@@ -467,7 +467,7 @@ PetscErrorCode createSwarm_2d()
 		ierr = DMSwarmGetField(dms,"strain_fac",&bs,NULL,(void**)&strain_array);CHKERRQ(ierr);
 
 		ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
-		if (checkered==0){
+		if (checkered==0){ // Future?: The parameter checkered can be removed, we can set particles_to_export=0 
 
 			int needed = 0; // counter to check how many particles are needed yet
 			int left = 0; // counter to check how many particles left to be selected
@@ -482,7 +482,7 @@ PetscErrorCode createSwarm_2d()
 					left = particles_per_ele;
 				}
 
-				double r = (double)rand_r(&seed) / RAND_MAX; // random numer based on rand_r ("seed")
+				double r = (double)rand_r(&seed) / RAND_MAX; // random number between 0 and 1
 
 				// 
 				if (needed > 0 && r < ((double)needed / left)){
