@@ -74,6 +74,8 @@ int main(int argc,char **args)
 	char prefix_litho[PETSC_MAX_PATH_LEN];
 	PetscReal next_snapshot_time;
 
+	PetscLogDouble t_h5_start, t_h5_end;
+
 	PetscFunctionBeginUser;
 
 	ierr = PetscInitialize(&argc,&args,(char*)0,help);CHKERRQ(ierr);
@@ -125,6 +127,13 @@ int main(int argc,char **args)
 			&cont_var_bcv,
 			&dm_lx, &dm_lz
 		);
+
+		PetscMPIInt size;
+		MPI_Comm_size(PETSC_COMM_WORLD, &size);
+
+		if (size != Px * Pz) {
+			SETERRQ(PETSC_COMM_WORLD, PETSC_ERR_ARG_SIZ, "Snapshot requires %d MPI ranks (%d x %d), but run uses %d", Px * Pz, Px, Pz, size);
+		}
 
 		PetscPrintf(PETSC_COMM_WORLD,
 			"\nRestarting from snapshot: %s\n"
@@ -264,100 +273,105 @@ int main(int argc,char **args)
 			calc_drho(); // CHECK: does need this call here?
 	}
 
-	// Gerya p. 215
-	if (visc_MAX>visc_MIN && initial_dynamic_range>0){
-		double visc_contrast = PetscLog10Real(visc_MAX/visc_MIN);
+	if (restart == PETSC_FALSE) {
+		// Gerya p. 215
+		if (visc_MAX>visc_MIN && initial_dynamic_range>0){
+			double visc_contrast = PetscLog10Real(visc_MAX/visc_MIN);
 
-		double visc_mean = PetscPowReal(10.0,PetscLog10Real(visc_MIN)+visc_contrast/2);
+			double visc_mean = PetscPowReal(10.0,PetscLog10Real(visc_MIN)+visc_contrast/2);
 
-		int n_visc=0;
+			int n_visc=0;
 
-		visc_MIN_comp = visc_mean;
-		visc_MAX_comp = visc_mean;
-
-		PetscPrintf(PETSC_COMM_WORLD,"\n\nViscosity range: %.3lg %.3lg\n\n",visc_MIN_comp,visc_MAX_comp);
-
-		ierr = veloc_total(dimensions); CHKERRQ(ierr);
-
-		while ((visc_MIN_comp!=visc_MIN) && (visc_MAX_comp!=visc_MAX)){
-
-			visc_MIN_comp = visc_mean*PetscPowReal(10.0,-n_visc*1.0);
-			visc_MAX_comp = visc_mean*PetscPowReal(10.0,n_visc*1.0);
-
-			if (visc_MIN_comp<visc_MIN) visc_MIN_comp=visc_MIN;
-			if (visc_MAX_comp>visc_MAX) visc_MAX_comp=visc_MAX;
+			visc_MIN_comp = visc_mean;
+			visc_MAX_comp = visc_mean;
 
 			PetscPrintf(PETSC_COMM_WORLD,"\n\nViscosity range: %.3lg %.3lg\n\n",visc_MIN_comp,visc_MAX_comp);
 
 			ierr = veloc_total(dimensions); CHKERRQ(ierr);
 
-			n_visc++;
+			while ((visc_MIN_comp!=visc_MIN) && (visc_MAX_comp!=visc_MAX)){
+
+				visc_MIN_comp = visc_mean*PetscPowReal(10.0,-n_visc*1.0);
+				visc_MAX_comp = visc_mean*PetscPowReal(10.0,n_visc*1.0);
+
+				if (visc_MIN_comp<visc_MIN) visc_MIN_comp=visc_MIN;
+				if (visc_MAX_comp>visc_MAX) visc_MAX_comp=visc_MAX;
+
+				PetscPrintf(PETSC_COMM_WORLD,"\n\nViscosity range: %.3lg %.3lg\n\n",visc_MIN_comp,visc_MAX_comp);
+
+				ierr = veloc_total(dimensions); CHKERRQ(ierr);
+
+				n_visc++;
+			}
 		}
-	}
-	else {
+		else {
+			if (visc_MAX==visc_MIN) visc_MAX = visc_MIN*1.0001;  //avoiding the problem to the f2 in the denominator (Gerya...)
+			visc_MIN_comp = visc_MIN;
+			visc_MAX_comp = visc_MAX;
+			ierr = veloc_total(dimensions); CHKERRQ(ierr);
+		}
+
+		PetscPrintf(PETSC_COMM_WORLD,"Solution of the pressure and velocity fields: done\n");
+
+		if (output_hdf5 == PETSC_FALSE) {
+			PetscPrintf(PETSC_COMM_WORLD,"\nWriting output files:\n");
+			ierr = write_veloc(tcont,binary_output);
+			ierr = write_veloc_cond(tcont,binary_output);
+
+			sprintf(variable_name,"temperature");
+			ierr = write_all_(tcont,Temper,variable_name, binary_output);
+			ierr = write_pressure(tcont,binary_output);
+			ierr = write_geoq_(tcont,binary_output);
+			ierr = write_tempo(tcont);
+
+			if (dimensions == 2 && sp_surface_tracking) {
+				ierr = PetscSNPrintf(prefix, PETSC_MAX_PATH_LEN-1,"surface_%d", tcont); CHKERRQ(ierr);
+				ierr = sp_view_2d(dms_s, prefix); CHKERRQ(ierr);
+			}
+		}
+
+		if (output_hdf5) {
+			PetscPrintf(PETSC_COMM_WORLD,"\nWriting hdf5 output...");
+			PetscTime(&t_h5_start);
+			save_hdf5(
+				tcont,
+				tempo,
+				dt_calor,
+				Nx,
+				Nz,
+				Lx,
+				depth,
+				Px,
+				Pz,
+				is_lx,
+				is_lz,
+				Veloc_fut,
+				Temper,
+				Pressure_aux,
+				geoq,
+				geoq_rho,
+				geoq_H,
+				geoq_strain,
+				geoq_strain_rate,
+				geoq_kappa,
+				X_depletion,
+				Phi,
+				dPhi,
+				dms,
+				dms_s,
+				magmatism_flag,
+				sp_surface_tracking,
+				export_lithology,
+				plot_sediment,
+				n_interfaces
+			);
+			PetscTime(&t_h5_end);
+			PetscPrintf(PETSC_COMM_WORLD,"done. (%lf s)\n", t_h5_end-t_h5_start);
+		}
+	} else {
 		if (visc_MAX==visc_MIN) visc_MAX = visc_MIN*1.0001;  //avoiding the problem to the f2 in the denominator (Gerya...)
 		visc_MIN_comp = visc_MIN;
 		visc_MAX_comp = visc_MAX;
-		ierr = veloc_total(dimensions); CHKERRQ(ierr);
-	}
-
-	PetscPrintf(PETSC_COMM_WORLD,"Solution of the pressure and velocity fields: done\n");
-
-	if (output_hdf5 == PETSC_FALSE) {
-		PetscPrintf(PETSC_COMM_WORLD,"\nWriting output files:\n");
-		ierr = write_veloc(tcont,binary_output);
-		ierr = write_veloc_cond(tcont,binary_output);
-
-		sprintf(variable_name,"temperature");
-		ierr = write_all_(tcont,Temper,variable_name, binary_output);
-		ierr = write_pressure(tcont,binary_output);
-		ierr = write_geoq_(tcont,binary_output);
-		ierr = write_tempo(tcont);
-
-		if (dimensions == 2 && sp_surface_tracking) {
-			ierr = PetscSNPrintf(prefix, PETSC_MAX_PATH_LEN-1,"surface_%d", tcont); CHKERRQ(ierr);
-			ierr = sp_view_2d(dms_s, prefix); CHKERRQ(ierr);
-		}
-	}
-
-	PetscLogDouble t_h5_start, t_h5_end;
-	if (output_hdf5) {
-		PetscPrintf(PETSC_COMM_WORLD,"\nWriting hdf5 output...");
-		PetscTime(&t_h5_start);
-		save_hdf5(
-			tcont,
-			tempo,
-			dt_calor,
-			Nx,
-			Nz,
-			Lx,
-			depth,
-			Px,
-			Pz,
-			is_lx,
-			is_lz,
-			Veloc_fut,
-			Temper,
-			Pressure_aux,
-			geoq,
-			geoq_rho,
-			geoq_H,
-			geoq_strain,
-			geoq_strain_rate,
-			geoq_kappa,
-			X_depletion,
-			Phi,
-			dPhi,
-			dms,
-			dms_s,
-			magmatism_flag,
-			sp_surface_tracking,
-			export_lithology,
-			plot_sediment,
-			n_interfaces
-		);
-		PetscTime(&t_h5_end);
-		PetscPrintf(PETSC_COMM_WORLD,"done. (%lf s)\n", t_h5_end-t_h5_start);
 	}
 
 	VecCopy(Veloc_fut,Veloc);
@@ -373,7 +387,6 @@ int main(int argc,char **args)
 	if (restart == PETSC_TRUE) {
 		tcont+=1;
 		tempo+= dt_calor;
-		VecCopy(Veloc_fut,Veloc);
 	} else {
 		tcont=1;
 		tempo = dt_calor;
