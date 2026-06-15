@@ -56,9 +56,7 @@ PetscErrorCode update_snapshot_log(
     count++;
 
     while (count > max_snapshots) {
-
         remove(entries[0]);
-
         free(entries[0]);
 
         for (i = 1; i < count; i++) {
@@ -76,14 +74,12 @@ PetscErrorCode update_snapshot_log(
 
     for (i = 0; i < count; i++) {
         fprintf(fp, "%s\n", entries[i]);
-
         free(entries[i]);
     }
 
     fclose(fp);
 
     remove("snapshots.log");
-
     rename("snapshots.log.tmp", "snapshots.log");
 
     PetscFunctionReturn(0);
@@ -678,9 +674,6 @@ PetscErrorCode write_hdf5(
 
     ierr = PetscViewerHDF5PopGroup(viewer); CHKERRQ(ierr); CHKERRQ(ierr);
     //
-
-    // todo: pass opts->is_snapshot to skip particles
-    // create litho
 
     // -- particles
     ierr = save_particles_to_snapshot(dms, viewer, magmatism_flag, export_lithology, plot_sediment, opts->is_snapshot, n_interfaces, lx/(nx-1), -lz/(nz-1), mode); CHKERRQ(ierr);
