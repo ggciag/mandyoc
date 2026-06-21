@@ -116,6 +116,7 @@ extern PetscReal strain_sed;
 extern PetscReal aggradation_rate;
 
 extern PetscBool magmatism_flag;
+extern PetscBool magmatism_extraction_flag;
 extern PetscInt magmatic_layer;
 
 // Removed from parameter file
@@ -332,6 +333,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "a2l") == 0) {a2l = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "export_thermal_diffusivity") == 0) {export_kappa = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 			else if (strcmp(tkn_w, "magmatism") == 0) {magmatism_flag = check_a_b_bool(tkn_w, tkn_v, "on", "off");}
+			else if (strcmp(tkn_w, "magmatism_extraction") == 0) {magmatism_extraction_flag = check_a_b_bool(tkn_w, tkn_v, "on", "off");}
 			else if (strcmp(tkn_w, "magmatic_layer") == 0) {magmatic_layer = atoi(tkn_v);}
 
 			else if (strcmp(tkn_w, "export_lithology") == 0) {export_lithology = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
@@ -512,6 +514,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&weakening_max,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&export_kappa,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&magmatism_flag,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&magmatism_extraction_flag,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&magmatic_layer,1,MPI_INT,0,PETSC_COMM_WORLD);
 
 	MPI_Bcast(&export_lithology,1,MPI_C_BOOL,0,PETSC_COMM_WORLD);

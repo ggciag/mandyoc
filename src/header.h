@@ -59,6 +59,7 @@ PetscBool set_sp_d_c = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
 PetscBool plot_sediment = PETSC_FALSE; // PETSC_TRUE/PETSC_FALSE
 PetscBool a2l = PETSC_TRUE; // PETSC_TRUE/PETSC_FALSE
 PetscBool magmatism_flag = PETSC_FALSE; // 1=True, 0=False
+PetscBool magmatism_extraction_flag = PETSC_TRUE;
 // Parameter file native C variables
 int dimensions = 2;
 long Nx = -1;

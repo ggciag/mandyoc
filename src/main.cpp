@@ -341,7 +341,7 @@ int main(int argc,char **args)
 
 		if (tcont%print_step==0){
 
-			if (sp_surface_tracking && magmatism_flag==PETSC_TRUE){
+			if (sp_surface_tracking && magmatism_flag==PETSC_TRUE && magmatism_extraction_flag==PETSC_TRUE){
 				// The extraction of the magmatism was chosen to occur every print_step (here),
 				// when the dPhi_array is erased in funtion write_geoq_
 				if (dimensions==2){ //!!!Must be implemented in 3D
