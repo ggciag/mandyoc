@@ -92,6 +92,12 @@ extern PetscBool magmatism_flag;
 extern PetscReal x_magma_high;
 extern PetscReal z_magma_high;
 
+extern PetscBool strain_healing;
+
+extern PetscReal A_healing;
+extern PetscReal k_healing;
+extern PetscReal T0_healing;
+
 PetscReal linear_interpolation(PetscReal rx, PetscReal rz,PetscScalar V0, PetscScalar V1, PetscScalar V2, PetscScalar V3){
 	PetscReal rfac,vx;
 	rfac = (1.0-rx)*(1.0-rz);
@@ -425,6 +431,11 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 			strain_fac[p]+= dt*E2_invariant;//cumulative strain
 			strain_rate_fac[p] = E2_invariant;
 
+			if (strain_healing==PETSC_TRUE){ 
+				strain_fac[p]-=dt*A_healing*exp(-k_healing*(T0_healing+273.)/(tp+273.0));
+				if (strain_fac[p]<0.0) strain_fac[p]=0.0;
+			}
+
 
 			rarray[p] = calc_visco_ponto(tp,Pp,cx,cz,inter_geoq[layer_array[p]],E2_invariant,strain_fac[p],
 										inter_A[layer_array[p]], inter_n[layer_array[p]], inter_Q[layer_array[p]], inter_V[layer_array[p]], layer_array[p]);
@@ -660,6 +671,11 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 
 			strain_fac[p]+= dt*E2_invariant;//cumulative strain
 			strain_rate_fac[p] = E2_invariant;
+
+			if (strain_healing==PETSC_TRUE){
+				strain_fac[p]-=dt*A_healing*exp(-k_healing*(T0_healing+273.)/(tp+273.0));
+				if (strain_fac[p]<0.0) strain_fac[p]=0.0;
+			}
 
 
 			rarray[p] = calc_visco_ponto(tp,Pp,cx,cz,inter_geoq[layer_array[p]],E2_invariant,strain_fac[p],
