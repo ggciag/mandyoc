@@ -47,4 +47,4 @@ linkcheck:
 	      "or in $(BUILDDIR)/linkcheck/output.txt."
 
 server:
-	cd $(BUILDDIR)/html && python -m http.server 8001
+	sphinx-autobuild --port 8001 . docs/$(BUILDDIR)/html
