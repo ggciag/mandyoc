@@ -1,4 +1,5 @@
 # documentation build requirements for github actions
 sphinx
+sphinx-autobuild
 sphinx_rtd_theme
 sphinxcontrib-bibtex
