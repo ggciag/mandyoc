@@ -272,7 +272,6 @@ PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt
 	PetscInt M, N, P;
 	PetscInt sx, sy, sz, mmx, mmy, mmz;
 	PetscInt i, j, k;
-    //double *variable_bcT = NULL;
 	PetscScalar *variable_bcT = NULL;
 
 	ierr = VecZeroEntries(local_FT); CHKERRQ(ierr);
