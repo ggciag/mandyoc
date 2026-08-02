@@ -281,30 +281,7 @@ PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt
 		ierr = DMDAGetInfo(da_Thermal, 0, &M, &P, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0); CHKERRQ(ierr);
 		ierr = DMDAVecGetArray(da_Thermal, local_FT, &ff2d); CHKERRQ(ierr);
 		ierr = DMDAGetCorners(da_Thermal, &sx, &sz, NULL, &mmx, &mmz, NULL); CHKERRQ(ierr);
-
-        
-        // if (bcT_left == 2 || bcT_right == 2 || bcT_bot == 2 || bcT_top == 2) {
-            
-        //     variable_bcT = (double*) malloc(M * P * sizeof(double));
-            
-		// 	int rank;
-		// 	MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
-				
-		// 	if (rank == 0) {
-        //         FILE *fp = fopen("input_variable_bcT.txt", "r"); 
-                
-        //         for (int z = 0; z < P; z++) {
-        //             for (int x = 0; x < M; x++) {
-        //                 fscanf(fp, "%lf", &variable_bcT[z * M + x]);
-        //             }
-        //         }
-        //         fclose(fp);
-		// 	}
-				
-        //     MPI_Bcast(variable_bcT, M * P, MPI_DOUBLE, 0, PETSC_COMM_WORLD);
-        // }
-
-        
+       
         
         if (bcT_left == 2 || bcT_right == 2 || bcT_bot == 2 || bcT_top == 2) {
             
