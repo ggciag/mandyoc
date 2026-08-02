@@ -26,6 +26,9 @@ PetscErrorCode Thermal_init_3d(Vec F,DM thermal_da);
 
 PetscErrorCode Heat_flow_at_the_base();
 
+
+extern PetscErrorCode ascii2bin(char*, char*);
+
 extern double Lx, Ly, depth;
 
 extern double dz_const;
@@ -269,6 +272,8 @@ PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt
 	PetscInt M, N, P;
 	PetscInt sx, sy, sz, mmx, mmy, mmz;
 	PetscInt i, j, k;
+    //double *variable_bcT = NULL;
+	PetscScalar *variable_bcT = NULL;
 
 	ierr = VecZeroEntries(local_FT); CHKERRQ(ierr);
 
@@ -277,21 +282,97 @@ PetscErrorCode create_thermal(int dimensions, PetscInt mx, PetscInt my, PetscInt
 		ierr = DMDAVecGetArray(da_Thermal, local_FT, &ff2d); CHKERRQ(ierr);
 		ierr = DMDAGetCorners(da_Thermal, &sx, &sz, NULL, &mmx, &mmz, NULL); CHKERRQ(ierr);
 
+        
+        // if (bcT_left == 2 || bcT_right == 2 || bcT_bot == 2 || bcT_top == 2) {
+            
+        //     variable_bcT = (double*) malloc(M * P * sizeof(double));
+            
+		// 	int rank;
+		// 	MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
+				
+		// 	if (rank == 0) {
+        //         FILE *fp = fopen("input_variable_bcT.txt", "r"); 
+                
+        //         for (int z = 0; z < P; z++) {
+        //             for (int x = 0; x < M; x++) {
+        //                 fscanf(fp, "%lf", &variable_bcT[z * M + x]);
+        //             }
+        //         }
+        //         fclose(fp);
+		// 	}
+				
+        //     MPI_Bcast(variable_bcT, M * P, MPI_DOUBLE, 0, PETSC_COMM_WORLD);
+        // }
+
+        
+        
+        if (bcT_left == 2 || bcT_right == 2 || bcT_bot == 2 || bcT_top == 2) {
+            
+            ierr = PetscCalloc1(M * P, &variable_bcT); CHKERRQ(ierr);
+            
+            char s1[PETSC_MAX_PATH_LEN], s2[PETSC_MAX_PATH_LEN];
+            sprintf(s1, "input_variable_bcT.txt");
+            sprintf(s2, "input_variable_bcT.bin");
+            
+            int rank;
+            MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
+                     
+            
+            if (rank == 0) {
+                ierr = ascii2bin(s1, s2); CHKERRQ(ierr);
+
+				MPI_Barrier(PETSC_COMM_WORLD);
+
+                PetscViewer viewer;
+                Vec v_seq;
+                const PetscScalar *v_array;
+
+                ierr = PetscViewerBinaryOpen(PETSC_COMM_SELF, s2, FILE_MODE_READ, &viewer); CHKERRQ(ierr);
+                ierr = VecCreateSeq(PETSC_COMM_SELF, M * P, &v_seq); CHKERRQ(ierr);
+                
+                ierr = VecLoad(v_seq, viewer); CHKERRQ(ierr);
+                ierr = PetscViewerDestroy(&viewer); CHKERRQ(ierr);
+
+                ierr = VecGetArrayRead(v_seq, &v_array); CHKERRQ(ierr);
+                
+                for (int j = 0; j < M * P; j++) {
+                    variable_bcT[j] = v_array[j];
+                }
+                
+                ierr = VecRestoreArrayRead(v_seq, &v_array); CHKERRQ(ierr);
+                ierr = VecDestroy(&v_seq); CHKERRQ(ierr);
+            }
+            
+            MPI_Bcast(variable_bcT, (int)(M * P), MPIU_SCALAR, 0, PETSC_COMM_WORLD);
+        }
+
 		for (k=sz; k<sz+mmz; k++) {
 			for (i=sx; i<sx+mmx; i++) {
 				ff2d[k][i] = 1.0;
 
 				if (periodic_boundary==0){
 					if (i==0   && bcT_left==1) ff2d[k][i] = 0.0;
+					else if (i==0   && bcT_left==2) ff2d[k][i] = variable_bcT[k * M + i];
+
 
 					if (i==M-1 && bcT_right==1)ff2d[k][i] = 0.0;
+					else if (i==M-1 && bcT_right==2)ff2d[k][i] = variable_bcT[k * M + i];
 				}
 
 				if (k==0   && bcT_bot==1) ff2d[k][i] = 0.0;
+				else if (k==0   && bcT_bot==2) ff2d[k][i] = variable_bcT[k * M + i];
+
 
 				if (k==P-1 && bcT_top==1) ff2d[k][i] = 0.0;
+				else if (k==P-1 && bcT_top==2) ff2d[k][i] = variable_bcT[k * M + i];
+
+
 			}
 		}
+
+		if (variable_bcT != NULL) {
+            free(variable_bcT);
+        }
 
 		ierr = DMDAVecRestoreArray(da_Thermal, local_FT, &ff2d); CHKERRQ(ierr);
 	} else {

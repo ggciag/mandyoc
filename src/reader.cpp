@@ -4,6 +4,7 @@
 // Prototypes
 int check_a_b(char tkn_w[], char tkn_v[], const char str_a[], const char str_b[]);
 PetscBool check_a_b_bool(char tkn_w[], char tkn_v[], const char str_a[], const char str_b[]);
+int check_a_b_c(char tkn_w[], char tkn_v[], const char str_a[], const char str_b[], const char str_c[]);
 //void ErrorInterfaces(int rank, const char fname[], int flag);
 void ErrorInterfaces();
 PetscBool check_prop(char *s);
@@ -303,10 +304,10 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "right_tangential_velocity") == 0) {bcv_right_slip = check_a_b(tkn_w, tkn_v, "fixed", "free");}
 			else if (strcmp(tkn_w, "back_tangential_velocity") == 0) {bcv_back_slip = check_a_b(tkn_w, tkn_v, "fixed", "free");}
 			else if (strcmp(tkn_w, "front_tangential_velocity") == 0) {bcv_front_slip = check_a_b(tkn_w, tkn_v, "fixed", "free");}
-			else if (strcmp(tkn_w, "top_temperature") == 0) {bcT_top = check_a_b(tkn_w, tkn_v, "fixed", "free");}
-			else if (strcmp(tkn_w, "bot_temperature") == 0) {bcT_bot = check_a_b(tkn_w, tkn_v, "fixed", "free");}
-			else if (strcmp(tkn_w, "left_temperature") == 0) {bcT_left = check_a_b(tkn_w, tkn_v, "fixed", "free");}
-			else if (strcmp(tkn_w, "right_temperature") == 0) {bcT_right = check_a_b(tkn_w, tkn_v, "fixed", "free");}
+			else if (strcmp(tkn_w, "top_temperature") == 0) {bcT_top = check_a_b_c(tkn_w, tkn_v, "fixed", "free", "ascii");}
+            else if (strcmp(tkn_w, "bot_temperature") == 0) {bcT_bot = check_a_b_c(tkn_w, tkn_v, "fixed", "free", "ascii");}
+            else if (strcmp(tkn_w, "left_temperature") == 0) {bcT_left = check_a_b_c(tkn_w, tkn_v, "fixed", "free", "ascii");}
+            else if (strcmp(tkn_w, "right_temperature") == 0) {bcT_right = check_a_b_c(tkn_w, tkn_v, "fixed", "free", "ascii");}
 			else if (strcmp(tkn_w, "front_temperature") == 0) {bcT_front = check_a_b(tkn_w, tkn_v, "fixed", "free");}
 			else if (strcmp(tkn_w, "back_temperature") == 0) {bcT_back = check_a_b(tkn_w, tkn_v, "fixed", "free");}
 			else if (strcmp(tkn_w, "interfaces_from_ascii") == 0) {interfaces_from_ascii = check_a_b(tkn_w, tkn_v, "True", "False");}
@@ -1180,6 +1181,25 @@ int check_a_b(char tkn_w[], char tkn_v[], const char str_a[], const char str_b[]
 		exit(1);
 	}
 	return value;
+}
+int check_a_b_c(char tkn_w[], char tkn_v[], const char str_a[], const char str_b[], const char str_c[])
+{
+    int value;
+    if (strcmp(tkn_v, str_a) == 0) {
+        value = 1;
+    }
+    else if (strcmp(tkn_v, str_b) == 0) {
+        value = 0;
+    }
+    else if (strcmp(tkn_v, str_c) == 0) {
+        value = 2; 
+    }
+    else
+    {
+        fprintf(stderr, "ERROR. Unrecognized value <%s> for <%s> in the parameter file.\n", tkn_v, tkn_w);
+        exit(1);
+    }
+    return value;
 }
 PetscBool check_a_b_bool(char tkn_w[], char tkn_v[], const char str_a[], const char str_b[])
 {
