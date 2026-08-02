@@ -1187,7 +1187,7 @@ int check_a_b_c(char tkn_w[], char tkn_v[], const char str_a[], const char str_b
     int value;
     if (strcmp(tkn_v, str_a) == 0) value = 1;
     else if (strcmp(tkn_v, str_b) == 0) value = 0;
-    else if (strcmp(tkn_v, str_c) == 0) value = 2; 
+    else if (strcmp(tkn_v, str_c) == 0) value = 2;
     else
     {
         fprintf(stderr, "ERROR. Unrecognized value <%s> for <%s> in the parameter file.\n", tkn_v, tkn_w);
