@@ -6,7 +6,7 @@
 # MANDYOC is hosted at https://github.com/ggciag/mandyoc.
 #
 
-FROM ubuntu:20.04 AS initial_stage
+FROM ubuntu:26.04 AS initial_stage
 
 LABEL maintainer="Rafael Silva <rafael.m.silva@usp.br>"
 
@@ -25,7 +25,6 @@ RUN apt-get update && \
         gfortran \
         python3 \
         python3-dev \
-        python3-distutils \
         python3-pip \
         python3-setuptools \
         vim \
