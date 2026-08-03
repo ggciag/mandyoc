@@ -6,9 +6,10 @@
 # MANDYOC is hosted at https://github.com/ggciag/mandyoc.
 #
 
-FROM ggciag/mandyoc-dependencies:latest as mandyoc_stage
+ARG DEPENDENCY_IMAGE=ggciag/mandyoc-dependencies:latest
+FROM ${DEPENDENCY_IMAGE} as mandyoc_stage
 
-LABEL maintainer "Rafael Silva <rafael.m.silva@alumni.usp.br>"
+LABEL maintainer "Rafael Silva <rafael.m.silva@usp.br>"
 
 # =============================================================================
 # Initialize
