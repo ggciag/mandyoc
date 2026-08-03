@@ -67,7 +67,7 @@ FROM user_stage AS petsc_stage
 
 RUN mkdir -p ${HOME}/tmp && \
     cd ${HOME}/tmp && \
-    curl -fsSL https://web.cels.anl.gov/projects/petsc/download/release-snapshots/petsc-${PETSC_VERSION}.tar.gz
+    curl -fsSL https://web.cels.anl.gov/projects/petsc/download/release-snapshots/petsc-${PETSC_VERSION}.tar.gz \
         | tar -xz && \
     cd ${HOME}/tmp/petsc-${PETSC_VERSION} && \
     python3 ./configure \
