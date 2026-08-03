@@ -65,9 +65,10 @@ USER ${USER}
 # =============================================================================
 FROM user_stage AS petsc_stage
 
-RUN mkdir -p ${HOME}/petsc-${PETSC_VERSION} && \
-    curl -k https://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz \
-        | tar xzvf - -C $(dirname ${HOME}/tmp/petsc-${PETSC_VERSION}) && \
+RUN mkdir -p ${HOME}/tmp && \
+    cd ${HOME}/tmp && \
+    curl -fsSL https://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz \
+        | tar -xz && \
     cd ${HOME}/tmp/petsc-${PETSC_VERSION} && \
     python3 ./configure \
         --prefix=${HOME}/petsc-${PETSC_VERSION} \
@@ -79,7 +80,8 @@ RUN mkdir -p ${HOME}/petsc-${PETSC_VERSION} && \
         --download-mumps \
         --download-scalapack \
         --download-parmetis \
-        --download-metis && \
+        --download-metis \
+        --download-hdf5 && \
     make && \
     make install
 
