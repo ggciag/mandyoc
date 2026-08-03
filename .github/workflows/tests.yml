@@ -17,6 +17,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Read dependency image
+        id: dependency
+        run: |
+          echo "image=$(cat .ci/dependency-image)" >> $GITHUB_OUTPUT
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
@@ -30,6 +35,8 @@ jobs:
           file: docker/mandyoc/Dockerfile
           load: true
           tags: ${{ env.TEST_TAG }}
+          build-args: |
+            DEPENDENCY_IMAGE=${{ steps.dependency.outputs.image }}
 
       - name: Tests
         run: |

@@ -8,7 +8,7 @@
 
 FROM ubuntu:20.04 AS initial_stage
 
-LABEL maintainer "Rafael Silva <rafael.m.silva@alumni.usp.br>"
+LABEL maintainer "Rafael Silva <rafael.m.silva@usp.br>"
 
 # =============================================================================
 # Install dependencies
