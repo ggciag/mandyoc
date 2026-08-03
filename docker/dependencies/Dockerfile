@@ -8,7 +8,7 @@
 
 FROM ubuntu:20.04 AS initial_stage
 
-LABEL maintainer "Rafael Silva <rafael.m.silva@usp.br>"
+LABEL maintainer="Rafael Silva <rafael.m.silva@usp.br>"
 
 # =============================================================================
 # Install dependencies
@@ -50,9 +50,9 @@ FROM initial_stage AS user_stage
 ARG USER=aipim
 ARG PETSC_VERSION=3.15.5
 
-ENV USER ${USER}
-ENV HOME /home/${USER}
-ENV PETSC_VERSION ${PETSC_VERSION}
+ENV USER=${USER}
+ENV HOME=/home/${USER}
+ENV PETSC_VERSION=${PETSC_VERSION}
 
 RUN adduser --disabled-password --gecos '' ${USER}
 RUN adduser ${USER} sudo; echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
@@ -65,10 +65,10 @@ USER ${USER}
 # =============================================================================
 FROM user_stage AS petsc_stage
 
-RUN mkdir -p ${HOME}/petsc-${PETSC_VERSION} && \
-    mkdir -p $(dirname ${HOME}/tmp/petsc-pkg) && \
-    curl -k https://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz \
-        | tar xzvf - -C $(dirname ${HOME}/tmp/petsc-${PETSC_VERSION}) && \
+RUN mkdir -p ${HOME}/tmp && \
+    cd ${HOME}/tmp && \
+    curl -fsSL https://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz \
+        | tar -xz && \
     cd ${HOME}/tmp/petsc-${PETSC_VERSION} && \
     python3 ./configure \
         --prefix=${HOME}/petsc-${PETSC_VERSION} \
@@ -80,7 +80,8 @@ RUN mkdir -p ${HOME}/petsc-${PETSC_VERSION} && \
         --download-mumps \
         --download-scalapack \
         --download-parmetis \
-        --download-metis && \
+        --download-metis \
+        --download-hdf5 && \
     make && \
     make install
 
@@ -107,8 +108,8 @@ FROM cleanup_stage AS base_stage
 
 RUN chown -R ${USER}:${USER} ${HOME}
 
-ENV PETSC_DIR ${HOME}/petsc-${PETSC_VERSION}
-ENV MPIEXEC ${PETSC_DIR}/bin/mpiexec
+ENV PETSC_DIR=${HOME}/petsc-${PETSC_VERSION}
+ENV MPIEXEC=${PETSC_DIR}/bin/mpiexec
 ENV PATH="${PETSC_DIR}/bin:${PATH}"
 
 USER ${USER}
