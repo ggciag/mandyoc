@@ -26,6 +26,7 @@ RUN apt-get update && \
         python3 \
         python3-dev \
         python3-pip \
+        python3-venv \
         python3-setuptools \
         vim \
         nano \
@@ -91,7 +92,8 @@ FROM petsc_stage AS python_stage
 
 COPY ./env/requirements.txt ${HOME}/tmp/requirements.txt
 
-RUN pip3 install -r ${HOME}/tmp/requirements.txt
+RUN python3 -m venv ${HOME}/.venv && \
+    ${HOME}/.venv/bin/pip install --no-cache-dir -r ${HOME}/tmp/requirements.txt
 
 # =============================================================================
 # Clean up
@@ -110,6 +112,7 @@ RUN chown -R ${USER}:${USER} ${HOME}
 ENV PETSC_DIR=${HOME}/petsc-${PETSC_VERSION}
 ENV MPIEXEC=${PETSC_DIR}/bin/mpiexec
 ENV PATH="${PETSC_DIR}/bin:${PATH}"
+ENV PATH="${HOME}/.venv/bin:${PETSC_DIR}/bin:${PATH}"
 
 USER ${USER}
 
