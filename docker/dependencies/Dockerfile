@@ -6,7 +6,7 @@
 # MANDYOC is hosted at https://github.com/ggciag/mandyoc.
 #
 
-FROM ubuntu:20.04 AS initial_stage
+FROM ubuntu:26.04 AS initial_stage
 
 LABEL maintainer="Rafael Silva <rafael.m.silva@usp.br>"
 
@@ -25,8 +25,8 @@ RUN apt-get update && \
         gfortran \
         python3 \
         python3-dev \
-        python3-distutils \
         python3-pip \
+        python3-venv \
         python3-setuptools \
         vim \
         nano \
@@ -48,7 +48,7 @@ RUN apt-get update && \
 FROM initial_stage AS user_stage
 
 ARG USER=aipim
-ARG PETSC_VERSION=3.15.5
+ARG PETSC_VERSION=3.24.6
 
 ENV USER=${USER}
 ENV HOME=/home/${USER}
@@ -67,7 +67,7 @@ FROM user_stage AS petsc_stage
 
 RUN mkdir -p ${HOME}/tmp && \
     cd ${HOME}/tmp && \
-    curl -fsSL https://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz \
+    curl -fsSL https://web.cels.anl.gov/projects/petsc/download/release-snapshots/petsc-${PETSC_VERSION}.tar.gz \
         | tar -xz && \
     cd ${HOME}/tmp/petsc-${PETSC_VERSION} && \
     python3 ./configure \
@@ -92,7 +92,8 @@ FROM petsc_stage AS python_stage
 
 COPY ./env/requirements.txt ${HOME}/tmp/requirements.txt
 
-RUN pip3 install -r ${HOME}/tmp/requirements.txt
+RUN python3 -m venv ${HOME}/.venv && \
+    ${HOME}/.venv/bin/pip install --no-cache-dir -r ${HOME}/tmp/requirements.txt
 
 # =============================================================================
 # Clean up
@@ -111,6 +112,7 @@ RUN chown -R ${USER}:${USER} ${HOME}
 ENV PETSC_DIR=${HOME}/petsc-${PETSC_VERSION}
 ENV MPIEXEC=${PETSC_DIR}/bin/mpiexec
 ENV PATH="${PETSC_DIR}/bin:${PATH}"
+ENV PATH="${HOME}/.venv/bin:${PETSC_DIR}/bin:${PATH}"
 
 USER ${USER}
 
