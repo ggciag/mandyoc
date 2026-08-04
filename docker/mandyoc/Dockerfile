@@ -15,7 +15,7 @@ LABEL maintainer="Rafael Silva <rafael.m.silva@usp.br>"
 # Initialize
 # =============================================================================
 # ARG USER=aipim
-# ARG PETSC_VERSION=3.24.6
+# ARG PETSC_VERSION=3.25.3
 
 # ENV USER=${USER}
 # ENV HOME=/home/${USER}
