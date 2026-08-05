@@ -5,7 +5,7 @@ bin
 references
 
 # Ignore the documentation building folder
-docs/_build
+docs/**/_build
 
 # Ignore output when run the test
 tests/**/output
