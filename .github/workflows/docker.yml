@@ -33,7 +33,7 @@ jobs:
       - name: Read dependency image tag
         id: dependency
         run: |
-          echo "image=$(cat .ci/dependency-image)" >> $GITHUB_OUTPUT
+          echo "image=$(tr -d '\r\n' < .ci/dependency-image)" >> "$GITHUB_OUTPUT"
 
       - name: Check whether dependency files changed
         id: changed
@@ -98,6 +98,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Read dependency image
+        id: dependency
+        run: |
+          echo "image=$(tr -d '\r\n' < .ci/dependency-image)" >> "$GITHUB_OUTPUT"
+
       - name: Define mandyoc tags
         id: tags
         run: |
@@ -133,7 +138,7 @@ jobs:
           push: true
           tags: ${{ steps.tags.outputs.tags }}
           build-args: |
-            DEPENDENCY_IMAGE=${{ needs.dependency-image.outputs.image }}
+            DEPENDENCY_IMAGE=${{ steps.dependency.outputs.image }}
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
