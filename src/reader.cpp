@@ -199,6 +199,12 @@ extern PetscReal A_healing;
 extern PetscReal k_healing;
 extern PetscReal T0_healing;
 
+extern PetscReal Ts0; //oC
+extern PetscReal dTsdP; //K/Pa
+extern PetscReal dTsdX; //K
+extern PetscReal dS; //J/kg/K
+
+
 // Reads input ASCII files
 PetscErrorCode reader(int rank, const char fName[]){
 	int nline;
@@ -345,6 +351,13 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "magmatism") == 0) {magmatism_flag = check_a_b_bool(tkn_w, tkn_v, "on", "off");}
 			else if (strcmp(tkn_w, "magmatism_extraction") == 0) {magmatism_extraction_flag = check_a_b_bool(tkn_w, tkn_v, "on", "off");}
 			else if (strcmp(tkn_w, "magmatic_layer") == 0) {magmatic_layer = atoi(tkn_v);}
+
+
+			else if (strcmp(tkn_w, "magmatism_Ts0") == 0) {Ts0 = atof(tkn_v);}
+			else if (strcmp(tkn_w, "magmatism_dTdP") == 0) {dTsdP = atof(tkn_v);}
+			else if (strcmp(tkn_w, "magmatism_dTdX") == 0) {dTsdX = atof(tkn_v);}
+			else if (strcmp(tkn_w, "magmatism_dS") == 0) {dS = atof(tkn_v);}
+
 
 			else if (strcmp(tkn_w, "export_lithology") == 0) {export_lithology = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 
@@ -540,6 +553,11 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&A_healing,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&k_healing,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&T0_healing,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+
+	MPI_Bcast(&Ts0,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&dTsdP,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&dTsdX,1,MPIU_REAL,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&dS,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 
 	if (pressure_in_rheol == 0 && h_air < 0.0) {
 		PetscPrintf(PETSC_COMM_WORLD, "Specify the thickness of the air layer with the flag -h_air\n");
