@@ -52,6 +52,7 @@ extern int bcT_left;
 extern int bcT_right;
 extern int bcT_front;
 extern int bcT_back;
+extern int particles_to_export;
 extern PetscInt WITH_NON_LINEAR;
 extern PetscInt WITH_ADIABATIC_H;
 extern PetscInt WITH_SHEAR_H;
@@ -261,6 +262,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "T_initial") == 0) {T_initial_cond = atoi(tkn_v);}
 			else if (strcmp(tkn_w, "denok") == 0) {denok_min = atof(tkn_v);}
 			else if (strcmp(tkn_w, "particles_per_element") == 0) {particles_per_ele = atol(tkn_v);}
+			else if (strcmp(tkn_w, "particles_to_export") == 0) {particles_to_export = atol(tkn_v);}
 			else if (strcmp(tkn_w, "theta_FSSA") == 0) {theta_FSSA = atof(tkn_v);}
 			else if (strcmp(tkn_w, "sub_division_time_step") == 0) {sub_division_time_step = atof(tkn_v);}
 			else if (strcmp(tkn_w, "particles_perturb_factor") == 0) {particles_perturb_factor = atof(tkn_v);}
@@ -476,6 +478,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&T_initial_cond,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&denok_min,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&particles_per_ele,1,MPI_LONG,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&particles_to_export,1,MPI_INT,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&theta_FSSA,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&sub_division_time_step,1,MPIU_REAL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&particles_perturb_factor,1,MPIU_REAL,0,PETSC_COMM_WORLD);

@@ -22,6 +22,7 @@ particles_per_element               = 1100          # n. of Lagrangian particles
 particles_per_element_x             = 0             # n. of Lagrangian particles in the horizontal direction, default is 0 for automatic calculation
 particles_per_element_z             = 0             # n. of Lagrangian particles in the vertical direction, default is 0 for automatic calculation
 particles_perturb_factor            = 0.0           # indicates the amount of perturbation of the initial location of the particles relative to a regular grid distribution. Default is 0.5 [values are between 0 and 1]
+particles_to_export                 = 1             # n. of Lagragian particles to track. Default is 1 (relevant only if print_step_files is True)
 
 # Surface processes
 sp_surface_tracking                 = False         # allows free surface tracking across time and outputs it, default is False [True/False]
@@ -93,4 +94,3 @@ right_temperature                   = free          # set temperature on the rig
 
 rheology_model                      = 0             # flag n. of a pre-defined rheology model to use during simulation
 T_initial                           = 0             # flag n. of a pre-defined temperature model to use during simulation (relevant when <temperature_from_ascii> is False)
-
