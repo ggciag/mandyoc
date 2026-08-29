@@ -147,7 +147,7 @@ extern PetscBool   strain_seed_layer_set;
 extern PetscInt	   seed_layer_size;
 extern PetscInt    *seed_layer;
 extern PetscReal   *strain_seed_layer;
-extern PetscScalar *conductivity;
+extern PetscScalar *thermal_diffusivity;
 
 extern PetscScalar *mv_time;
 extern PetscInt n_mv;
@@ -649,7 +649,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	PetscCalloc1(n_interfaces+1,&friction_angle_min);
 	PetscCalloc1(n_interfaces+1,&friction_angle_max);
 
-	PetscCalloc1(n_interfaces+1,&conductivity);
+	PetscCalloc1(n_interfaces+1,&thermal_diffusivity);
 
 	// Set default values for arrays or copy them from the command line options
 	for (PetscInt i=0; i<n_interfaces+1;i++)
@@ -659,7 +659,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 		friction_angle_min[i] 	= 0.034906; 	// Value from Salazar-Mora et al. (2018)
 		friction_angle_max[i] 	= 0.261799;  	// Value from Salazar-Mora et al. (2018)
 		weakening_seed[i] 		= -1.0;			// Default is a random_initial_strain * rand_r()
-		conductivity[i]			= kappa;		// Defatuls value from <interfaces.txt>
+		thermal_diffusivity[i]	= kappa;		// Defatuls value from <interfaces.txt>
 	}
 
 	if (strain_seed_layer_set == PETSC_TRUE)
@@ -758,12 +758,12 @@ PetscErrorCode reader(int rank, const char fName[]){
 						fscanf(f_interfaces, "%lf", &inter_V[i]);
 					}
 				}
-				else if (strcmp(str, "k") == 0)
+				else if (strcmp(str, "kappa") == 0)
 				{
 					bool_conductivity = PETSC_TRUE;
 					for (PetscInt i = 0; i < n_interfaces + 1; i++)
 					{
-						fscanf(f_interfaces, "%lf", &conductivity[i]);
+						fscanf(f_interfaces, "%lf", &thermal_diffusivity[i]);
 					}
 				}
 				else if (strcmp(str, "weakening_seed") == 0)
@@ -938,9 +938,9 @@ PetscErrorCode reader(int rank, const char fName[]){
 		PetscPrintf(PETSC_COMM_WORLD, "\n f_max: ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
 			PetscPrintf(PETSC_COMM_WORLD, "%.3e ", friction_angle_max[i]*180.0/PETSC_PI);
-		PetscPrintf(PETSC_COMM_WORLD, "\n     k: ");
+		PetscPrintf(PETSC_COMM_WORLD, "\n kappa: ");
 		for (PetscInt i=0;i<n_interfaces+1;i++)
-			PetscPrintf(PETSC_COMM_WORLD, "%.3e ", conductivity[i]);
+			PetscPrintf(PETSC_COMM_WORLD, "%.3e ", thermal_diffusivity[i]);
 
 		if (weakening_from_interfaces_file == PETSC_TRUE)
 		{
@@ -977,7 +977,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(friction_angle_min,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(friction_angle_max,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&weakening_from_interfaces_file,1,MPIU_BOOL,0,PETSC_COMM_WORLD);
-	MPI_Bcast(conductivity,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
+	MPI_Bcast(thermal_diffusivity,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 
 
 	// Broadcast, special cases
@@ -1219,7 +1219,7 @@ PetscBool check_prop(char *s)
 						   "n",
 						   "Q",
 						   "V",
-						   "k",
+						   "kappa",
 						   "weakening_seed",
 						   "cohesion_min",
 						   "cohesion_max",

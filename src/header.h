@@ -145,7 +145,7 @@ PetscScalar *cohesion_max;
 PetscScalar *friction_angle_min;
 PetscScalar *friction_angle_max;
 PetscBool   weakening_from_interfaces_file = PETSC_FALSE;
-PetscScalar *conductivity;
+PetscScalar *thermal_diffusivity;
 
 PetscReal A_healing = 3.17E-14; // per second =  1/Myr
 PetscReal k_healing = 10.0;
