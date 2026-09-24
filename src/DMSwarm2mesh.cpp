@@ -33,7 +33,7 @@ extern PetscInt sticky_blanket_air;
 
 extern PetscScalar *inter_rho;
 extern PetscScalar *inter_H;
-extern PetscScalar *conductivity;
+extern PetscScalar *thermal_diffusivity;
 
 extern PetscInt periodic_boundary;
 
@@ -479,7 +479,7 @@ PetscErrorCode Swarm2Mesh_2d(){
 				k = (int)((cz+depth)/dz_const);
 
 				qq[k][i] += 1.0/geoq_fac[p];
-				qq_kappa[k][i] += 1.0/conductivity[layer_array[p]];
+				qq_kappa[k][i] += 1.0/thermal_diffusivity[layer_array[p]];
 				qq_cont[k][i] += 1.0;
 			}
 		}
@@ -495,7 +495,7 @@ PetscErrorCode Swarm2Mesh_2d(){
 				k = (int)((cz+depth)/dz_const);
 
 				qq[k][i] += geoq_fac[p];
-				qq_kappa[k][i] += conductivity[layer_array[p]];
+				qq_kappa[k][i] += thermal_diffusivity[layer_array[p]];
 				qq_cont[k][i] += 1.0;
 			}
 		}
