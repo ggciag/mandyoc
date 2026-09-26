@@ -48,11 +48,13 @@ RUN apt-get update && \
 FROM initial_stage AS user_stage
 
 ARG USER=aipim
-ARG PETSC_VERSION=3.24.6
 
-ENV USER=${USER}
-ENV HOME=/home/${USER}
-ENV PETSC_VERSION=${PETSC_VERSION}
+
+ARG PETSC_VERSION=3.25.3
+
+ENV USER ${USER}
+ENV HOME /home/${USER}
+ENV PETSC_VERSION ${PETSC_VERSION}
 
 RUN adduser --disabled-password --gecos '' ${USER}
 RUN adduser ${USER} sudo; echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers

@@ -472,7 +472,9 @@ PetscErrorCode create_veloc(int dimensions, PetscInt mx, PetscInt my, PetscInt m
 
 	ierr = KSPCreate(PETSC_COMM_WORLD,&V_ksp);CHKERRQ(ierr);
 	ierr = KSPSetDM(V_ksp,da_Veloc);CHKERRQ(ierr); // NOTE: check for 3d
-	ierr = KSPSetDMActive(V_ksp,PETSC_FALSE);CHKERRQ(ierr); // NOTE: check for 3d
+	ierr = KSPSetDMActive(V_ksp, KSP_DMACTIVE_OPERATOR, PETSC_FALSE); CHKERRQ(ierr);
+	ierr = KSPSetDMActive(V_ksp, KSP_DMACTIVE_RHS, PETSC_FALSE); CHKERRQ(ierr);
+	ierr = KSPSetDMActive(V_ksp, KSP_DMACTIVE_INITIAL_GUESS, PETSC_FALSE); CHKERRQ(ierr);
 	ierr = KSPSetOptionsPrefix(V_ksp,"veloc_"); CHKERRQ(ierr);
 
 	PetscTime(&Tempo2p);
