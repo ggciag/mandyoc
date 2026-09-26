@@ -889,8 +889,11 @@ PetscErrorCode sp_evaluate_surface_processes_2d_theunissen(PetscReal dt){
     Vec global_surface;
     Vec seq_surface;
     VecScatter ctx;
-    PetscReal *seq_array;
-    PetscReal *array;
+    PetscReal *seq_array = NULL;
+    PetscReal *seq_array_copy = NULL;
+    PetscReal *seq_array_aux = NULL;
+    PetscReal *array = NULL;
+
     PetscReal Ld=35000.0; // (m) characteristic length scale   
 
     // Data to process rank 0
@@ -1037,10 +1040,13 @@ PetscErrorCode sp_evaluate_surface_processes_2d_theunissen(PetscReal dt){
     // Modified to free memory correctly according to gemini
     if (!rank) {
         ierr = VecRestoreArray(seq_surface, &seq_array); CHKERRQ(ierr);
-        ierr = VecDestroy(&seq_surface); CHKERRQ(ierr);
+    // ierr = VecDestroy(&seq_surface); CHKERRQ(ierr);   \\Should not be here, only rank 0 are freeing memory
+
     } else {
         ierr = PetscFree(seq_array); CHKERRQ(ierr);
     }
+
+    ierr = VecDestroy(&seq_surface); CHKERRQ(ierr);
 
     PetscFunctionReturn(0);
 }

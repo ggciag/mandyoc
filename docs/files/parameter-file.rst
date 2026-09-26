@@ -111,6 +111,11 @@ The parameter file ``param.txt`` contains the information that is necessary for 
         type: real number between 0 and 1 :raw-html:`<br />`
         unit: :raw-html:`<br />`
         definition: indicates the amount of perturbation of the initial location of the particles relative to a regular grid distribution. 
+    * particles_to_export
+        default: 1  :raw-html:`<br />`
+        type: integer  :raw-html:`<br />`
+        unit: :raw-html:`<br />`
+        definition: number of Lagrangian particles to track and export (relevant if print_step_files is True).
 
 #. Surface processes
 

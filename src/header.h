@@ -106,6 +106,7 @@ int bcT_left;
 int bcT_right;
 int bcT_front = 1;
 int bcT_back = 1;
+int particles_to_export = 1; 
 // End of parameter file variables
 
 PetscInt Px = PETSC_DECIDE;
