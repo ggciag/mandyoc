@@ -61,6 +61,8 @@ extern PetscReal continental_slope;
 extern PetscReal strain_sed;
 extern PetscReal aggradation_rate;
 
+extern PetscInt water_interface; // water load interface - Joao Bueno
+
 typedef struct {
 	PetscScalar u;
 	PetscScalar w;
@@ -1119,7 +1121,9 @@ PetscErrorCode sp_update_surface_swarm_particles_properties(PetscInt active_laye
         surface = _sl * (1.0 - rx) + _sr * rx;
 
         // (A2L) air particle bellow the surface => assign land properties
-        if (a2l == PETSC_TRUE && layer[p] == n_interfaces) {
+        bool cond_a2l = (layer[p] == n_interfaces) || (layer[p] == water_interface);
+
+        if (a2l == PETSC_TRUE && cond_a2l) {
             if (py < surface) {
                 layer[p] = active_layer;
                 geoq_fac[p] = inter_geoq[active_layer];
@@ -1130,7 +1134,7 @@ PetscErrorCode sp_update_surface_swarm_particles_properties(PetscInt active_laye
         }
 
         // (L2A) land particle above the surface => assign air properties
-        if (layer[p] != n_interfaces) { //  && sp_mode != SP_SEDIMENTATION_ONLY) {
+        if ((layer[p] == n_interfaces) || (layer[p] == water_interface)) { //  && sp_mode != SP_SEDIMENTATION_ONLY) {
             if (py > surface) {
                 layer[p] = n_interfaces;
                 geoq_fac[p] = inter_geoq[n_interfaces];

@@ -194,6 +194,7 @@ extern PetscReal pressure0_scaled;
 extern PetscReal strain_rate0_scaled;
 
 extern PetscReal air_threshold_density;
+extern PetscInt water_interface;
 
 extern PetscBool strain_healing;
 extern PetscReal A_healing;
@@ -293,6 +294,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 			else if (strcmp(tkn_w, "strain_healing") == 0) {strain_healing = check_a_b_bool(tkn_w, tkn_v, "True", "False");}
 
 			else if (strcmp(tkn_w, "air_threshold_density") == 0) {air_threshold_density = atof(tkn_v);}
+			else if (strcmp(tkn_w, "water_interface") == 0) {water_interface = atoi(tkn_v);}
 
 			// String parameters
 			else if (strcmp(tkn_w, "sp_mode") == 0) {sp_mode = sp_mode_from_string(tkn_v);}
@@ -440,6 +442,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&print_step,1,MPI_LONG,0,PETSC_COMM_WORLD);
 
 	MPI_Bcast(&air_threshold_density,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
+	MPI_Bcast(&water_interface,1,MPI_INT,0,PETSC_COMM_WORLD);
 
 	MPI_Bcast(&visco_r,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&visc_MAX,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
@@ -986,7 +989,22 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&weakening_from_interfaces_file,1,MPIU_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(conductivity,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 
+	bool condoff_water_load = (water_interface == 0) || (water_interface > n_interfaces) || (water_interface < -1);
+	if (water_interface == -1) {
+		water_interface = n_interfaces-1;
+		PetscPrintf(PETSC_COMM_WORLD,"Water interface is set to -1, using the penultimate interfaces as water.\n");
+		PetscPrintf(PETSC_COMM_WORLD,"Water density = %lf kg/m^3;\n",inter_rho[water_interface]);
+		
 
+	} else if (condoff_water_load) {
+		PetscPrintf(PETSC_COMM_WORLD,"Water interface is set to %d, turning off the water layer.\n",water_interface);
+		water_interface = -2;
+	
+	} else{
+		PetscPrintf(PETSC_COMM_WORLD,"Water interface is set to %d.\n",water_interface);
+		PetscPrintf(PETSC_COMM_WORLD,"Water density = %lf kg/m^3;\n",inter_rho[water_interface]);
+	};
+	MPI_Bcast(&water_interface,1,MPI_INT,0,PETSC_COMM_WORLD);
 	// Broadcast, special cases
 //	MPI_Bcast(&n_interfaces,1,MPI_INT,0,PETSC_COMM_WORLD); // Broadcast after interfaces.txt
 

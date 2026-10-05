@@ -413,6 +413,7 @@ PetscReal strain_rate0_scaled;
 PetscReal pressure0_scaled;
 
 PetscReal air_threshold_density = 100.0;
+PetscInt water_interface = -2;
 
 PetscBool export_kappa = PETSC_FALSE;
 
