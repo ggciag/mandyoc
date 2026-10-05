@@ -1136,9 +1136,9 @@ PetscErrorCode sp_update_surface_swarm_particles_properties(PetscInt active_laye
         }
 
         // (L2A) land particle above the surface => assign air or water properties
-        bool cond_land = ((layer[p] != n_interfaces) || (layer[p] != water_interface));
-        if (cond_land & (py > surface)) {  // if it's neither air nor water, and it's above surface
-            if ((water_interface>0)&(py <= hsl)){ // if water_interface is positive, and is bellow the base level
+        bool cond_land = ((layer[p] != n_interfaces) && (layer[p] != water_interface));
+        if (cond_land && (py > surface)) {  // if it's neither air nor water, and it's above surface
+            if ((water_interface>0)&&(py <= hsl)){ // if water_interface is positive, and is bellow the base level
                 layer[p] = water_interface;
                 geoq_fac[p] = inter_geoq[water_interface];
             } 
