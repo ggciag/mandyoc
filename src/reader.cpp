@@ -1001,10 +1001,10 @@ PetscErrorCode reader(int rank, const char fName[]){
 		water_interface = -2;
 	
 	} else{
-		PetscPrintf(PETSC_COMM_WORLD,"Water interface is set to %d.\n",water_interface);
 		PetscPrintf(PETSC_COMM_WORLD,"Water density = %lf kg/m^3;\n",inter_rho[water_interface]);
 	};
 	MPI_Bcast(&water_interface,1,MPI_INT,0,PETSC_COMM_WORLD);
+	PetscPrintf(PETSC_COMM_WORLD,"Water interface is set to %d.\n",water_interface);
 	// Broadcast, special cases
 //	MPI_Bcast(&n_interfaces,1,MPI_INT,0,PETSC_COMM_WORLD); // Broadcast after interfaces.txt
 

@@ -450,14 +450,13 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 			if (water_interface>0){ 
 				// converting air to water (a2w)
 				if ((layer_array[p]==n_interfaces) & (array[2*p+1] <= hsl)){
-					rarray[p] = inter_geoq[water_interface];
+					strain_fac[p] = 0.0;
 					layer_array[p] = water_interface;
 				}
-			} 
-			// converting water to air (w2a)
+			} // converting water to air (w2a)
 			else if ((layer_array[p]==water_interface) & (array[2*p+1] > hsl)){
-				rarray[p] = inter_geoq[n_interfaces];
-				layer_array[p] = n_interfaces;
+					strain_fac[p] = 0.0;
+					layer_array[p] = n_interfaces;
 			}
 
 			rarray[p] = calc_visco_ponto(tp,Pp,cx,cz,inter_geoq[layer_array[p]],E2_invariant,strain_fac[p],
@@ -1491,24 +1490,4 @@ PetscErrorCode Swarm_add_remove_3d()
 
 	//exit(1);
 	PetscFunctionReturn(0);
-}
-
-
-PetscErrorCode evaluate_water_load(int dimensions)
-{
-
-	// Get the surface and the current base level
-
-	// Get the density array and the particles position
-
-	// Select only air particles
-
-	// Evaluate if Z < base level
-
-	// Update the density to the water density
-
-	// Restore arrays
-
-	PetscFunctionReturn(0);
-
 }

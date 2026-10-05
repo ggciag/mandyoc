@@ -1077,6 +1077,8 @@ PetscErrorCode sp_update_surface_swarm_particles_properties(PetscInt active_laye
     PetscReal surface;
     PetscReal _sl;
     PetscReal _sr;
+    
+    PetscReal hsl = sp_evaluate_adjusted_mean_elevation_with_sea_level();
 
     PetscFunctionBeginUser;
 
@@ -1133,14 +1135,20 @@ PetscErrorCode sp_update_surface_swarm_particles_properties(PetscInt active_laye
             }
         }
 
-        // (L2A) land particle above the surface => assign air properties
-        if ((layer[p] == n_interfaces) || (layer[p] == water_interface)) { //  && sp_mode != SP_SEDIMENTATION_ONLY) {
-            if (py > surface) {
+        // (L2A) land particle above the surface => assign air or water properties
+        bool cond_land = ((layer[p] != n_interfaces) || (layer[p] != water_interface));
+        if (cond_land & (py > surface)) {  // if it's neither air nor water, and it's above surface
+            if ((water_interface>0)&(py <= hsl)){ // if water_interface is positive, and is bellow the base level
+                layer[p] = water_interface;
+                geoq_fac[p] = inter_geoq[water_interface];
+            } 
+            else {                     // if water load is off or on, but it's above the base level
                 layer[p] = n_interfaces;
                 geoq_fac[p] = inter_geoq[n_interfaces];
-                strain_fac[p] = 0.0;
             }
+            strain_fac[p] = 0.0;
         }
+        
     }
 
     PetscSynchronizedFlush(PETSC_COMM_WORLD, PETSC_STDOUT);
