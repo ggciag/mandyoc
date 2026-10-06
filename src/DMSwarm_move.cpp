@@ -453,10 +453,11 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 					strain_fac[p] = 0.0;
 					layer_array[p] = water_interface;
 				}
-			} // converting water to air (w2a)
-			else if ((layer_array[p]==water_interface) && (array[2*p+1] > hsl)){
-					strain_fac[p] = 0.0;
-					layer_array[p] = n_interfaces;
+			    // converting water to air (w2a)
+				else if ((layer_array[p]==water_interface) && (array[2*p+1] > hsl)){
+						strain_fac[p] = 0.0;
+						layer_array[p] = n_interfaces;
+				}
 			}
 
 			rarray[p] = calc_visco_ponto(tp,Pp,cx,cz,inter_geoq[layer_array[p]],E2_invariant,strain_fac[p],
@@ -706,10 +707,11 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 					strain_fac[p] = 0.0;
 					layer_array[p] = water_interface;
 				}
-			} // converting water to air (w2a)
-			else if ((layer_array[p]==water_interface) && (array[3*p+2] > hsl)){
+			    // converting water to air (w2a)
+				else if ((layer_array[p]==water_interface) && (array[3*p+2] > hsl)){
 					strain_fac[p] = 0.0;
 					layer_array[p] = n_interfaces;
+				}
 			}
 
 			rarray[p] = calc_visco_ponto(tp,Pp,cx,cz,inter_geoq[layer_array[p]],E2_invariant,strain_fac[p],
