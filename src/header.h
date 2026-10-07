@@ -269,6 +269,11 @@ PetscInt magmatic_layer = 0;
 
 PetscReal previous_magmatic_volume = 0.0;
 
+PetscReal Ts0 = 1080.0; //oC
+PetscReal dTsdP = 3.4E-3/(3300.0*10); //K/Pa
+PetscReal dTsdX = 440.0; //K
+PetscReal dS = 400.0; //J/kg/K
+
 PetscReal *N_x_Gauss;
 PetscReal *N_y_Gauss;
 PetscReal *N_z_Gauss;
