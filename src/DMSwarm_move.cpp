@@ -259,7 +259,9 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 	e2_aux_MIN = 1.0E50;
 
 	// corrected sea level height
-	PetscReal hsl = sp_evaluate_adjusted_mean_elevation_with_sea_level();
+	if (water_interface >0){
+		PetscReal hsl = sp_evaluate_adjusted_mean_elevation_with_sea_level();
+	};
 
 	if (dimensions == 2) {
 		for (p=0; p<nlocal; p++) {

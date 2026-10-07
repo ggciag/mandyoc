@@ -397,10 +397,19 @@ PetscErrorCode reader(int rank, const char fName[]){
 		if (initial_print_step < 0) initial_print_step = 0;
 		if (sp_d_c > 0) set_sp_d_c = PETSC_TRUE;
 
+		if (water_interface == -1){
+			water_interface = n_interfaces-1;
+			PetscPrintf(PETSC_COMM_WORLD, "Water interface is -1, using the penultimate interface.\n");
+		};
+
+		bool cond_water_load = ((water_interface > 0) && (water_interface <= (n_interfaces+1)));
 		if (sp_surface_processes == PETSC_TRUE && sp_surface_tracking == PETSC_FALSE) {
 			sp_surface_tracking = PETSC_TRUE;
 
 			PetscPrintf(PETSC_COMM_WORLD, "\nActivating 'sp_surface_tracking' since 'sp_surface_processes' is active.\n");
+		} else if (cond_water_load && sp_surface_tracking == PETSC_FALSE) {
+			sp_surface_tracking = PETSC_TRUE;
+			PetscPrintf(PETSC_COMM_WORLD, "Activating 'sp_surface_tracking' since the water loading is active.\n");
 		};
 
 		/*
@@ -440,9 +449,6 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&timeMAX,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&dt_MAX,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&print_step,1,MPI_LONG,0,PETSC_COMM_WORLD);
-
-	MPI_Bcast(&air_threshold_density,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
-	MPI_Bcast(&water_interface,1,MPI_INT,0,PETSC_COMM_WORLD);
 
 	MPI_Bcast(&visco_r,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&visc_MAX,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
@@ -989,22 +995,18 @@ PetscErrorCode reader(int rank, const char fName[]){
 	MPI_Bcast(&weakening_from_interfaces_file,1,MPIU_BOOL,0,PETSC_COMM_WORLD);
 	MPI_Bcast(conductivity,n_interfaces+1,MPIU_SCALAR,0,PETSC_COMM_WORLD);
 
-	bool condoff_water_load = (water_interface == 0) || (water_interface > n_interfaces) || (water_interface < -1);
-	if (water_interface == -1) {
-		water_interface = n_interfaces-1;
-		PetscPrintf(PETSC_COMM_WORLD,"Water interface is set to -1, using the penultimate interfaces as water.\n");
-		PetscPrintf(PETSC_COMM_WORLD,"Water density = %lf kg/m^3;\n",inter_rho[water_interface]);
-		
 
-	} else if (condoff_water_load) {
+	bool cond_water_load = ((water_interface > 0) && (water_interface <= (n_interfaces+1)));
+	if (!cond_water_load){
 		PetscPrintf(PETSC_COMM_WORLD,"Water interface is set to %d, turning off the water layer.\n",water_interface);
 		water_interface = -2;
-	
-	} else{
-		PetscPrintf(PETSC_COMM_WORLD,"Water density = %lf kg/m^3;\n",inter_rho[water_interface]);
+	} else {
+		air_threshold_density = inter_rho[water_interface]+100;
+		PetscPrintf(PETSC_COMM_WORLD,"Water interface is set to %d (%3.2f kg/m^3). Air threshold = %3.2f kg/m^3\n",water_interface,inter_rho[water_interface],air_threshold_density);
 	};
+	
+	MPI_Bcast(&air_threshold_density,1,MPI_DOUBLE,0,PETSC_COMM_WORLD);
 	MPI_Bcast(&water_interface,1,MPI_INT,0,PETSC_COMM_WORLD);
-	PetscPrintf(PETSC_COMM_WORLD,"Water interface is set to %d.\n",water_interface);
 	// Broadcast, special cases
 //	MPI_Bcast(&n_interfaces,1,MPI_INT,0,PETSC_COMM_WORLD); // Broadcast after interfaces.txt
 
