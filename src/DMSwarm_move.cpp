@@ -98,10 +98,18 @@ extern PetscReal A_healing;
 extern PetscReal k_healing;
 extern PetscReal T0_healing;
 
+// water loading parameters
 extern int n_interfaces;
 extern PetscInt water_interface; // water load interface - Joao Bueno
 extern PetscReal sp_evaluate_adjusted_mean_elevation_with_sea_level();
 PetscReal hsl;
+
+// magmatism parameters
+extern PetscReal Ts0; //oC
+extern PetscReal dTsdP; //K/Pa
+extern PetscReal dTsdX; //K
+extern PetscReal dS; //J/kg/K
+
 
 PetscReal linear_interpolation(PetscReal rx, PetscReal rz,PetscScalar V0, PetscScalar V1, PetscScalar V2, PetscScalar V3){
 	PetscReal rfac,vx;
@@ -468,10 +476,7 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 			// PetscPrintf(PETSC_COMM_WORLD, "p: %d, strain: %E\n", p, strain_fac[p]);
 
 			if (magmatism_flag==PETSC_TRUE){ // !!! Should be included for the 3D version
-				float Ts0 = 1080.0; //oC
-				float dTsdP = 3.4E-3/(3300.0*10); //K/Pa
-				float dTsdX = 440.0; //K
-				float dS = 400.0; //J/kg/K
+				
 
 				float Ts = Ts0 + dTsdP * Pp + dTsdX * (X_array[p]-1);
 
