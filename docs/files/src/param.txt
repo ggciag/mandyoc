@@ -35,6 +35,8 @@ theta_FSSA                          = 0.5           # weight of the influence of
 sticky_blanket_air                  = False         # allows the increase of viscosity for the first air layer of particles, default is False [True/False]
 precipitation_profile_from_ascii    = False         # set if precipitation profile along the horizontal axis is read from an ASCII file, default is False [True/False]
 climate_change_from_ascii           = False         # if True, re-scales through time the precipitation profile using an ASCII file, default is False [True/False]
+air_threshold_density               = 100.0         # density threshold to consider a layer as the sticky air
+water_interface                     = 0             # 0 or negative to turn off, a positive to indicate the water interface, or -1 to select the penultimate interface
 
 # Time constrains
 step_max                            = 4000          # maximum time-step of the simulation [steps]

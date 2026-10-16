@@ -412,11 +412,12 @@ PetscReal adiabatic_scaled;
 PetscReal strain_rate0_scaled;
 PetscReal pressure0_scaled;
 
+// water loading
 PetscReal air_threshold_density = 100.0;
 PetscInt water_interface = -2;
 
+// variables exporting
 PetscBool export_kappa = PETSC_FALSE;
-
 PetscBool export_lithology = PETSC_FALSE;
 
 // surface processes
