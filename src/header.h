@@ -106,6 +106,7 @@ int bcT_left;
 int bcT_right;
 int bcT_front = 1;
 int bcT_back = 1;
+int particles_to_export = 1; 
 // End of parameter file variables
 
 PetscInt Px = PETSC_DECIDE;
@@ -416,10 +417,12 @@ PetscReal adiabatic_scaled;
 PetscReal strain_rate0_scaled;
 PetscReal pressure0_scaled;
 
+// water loading
 PetscReal air_threshold_density = 100.0;
+PetscInt water_interface = -2;
 
+// variables exporting
 PetscBool export_kappa = PETSC_FALSE;
-
 PetscBool export_lithology = PETSC_FALSE;
 
 // surface processes

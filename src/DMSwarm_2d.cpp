@@ -92,6 +92,8 @@ extern PetscBool export_lithology;
 
 extern PetscBool magmatism_flag;
 
+extern int particles_to_export;
+
 
 PetscErrorCode _DMLocatePoints_DMDARegular_IS_2d(DM dm,Vec pos,IS *iscell)
 {
@@ -361,7 +363,6 @@ PetscErrorCode createSwarm_2d()
 	PetscReal *rarray;
 	PetscReal *strain_array;
 
-
 	PetscInt nz_part = (int)PetscSqrtReal(particles_per_ele*dz_const/dx_const);
 	PetscInt nx_part = (int)(particles_per_ele/nz_part);
 
@@ -375,10 +376,10 @@ PetscErrorCode createSwarm_2d()
 
 	particles_per_ele = nx_part*nz_part;
 
-
 	PetscPrintf(PETSC_COMM_WORLD,"particles per element in x:  %d\n",nx_part);
 	PetscPrintf(PETSC_COMM_WORLD,"particles per element in z:  %d\n",nz_part);
-	PetscPrintf(PETSC_COMM_WORLD,"total particles per element: %d\n\n",particles_per_ele);
+	PetscPrintf(PETSC_COMM_WORLD,"total particles per element: %d\n",particles_per_ele);
+	PetscPrintf(PETSC_COMM_WORLD,"particles exported per element: %d\n\n",particles_to_export);
 
 	ierr = DMShellCreate(PETSC_COMM_WORLD,&dmcell);CHKERRQ(ierr);
 	ierr = DMSetApplicationContext(dmcell,(void*)da_Veloc);CHKERRQ(ierr);
@@ -466,12 +467,29 @@ PetscErrorCode createSwarm_2d()
 		ierr = DMSwarmGetField(dms,"strain_fac",&bs,NULL,(void**)&strain_array);CHKERRQ(ierr);
 
 		ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
-		if (checkered==0){
+		if (checkered==0){ // Future?: The parameter checkered can be removed, we can set particles_to_export=0 
+
+			int needed = 0; // counter to check how many particles are needed yet
+			int left = 0; // counter to check how many particles left to be selected
+
 			for (p=0; p<nlocal; p++) {
-				iarray[p] = p%particles_per_ele;
-				if (p%particles_per_ele==0){
-					iarray[p] = 10000 + p/particles_per_ele + 1000000*rank;
+				int local_p = p%particles_per_ele; // local particle index inside the element
+				iarray[p] = local_p; // set itag based on the local particle index inside the element
+				
+				// reset counters at the beginning of each element
+				if (local_p == 0){ 
+					needed = particles_to_export;
+					left = particles_per_ele;
 				}
+
+				double r = (double)rand_r(&seed) / RAND_MAX; // random number between 0 and 1
+
+				// 
+				if (needed > 0 && r < ((double)needed / left)){
+					iarray[p] = 10000 + p + 1000000*rank; // set itag to identify exported particles
+					needed = needed - 1; // decrease needed counter
+				}
+				left = left - 1; // decrease left counter
 			}
 		}
 		else{

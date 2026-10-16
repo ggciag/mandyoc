@@ -140,10 +140,11 @@ The parameter file ``param.txt`` contains the information that is necessary for 
         unit: :raw-html:`<br />`
         definition: allows the conversion of air particles to land particles during sedimentation
     * sp_mode                             
-        default: 1              :raw-html:`<br />`
-        type: integer :raw-html:`<br />`
+        default: none              :raw-html:`<br />`
+        type: text :raw-html:`<br />`
         unit: :raw-html:`<br />`
-        definition: specify the surface processes method
+        definition: specify the surface processes method :raw-html:`<br />`
+        current modes: none; diffusion; sedimentation_only; sedimentation_rate_limited; theunissen_sedimentation
     * free_surface_stab                   
         default: True  :raw-html:`<br />`
         type: True/False :raw-html:`<br />`
@@ -169,6 +170,16 @@ The parameter file ``param.txt`` contains the information that is necessary for 
         type: True/False :raw-html:`<br />`
         unit: :raw-html:`<br />`
         definition: if True, re-scales through time the precipitation profile using an ASCII file
+    * water_interface
+        default: -2  :raw-html:`<br />`
+        type: integer :raw-html:`<br />`
+        unit: :raw-html:`<br />`
+        definition: the id of the interface that represents the water layer. if -1, the penultimate layer is used. 0 or -2 turn off the water loading.
+    * air_threshold_density
+        default: 100.0  :raw-html:`<br />`
+        type: real number :raw-html:`<br />`
+        unit: kg/m^3 :raw-html:`<br />`
+        definition: the threshold density of a layer to be considered air. it is disconsidered if a water interface is given. 
 
 #. Time constrains
     

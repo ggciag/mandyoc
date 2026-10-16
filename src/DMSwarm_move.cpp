@@ -98,10 +98,18 @@ extern PetscReal A_healing;
 extern PetscReal k_healing;
 extern PetscReal T0_healing;
 
+// water loading parameters
+extern int n_interfaces;
+extern PetscInt water_interface; // water load interface - Joao Bueno
+extern PetscReal sp_evaluate_adjusted_mean_elevation_with_sea_level();
+PetscReal hsl;
+
+// magmatism parameters
 extern PetscReal Ts0; //oC
 extern PetscReal dTsdP; //K/Pa
 extern PetscReal dTsdX; //K
 extern PetscReal dS; //J/kg/K
+
 
 PetscReal linear_interpolation(PetscReal rx, PetscReal rz,PetscScalar V0, PetscScalar V1, PetscScalar V2, PetscScalar V3){
 	PetscReal rfac,vx;
@@ -258,6 +266,11 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 
 	e2_aux_MAX = 0.0;
 	e2_aux_MIN = 1.0E50;
+
+	// corrected sea level height
+	if (water_interface >0){
+		hsl = sp_evaluate_adjusted_mean_elevation_with_sea_level();
+	};
 
 	if (dimensions == 2) {
 		for (p=0; p<nlocal; p++) {
@@ -441,6 +454,22 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 				if (strain_fac[p]<0.0) strain_fac[p]=0.0;
 			}
 
+
+			// rarray => geoq_fac, layer_array => layer; inter_geoq = geoq of the interfaces
+
+			// water load checking
+			if (water_interface>0){ 
+				// converting air to water (a2w)
+				if ((layer_array[p]==n_interfaces) && (array[2*p+1] <= hsl)){
+					strain_fac[p] = 0.0;
+					layer_array[p] = water_interface;
+				}
+			    // converting water to air (w2a)
+				else if ((layer_array[p]==water_interface) && (array[2*p+1] > hsl)){
+						strain_fac[p] = 0.0;
+						layer_array[p] = n_interfaces;
+				}
+			}
 
 			rarray[p] = calc_visco_ponto(tp,Pp,cx,cz,inter_geoq[layer_array[p]],E2_invariant,strain_fac[p],
 										inter_A[layer_array[p]], inter_n[layer_array[p]], inter_Q[layer_array[p]], inter_V[layer_array[p]], layer_array[p]);
@@ -679,6 +708,19 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 				if (strain_fac[p]<0.0) strain_fac[p]=0.0;
 			}
 
+			// water load checking
+			if (water_interface>0){ 
+				// converting air to water (a2w)
+				if ((layer_array[p]==n_interfaces) && (array[3*p+2] <= hsl)){
+					strain_fac[p] = 0.0;
+					layer_array[p] = water_interface;
+				}
+			    // converting water to air (w2a)
+				else if ((layer_array[p]==water_interface) && (array[3*p+2] > hsl)){
+					strain_fac[p] = 0.0;
+					layer_array[p] = n_interfaces;
+				}
+			}
 
 			rarray[p] = calc_visco_ponto(tp,Pp,cx,cz,inter_geoq[layer_array[p]],E2_invariant,strain_fac[p],
 										inter_A[layer_array[p]], inter_n[layer_array[p]], inter_Q[layer_array[p]], inter_V[layer_array[p]], layer_array[p]);

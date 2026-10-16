@@ -61,6 +61,8 @@ extern PetscReal continental_slope;
 extern PetscReal strain_sed;
 extern PetscReal aggradation_rate;
 
+extern PetscInt water_interface; // water load interface - Joao Bueno
+
 typedef struct {
 	PetscScalar u;
 	PetscScalar w;
@@ -1075,6 +1077,8 @@ PetscErrorCode sp_update_surface_swarm_particles_properties(PetscInt active_laye
     PetscReal surface;
     PetscReal _sl;
     PetscReal _sr;
+    
+    PetscReal hsl = sp_evaluate_adjusted_mean_elevation_with_sea_level();
 
     PetscFunctionBeginUser;
 
@@ -1119,7 +1123,9 @@ PetscErrorCode sp_update_surface_swarm_particles_properties(PetscInt active_laye
         surface = _sl * (1.0 - rx) + _sr * rx;
 
         // (A2L) air particle bellow the surface => assign land properties
-        if (a2l == PETSC_TRUE && layer[p] == n_interfaces) {
+        bool cond_a2l = (layer[p] == n_interfaces) || (layer[p] == water_interface);
+
+        if (a2l == PETSC_TRUE && cond_a2l) {
             if (py < surface) {
                 layer[p] = active_layer;
                 geoq_fac[p] = inter_geoq[active_layer];
@@ -1129,14 +1135,20 @@ PetscErrorCode sp_update_surface_swarm_particles_properties(PetscInt active_laye
             }
         }
 
-        // (L2A) land particle above the surface => assign air properties
-        if (layer[p] != n_interfaces) { //  && sp_mode != SP_SEDIMENTATION_ONLY) {
-            if (py > surface) {
+        // (L2A) land particle above the surface => assign air or water properties
+        bool cond_land = ((layer[p] != n_interfaces) && (layer[p] != water_interface));
+        if (cond_land && (py > surface)) {  // if it's neither air nor water, and it's above surface
+            if ((water_interface>0)&&(py <= hsl)){ // if water_interface is positive, and is bellow the base level
+                layer[p] = water_interface;
+                geoq_fac[p] = inter_geoq[water_interface];
+            } 
+            else {                     // if water load is off or on, but it's above the base level
                 layer[p] = n_interfaces;
                 geoq_fac[p] = inter_geoq[n_interfaces];
-                strain_fac[p] = 0.0;
             }
+            strain_fac[p] = 0.0;
         }
+        
     }
 
     PetscSynchronizedFlush(PETSC_COMM_WORLD, PETSC_STDOUT);
