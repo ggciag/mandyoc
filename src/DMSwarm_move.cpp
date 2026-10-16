@@ -101,6 +101,7 @@ extern PetscReal T0_healing;
 extern int n_interfaces;
 extern PetscInt water_interface; // water load interface - Joao Bueno
 extern PetscReal sp_evaluate_adjusted_mean_elevation_with_sea_level();
+PetscReal hsl;
 
 PetscReal linear_interpolation(PetscReal rx, PetscReal rz,PetscScalar V0, PetscScalar V1, PetscScalar V2, PetscScalar V3){
 	PetscReal rfac,vx;
@@ -260,7 +261,7 @@ PetscErrorCode moveSwarm(int dimensions, PetscReal dt)
 
 	// corrected sea level height
 	if (water_interface >0){
-		PetscReal hsl = sp_evaluate_adjusted_mean_elevation_with_sea_level();
+		hsl = sp_evaluate_adjusted_mean_elevation_with_sea_level();
 	};
 
 	if (dimensions == 2) {
