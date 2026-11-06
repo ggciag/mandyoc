@@ -110,6 +110,8 @@ extern PetscReal *var_bl_time;
 extern PetscReal *var_bl_value;
 extern PetscInt n_var_bl;
 
+extern PetscBool use_variable_thermal_conductivity;
+
 // Sedimentation parameters
 extern PetscReal continental_slope;
 extern PetscReal strain_sed;
@@ -787,6 +789,7 @@ PetscErrorCode reader(int rank, const char fName[]){
 					{
 						fscanf(f_interfaces, "%lf", &conductivity[i]);
 					}
+					use_variable_thermal_conductivity = PETSC_TRUE;
 				}
 				else if (strcmp(str, "weakening_seed") == 0)
 				{

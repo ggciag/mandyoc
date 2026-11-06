@@ -39,8 +39,10 @@ extern PetscReal *NT_x;
 extern PetscReal *NT_y;
 extern PetscReal *NT_z;
 
+extern PetscBool use_variable_thermal_conductivity;
 
-PetscErrorCode montaKeThermal_simplif_2d(double *Ke_local,double *Ke,double kappa_eff){
+
+PetscErrorCode montaKeThermal_simplif_2d(double *Ke_local,double *Ke,double kappa_eff, double rho_eff){
 	long i,j,c;
 
 	PetscErrorCode ierr=0;
@@ -161,8 +163,14 @@ PetscErrorCode montaKeThermal_simplif_2d(double *Ke_local,double *Ke,double kapp
 
 	//exit(0);
 	for (i=0;i<V_NE*V_NE;i++) Ke_local[i]*=advection_scaled;
-	kappa_eff *= diffusion_scaled;
-	for (i=0;i<V_NE*V_NE;i++) Ke_local[i]+=Ke[i]*kappa_eff;
+	kappa_eff *= diffusion_scaled; // check with use_variable_thermal_conductivity !!!
+
+	if (use_variable_thermal_conductivity==PETSC_FALSE){
+		for (i=0;i<V_NE*V_NE;i++) Ke_local[i]+=Ke[i]*kappa_eff;
+	}
+	else {
+		for (i=0;i<V_NE*V_NE;i++) Ke_local[i]+=Ke[i]*kappa_eff*rho_eff*c_heat_capacity;
+	}
 
 	return (ierr);
 
@@ -234,18 +242,36 @@ PetscErrorCode montaKeThermal_general_2d(PetscReal *Ke, PetscReal *Me, PetscReal
 				NT_x[i+point*V_NE] = N_x[i];
 				NT_z[i+point*V_NE] = N_z[i];
 
-				if (c_heat_capacity>0.0) Fe[i] += prodH*volume*N[i]/c_heat_capacity;///H_per_mass removed from here: ok
+				if (use_variable_thermal_conductivity==PETSC_FALSE){
 
-				for (j=0;j<V_NE;j++){
-					Me[i*V_NE+j]+=prodH*volume*N[i]*N[j];
+					if (c_heat_capacity>0.0) Fe[i] += prodH*volume*N[i]/c_heat_capacity;///H_per_mass removed from here: ok
 
-					/*Ke[i*V_NE+j]+=  prodH*volume*N[i]*(N_x[j]*vv_local[0]+N_y[j]*vv_local[1]+N_z[j]*vv_local[2]);
+					for (j=0;j<V_NE;j++){
+						Me[i*V_NE+j]+=prodH*volume*N[i]*N[j];
 
-					 if (mod_vv>0) Ke[i*V_NE+j]+= prodH*volume*
-					 (kappa_arti*(N_x[i]*unit_vv[0]+N_y[i]*unit_vv[1]+N_z[i]*unit_vv[2])/mod_vv)*
-					 (N_x[j]*vv_local[0]+N_y[j]*vv_local[1]+N_z[j]*vv_local[2]);*/
+						/*Ke[i*V_NE+j]+=  prodH*volume*N[i]*(N_x[j]*vv_local[0]+N_y[j]*vv_local[1]+N_z[j]*vv_local[2]);
 
-					Ke[i*V_NE+j]+= prodH*volume*(N_x[i]*N_x[j]+N_z[i]*N_z[j]);
+						if (mod_vv>0) Ke[i*V_NE+j]+= prodH*volume*
+						(kappa_arti*(N_x[i]*unit_vv[0]+N_y[i]*unit_vv[1]+N_z[i]*unit_vv[2])/mod_vv)*
+						(N_x[j]*vv_local[0]+N_y[j]*vv_local[1]+N_z[j]*vv_local[2]);*/
+
+						Ke[i*V_NE+j]+= prodH*volume*(N_x[i]*N_x[j]+N_z[i]*N_z[j]);
+					}
+				}
+				else {
+					Fe[i] += prodH*volume*N[i];///H_per_mass removed from here: ok  // !!!conductivity!!!
+
+					for (j=0;j<V_NE;j++){
+						Me[i*V_NE+j]+=c_heat_capacity*volume*N[i]*N[j]; //!!!conductivity!!!
+
+						/*Ke[i*V_NE+j]+=  prodH*volume*N[i]*(N_x[j]*vv_local[0]+N_y[j]*vv_local[1]+N_z[j]*vv_local[2]);
+
+						if (mod_vv>0) Ke[i*V_NE+j]+= prodH*volume*
+						(kappa_arti*(N_x[i]*unit_vv[0]+N_y[i]*unit_vv[1]+N_z[i]*unit_vv[2])/mod_vv)*
+						(N_x[j]*vv_local[0]+N_y[j]*vv_local[1]+N_z[j]*vv_local[2]);*/
+
+						Ke[i*V_NE+j]+= prodH*volume*c_heat_capacity*(N_x[i]*N_x[j]+N_z[i]*N_z[j]); //!!!conductivity!!!
+					}
 				}
 			}
 

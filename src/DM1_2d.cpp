@@ -3,7 +3,7 @@
 
 #include <petsctime.h>
 
-PetscErrorCode montaKeThermal_simplif_2d(double *Ke_local,double *Ke,double  kappa_eff);
+PetscErrorCode montaKeThermal_simplif_2d(double *Ke_local,double *Ke,double  kappa_eff, double rho_eff);
 PetscErrorCode ascii2bin(char *s1, char *s2);
 PetscErrorCode mean_value_periodic_boundary_2d(DM da,Vec F,Vec local_F, PetscScalar **ff,int esc);
 
@@ -57,6 +57,8 @@ extern Vec local_Temper;
 extern Vec geoq_H,local_geoq_H;
 extern Vec geoq_kappa, local_geoq_kappa;
 
+extern Vec geoq_rho, local_geoq_rho;
+
 extern Vec local_TC;
 
 extern Vec local_V;
@@ -98,6 +100,8 @@ extern Vec local_X_depletion;
 
 
 extern PetscBool magmatism_flag;
+
+extern PetscBool use_variable_thermal_conductivity;
 
 
 typedef struct {
@@ -207,6 +211,21 @@ PetscErrorCode AssembleA_Thermal_2d(Mat A,DM thermal_da,PetscReal *TKe,PetscReal
 	ierr = DMDAVecGetArray(thermal_da,local_geoq_kappa,&qq_kappa);CHKERRQ(ierr);
 
 
+	//////////
+
+	PetscScalar **qq_rho;
+
+	ierr = VecZeroEntries(local_geoq_rho);CHKERRQ(ierr);
+
+	ierr = DMGlobalToLocalBegin(thermal_da,geoq_rho,INSERT_VALUES,local_geoq_rho);
+	ierr = DMGlobalToLocalEnd(thermal_da,geoq_rho,INSERT_VALUES,local_geoq_rho);
+
+	ierr = DMDAVecGetArray(thermal_da,local_geoq_rho,&qq_rho);CHKERRQ(ierr);
+
+
+	//////////
+
+
 	PetscInt               M,P;
 
 
@@ -251,8 +270,8 @@ PetscErrorCode AssembleA_Thermal_2d(Mat A,DM thermal_da,PetscReal *TKe,PetscReal
 
 	ierr = DMDAGetElementCorners_2d(thermal_da,&sex,&sez,&mx,&mz);CHKERRQ(ierr);
 
-	PetscReal tt_ele[4],tt_mean,tt_ref=1330.0;
-	double kappa_eff;
+	PetscReal tt_ele[4],rr_ele[4],tt_mean,tt_ref=1330.0;
+	double kappa_eff,rho_eff;
 
 	for (ek = sez; ek < sez+mz; ek++) {
 		for (ei = sex; ei < sex+mx; ei++) {
@@ -284,9 +303,24 @@ PetscErrorCode AssembleA_Thermal_2d(Mat A,DM thermal_da,PetscReal *TKe,PetscReal
 				if (kappa_eff>kappa*50) kappa_eff = kappa*50;
 			}
 
-			montaKeThermal_simplif_2d(TCe_fut, TKe, kappa_eff);//check: modify the simplified version
+			if (use_variable_thermal_conductivity == PETSC_TRUE){
+				rr_ele[0] = qq_rho[ek][ei];
+				rr_ele[1] = qq_rho[ek][ei+1];
+				rr_ele[2] = qq_rho[ek+1][ei];
+				rr_ele[3] = qq_rho[ek+1][ei+1];
 
-			for (c=0;c<T_NE*T_NE;c++) Ttotal[c] = TMe[c] + alpha_thermal*dt_calor_sec*TCe_fut[c];
+				rho_eff = (rr_ele[0]+rr_ele[1]+rr_ele[2]+rr_ele[3])/4;
+
+				montaKeThermal_simplif_2d(TCe_fut, TKe, kappa_eff,rho_eff);//check: modify the simplified version
+
+				for (c=0;c<T_NE*T_NE;c++) Ttotal[c] = rho_eff*TMe[c] + alpha_thermal*dt_calor_sec*rho_eff*TCe_fut[c];
+
+			}
+			else {
+				montaKeThermal_simplif_2d(TCe_fut, TKe, kappa_eff,rho_eff);//check: modify the simplified version
+
+				for (c=0;c<T_NE*T_NE;c++) Ttotal[c] = TMe[c] + alpha_thermal*dt_calor_sec*TCe_fut[c];
+			}
 
 			if (periodic_boundary==1){
 				if (ei+1==Nx-1){
@@ -317,6 +351,7 @@ PetscErrorCode AssembleA_Thermal_2d(Mat A,DM thermal_da,PetscReal *TKe,PetscReal
 	ierr = DMDAVecRestoreArray(thermal_da,local_TC,&TTC);CHKERRQ(ierr);
 	ierr = DMDAVecRestoreArray(thermal_da,local_Temper,&tt);CHKERRQ(ierr);
 	ierr = DMDAVecRestoreArray(thermal_da,local_geoq_kappa,&qq_kappa);CHKERRQ(ierr);
+	ierr = DMDAVecRestoreArray(thermal_da,local_geoq_rho,&qq_rho);CHKERRQ(ierr);
 
 
 	PetscFunctionReturn(0);
@@ -374,6 +409,20 @@ PetscErrorCode AssembleF_Thermal_2d(Vec F,DM thermal_da,PetscReal *TKe,PetscReal
 
 	ierr = DMDAVecGetArray(thermal_da,local_geoq_kappa,&qq_kappa);CHKERRQ(ierr);
 
+	//////////
+
+	PetscScalar **qq_rho;
+
+	ierr = VecZeroEntries(local_geoq_rho);CHKERRQ(ierr);
+
+	ierr = DMGlobalToLocalBegin(thermal_da,geoq_rho,INSERT_VALUES,local_geoq_rho);
+	ierr = DMGlobalToLocalEnd(thermal_da,geoq_rho,INSERT_VALUES,local_geoq_rho);
+
+	ierr = DMDAVecGetArray(thermal_da,local_geoq_rho,&qq_rho);CHKERRQ(ierr);
+
+
+	//////////
+
 
 
 	/* get acces to the vector */
@@ -417,8 +466,8 @@ PetscErrorCode AssembleF_Thermal_2d(Vec F,DM thermal_da,PetscReal *TKe,PetscReal
 	PetscReal H_efetivo;
 
 
-	PetscReal tt_ele[4],tt_mean,tt_ref=1330.0;
-	double kappa_eff;
+	PetscReal tt_ele[4],rr_ele[4],tt_mean,tt_ref=1330.0;
+	double kappa_eff,rho_eff;
 
 	ierr = DMDAGetElementCorners_2d(thermal_da,&sex,&sez,&mx,&mz);CHKERRQ(ierr);
 	for (ek = sez; ek < sez+mz; ek++) {
@@ -454,10 +503,28 @@ PetscErrorCode AssembleF_Thermal_2d(Vec F,DM thermal_da,PetscReal *TKe,PetscReal
 				if (kappa_eff>kappa*50) kappa_eff = kappa*50;
 			}
 
-			montaKeThermal_simplif_2d(TCe, TKe, kappa_eff);//check: modify the simplified version
 
-			for (c=0;c<T_NE*T_NE;c++) Ttotal_b[c] = TMe[c] - comp_alpha_thermal*dt_calor_sec*TCe[c];
 
+			if (use_variable_thermal_conductivity == PETSC_TRUE){
+				rr_ele[0] = qq_rho[ek][ei];
+				rr_ele[1] = qq_rho[ek][ei+1];
+				rr_ele[2] = qq_rho[ek+1][ei];
+				rr_ele[3] = qq_rho[ek+1][ei+1];
+
+				rho_eff = (rr_ele[0]+rr_ele[1]+rr_ele[2]+rr_ele[3])/4;
+
+				montaKeThermal_simplif_2d(TCe, TKe, kappa_eff,rho_eff);//check: modify the simplified version
+
+				for (c=0;c<T_NE*T_NE;c++) Ttotal_b[c] = rho_eff*TMe[c] - comp_alpha_thermal*rho_eff*dt_calor_sec*TCe[c];
+
+			}
+			else{
+
+				montaKeThermal_simplif_2d(TCe, TKe, kappa_eff,rho_eff);//check: modify the simplified version
+
+				for (c=0;c<T_NE*T_NE;c++) Ttotal_b[c] = TMe[c] - comp_alpha_thermal*dt_calor_sec*TCe[c];
+
+			}
 
 
 
@@ -561,6 +628,7 @@ PetscErrorCode AssembleF_Thermal_2d(Vec F,DM thermal_da,PetscReal *TKe,PetscReal
 		ierr = DMDAVecRestoreArray(thermal_da,local_dPhi,&ddphi);CHKERRQ(ierr);
 	}
 	ierr = DMDAVecRestoreArray(thermal_da,local_geoq_kappa,&qq_kappa);CHKERRQ(ierr);
+	ierr = DMDAVecRestoreArray(thermal_da,local_geoq_rho,&qq_rho);CHKERRQ(ierr);
 
 	if (periodic_boundary==1){
 

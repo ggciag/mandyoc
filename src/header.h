@@ -378,6 +378,9 @@ PetscReal *strain_seed_layer;
 PetscInt strain_seed_layer_size;
 PetscBool strain_seed_layer_set = PETSC_FALSE;
 
+
+PetscBool use_variable_thermal_conductivity = PETSC_FALSE;
+
 PetscBool strain_seed_constant = PETSC_TRUE;
 PetscBool strain_seed_constant_set = PETSC_FALSE;
 
